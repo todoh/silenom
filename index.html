@@ -8,25 +8,35 @@
     <title>Aplicación de Videollamada P2P</title>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
-</head>
-
-<body>
     <style>
         body {
-            font-family: 'Inter', sans-serif; /* Usando Inter como se sugiere */
-            background-color: #f0f0f0;
+            font-family: 'Inter', sans-serif;
+            background-color: black; /* Fondo negro */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            color: #333;
+            color: #eee; /* Color de texto claro para el fondo oscuro */
+            overflow: hidden; /* Evitar scroll si los videos son muy grandes */
+        }
+
+        .controls-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px; /* Espacio entre los controles */
+            margin-bottom: 20px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente para los controles */
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
         button {
             padding: 12px 25px;
-            margin: 15px 0;
             border-radius: 8px; /* Bordes redondeados */
             border: none;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -47,25 +57,66 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
 
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .volume-control input[type="range"] {
+            width: 150px;
+            height: 8px;
+            border-radius: 5px;
+            background: #555;
+            outline: none;
+            -webkit-appearance: none; /* Ocultar el estilo predeterminado del navegador */
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .volume-control input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #007bff;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+
         #localVideo,
         #remoteVideo {
             border-radius: 12px; /* Bordes más redondeados */
-            margin: 15px;
-            width: 48%; /* Ajuste para ser más fluido */
-            max-width: 500px; /* Ancho máximo para videos */
-            height: auto; /* Altura automática para mantener la proporción */
+            margin: 5px; /* Espacio mínimo entre videos */
+            width: 49vw; /* Ocupa casi la mitad del ancho de la ventana */
+            height: 80vh; /* Ocupa casi todo el alto de la ventana */
+            object-fit: cover; /* Asegura que el video cubra el área sin distorsión */
             border: 3px solid #007bff;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5); /* Sombra más pronunciada */
             background-color: #000; /* Fondo negro para videos si no hay stream */
         }
 
         .video-container {
             display: flex;
-            flex-wrap: wrap; /* Permite que los videos se envuelvan en pantallas pequeñas */
-            justify-content: center; /* Centra los videos */
-            width: 95%; /* Ancho fluido */
-            max-width: 1200px; /* Ancho máximo del contenedor */
-            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center; /* Centra los videos verticalmente */
+            width: 100vw; /* Ocupa todo el ancho de la ventana */
+            height: 85vh; /* Ocupa la mayor parte del alto de la ventana */
+            margin-top: 0; /* Eliminar margen superior */
         }
 
         /* Estilo para el mensaje de error/información */
@@ -85,18 +136,35 @@
         @media (max-width: 768px) {
             .video-container {
                 flex-direction: column; /* Apila los videos en pantallas pequeñas */
-                align-items: center;
+                height: auto; /* Altura automática para permitir el scroll si es necesario */
             }
             #localVideo,
             #remoteVideo {
-                width: 90%; /* Ocupa más ancho en móvil */
-                margin: 10px 0;
+                width: 95vw; /* Ocupa casi todo el ancho en móvil */
+                height: 40vh; /* Altura ajustada para móvil */
+                margin: 5px 0;
+            }
+            .controls-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .volume-control input[type="range"] {
+                width: 100px;
             }
         }
     </style>
+</head>
 
-    <button id="btn-toggle-camera">Desactivar cámara</button>
-    <div id="cameraStatusMessage"></div> <div class="video-container">
+<body>
+    <div class="controls-container">
+        <button id="btn-toggle-camera">Desactivar cámara</button>
+        <div class="volume-control">
+            <label for="volumeSlider">Micrófono:</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+        </div>
+    </div>
+    <div id="cameraStatusMessage"></div>
+    <div class="video-container">
         <video id="localVideo" autoplay playsinline muted></video>
         <video id="remoteVideo" autoplay playsinline></video>
     </div>
@@ -109,22 +177,27 @@
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
         let peer = null; // Inicializar peer a null
-        let localStream = null;
+        let localStream = null; // Stream local que se envía y se muestra
+        let originalLocalMediaStream = null; // El stream original de getUserMedia
         let remotePeerId = null; // Para rastrear el ID del peer remoto conectado
         let callInProgress = false; // Bandera para evitar múltiples llamadas
         let reconnectionAttemptInterval = null; // Para almacenar el ID del intervalo de reconexión
         const RECONNECTION_INTERVAL_MS = 3000; // Intervalo de chequeo de reconexión (3 segundos)
         let isPeerConnecting = false; // Nueva bandera para evitar múltiples llamadas a initializePeer
 
+        // Variables para el control de volumen del micrófono
+        let audioContext = null;
+        let microphoneSource = null;
+        let gainNode = null;
+        let mediaStreamDestination = null;
+
         const btnToggleCamera = document.getElementById("btn-toggle-camera");
         const localVideo = document.getElementById("localVideo");
-        const remoteVideo = document.getElementById("remoteVideo"); // Obtener referencia al video remoto
-        const cameraStatusMessage = document.getElementById("cameraStatusMessage"); // Obtener referencia al mensaje de estado
+        const remoteVideo = document.getElementById("remoteVideo");
+        const cameraStatusMessage = document.getElementById("cameraStatusMessage");
+        const volumeSlider = document.getElementById('volumeSlider'); // Nuevo: Slider de volumen
 
         // Configuración de Firebase
-        // Usar __firebase_config global si está disponible, de lo contrario usar la configuración predeterminada
-      
-         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAfK_AOq-Pc2bzgXEzIEZ1ESWvnhMJUvwI",
             authDomain: "enraya-51670.firebaseapp.com",
@@ -173,6 +246,42 @@
             cameraStatusMessage.style.display = 'none';
         }
 
+        /**
+         * Configura el stream local con control de volumen.
+         * @param {MediaStream} stream - El stream original de getUserMedia.
+         */
+        function setupLocalStreamWithVolumeControl(stream) {
+            // Detener y cerrar el contexto de audio anterior si existe
+            if (audioContext) {
+                audioContext.close();
+            }
+
+            originalLocalMediaStream = stream; // Guardar el stream original
+
+            const audioTrack = stream.getAudioTracks()[0];
+            const videoTrack = stream.getVideoTracks()[0];
+
+            if (audioTrack) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphoneSource = audioContext.createMediaStreamSource(new MediaStream([audioTrack]));
+                gainNode = audioContext.createGain();
+                mediaStreamDestination = audioContext.createMediaStreamDestination();
+
+                microphoneSource.connect(gainNode);
+                gainNode.connect(mediaStreamDestination);
+
+                // Crear un nuevo stream que combina el video original con el audio controlado por el GainNode
+                localStream = new MediaStream([videoTrack, mediaStreamDestination.stream.getAudioTracks()[0]]);
+                gainNode.gain.value = parseFloat(volumeSlider.value); // Establecer el volumen inicial del slider
+            } else {
+                // Si no hay pista de audio, simplemente usar el stream original
+                localStream = stream;
+                console.warn("No se encontró pista de audio en el stream local.");
+            }
+
+            localVideo.srcObject = localStream;
+            localVideo.onloadedmetadata = () => localVideo.play();
+        }
 
         /**
          * Intenta reinicializar la conexión PeerJS si está desconectada o no inicializada.
@@ -285,6 +394,7 @@
                                     showStatusMessage("Error: No se pudo iniciar la llamada. Acceso a la cámara/micrófono denegado o no disponible.", 'error');
                                     return; // Salir temprano
                                 }
+                                // Usar el localStream con control de volumen
                                 const call = peer.call(remotePeerId, localStream);
                                 // Manejar el stream del peer remoto
                                 call.on("stream", stream => {
@@ -351,6 +461,10 @@
                         .catch(error => {
                             console.error("Error al eliminar el peer de Firebase:", error);
                         });
+                    // Cerrar el contexto de audio al salir
+                    if (audioContext) {
+                        audioContext.close();
+                    }
                 });
             });
 
@@ -369,7 +483,8 @@
                     showStatusMessage("Error: No se pudo responder a la llamada. Acceso a la cámara/micrófono denegado o no disponible.", 'error');
                     return; // Salir temprano
                 }
-                call.answer(localStream); // Responder a la llamada con el stream local
+                // Responder a la llamada con el localStream con control de volumen
+                call.answer(localStream);
                 call.on("stream", stream => {
                     remoteVideo.srcObject = stream;
                     remoteVideo.onloadedmetadata = () => remoteVideo.play();
@@ -413,9 +528,7 @@
             // Acceso inicial a la cámara y el micrófono
             navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                 .then(stream => {
-                    localStream = stream;
-                    localVideo.srcObject = localStream;
-                    localVideo.onloadedmetadata = () => localVideo.play();
+                    setupLocalStreamWithVolumeControl(stream); // Configurar el stream con control de volumen
                     btnToggleCamera.textContent = "Desactivar cámara";
                     hideStatusMessage(); // Ocultar mensaje si la cámara se activa correctamente
                 })
@@ -430,11 +543,24 @@
         // Manejar el botón de alternar cámara
         btnToggleCamera.addEventListener("click", function() {
             if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
+                // Detener todas las pistas del stream original para liberar recursos
+                if (originalLocalMediaStream) {
+                    originalLocalMediaStream.getTracks().forEach(track => track.stop());
+                }
+                // Cerrar el contexto de audio
+                if (audioContext) {
+                    audioContext.close();
+                    audioContext = null;
+                    microphoneSource = null;
+                    gainNode = null;
+                    mediaStreamDestination = null;
+                }
+
                 localStream = null;
+                originalLocalMediaStream = null;
                 localVideo.srcObject = null;
                 btnToggleCamera.textContent = "Activar cámara";
-                showStatusMessage("Cámara desactivada.", 'info');
+                showStatusMessage("Cámara y micrófono desactivados.", 'info');
                 // Si se desactiva la cámara, también debería finalizar la llamada si está en curso
                 if (peer && peer.connections) {
                     for (let conns in peer.connections) {
@@ -448,9 +574,7 @@
             } else {
                 navigator.mediaDevices.getUserMedia({ video: true, audio: true })
                     .then(stream => {
-                        localStream = stream;
-                        localVideo.srcObject = localStream;
-                        localVideo.onloadedmetadata = () => localVideo.play();
+                        setupLocalStreamWithVolumeControl(stream); // Configurar el stream con control de volumen
                         btnToggleCamera.textContent = "Desactivar cámara";
                         hideStatusMessage(); // Ocultar mensaje si la cámara se activa correctamente
                         // Si se activa la cámara, intentar reconectar si hay un peer remoto
@@ -458,6 +582,7 @@
                             console.log("Cámara activada, intentando reconectar con:", remotePeerId);
                             callInProgress = true;
                             try {
+                                // Usar el localStream con control de volumen
                                 const call = peer.call(remotePeerId, localStream);
                                 call.on("stream", stream => {
                                     remoteVideo.srcObject = stream;
@@ -485,6 +610,15 @@
                     });
             }
         });
+
+        // Nuevo: Event listener para el slider de volumen
+        volumeSlider.addEventListener('input', (event) => {
+            if (gainNode) {
+                gainNode.gain.value = parseFloat(event.target.value);
+                console.log("Volumen del micrófono establecido a:", gainNode.gain.value);
+            }
+        });
+
 
         // Iniciar la inicialización de PeerJS cuando la ventana se carga
         window.onload = function() {
