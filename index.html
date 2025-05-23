@@ -1,203 +1,519 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplicación de Videollamada P2P</title>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script type="module" src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <title>Juego de Cartas - CS</title>
     <style>
+        /* Estilos CSS embebidos */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: black; /* Fondo negro */
+            font-family: 'Inter', sans-serif; /* Usamos Inter como se sugiere */
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
-            color: #eee; /* Color de texto claro para el fondo oscuro */
-            overflow: hidden; /* Evitar scroll si los videos son muy grandes */
+            background-color: #1a1a1a; /* Fondo casi negro para elegancia */
+            color: #ffffff; /* Texto blanco puro */
+            overflow: hidden; /* Evita el scroll si el contenido es un poco más grande */
         }
 
-        .controls-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+        .game-screen {
+            display: none; /* Ocultar todas las pantallas por defecto */
+            flex-direction: column;
             align-items: center;
-            gap: 20px; /* Espacio entre los controles */
-            margin-bottom: 20px;
-            padding: 10px;
-            background-color: rgba(0, 0, 0, 0.5); /* Fondo semitransparente para los controles */
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            padding: 25px; /* Más padding para un look más espacioso */
+            border: 1px solid #FF0000; /* Borde fino rojo */
+            border-radius: 0; /* Bordes rectos */
+            background-color: #222222; /* Fondo gris muy oscuro */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Sombra más sutil */
+            width: 90%;
+            max-width: 550px; /* Un poco más ancho */
+            box-sizing: border-box;
+            gap: 20px; /* Más espacio entre elementos */
+        }
+
+        .game-screen.active {
+            display: flex; /* Mostrar solo la pantalla activa */
+        }
+
+        h1 {
+            color: #FF0000; /* Título rojo */
+            margin-bottom: 25px; /* Más margen */
+            text-align: center;
+            font-size: 2.2em; /* Título más grande */
+            text-transform: uppercase; /* Mayúsculas para un look más limpio */
+            letter-spacing: 2px; /* Espaciado entre letras */
+        }
+
+        .input-group {
+            margin-bottom: 20px; /* Más margen */
+            width: 100%;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px; /* Más margen */
+            font-size: 1.15em; /* Texto de label más grande */
+            color: #cccccc; /* Gris suave para labels */
+        }
+
+        input[type="text"] {
+            padding: 15px; /* Más padding */
+            width: calc(100% - 30px); /* Ajuste para padding */
+            border: 1px solid #555555; /* Borde de input gris oscuro */
+            border-radius: 0; /* Bordes rectos */
+            background-color: #333333; /* Fondo de input más oscuro */
+            color: #ffffff; /* Texto blanco */
+            font-size: 1.1em; /* Fuente de input más grande */
+            margin-bottom: 15px; /* Más margen */
+            box-sizing: border-box;
         }
 
         button {
-            padding: 12px 25px;
-            border-radius: 8px; /* Bordes redondeados */
+            padding: 14px 30px; /* Más padding */
+            background-color: #FF0000; /* Botón rojo */
+            color: #ffffff; /* Texto blanco */
             border: none;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            background-color: #007bff;
-            color: white;
+            border-radius: 0; /* Bordes rectos */
             cursor: pointer;
-            font-size: 18px;
-            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-size: 1.1em; /* Fuente de botón más grande */
+            font-weight: bold;
+            text-transform: uppercase; /* Mayúsculas */
+            letter-spacing: 1px; /* Espaciado entre letras */
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); /* Sombra sutil */
         }
 
         button:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
+            background-color: #CC0000; /* Rojo más oscuro al pasar el ratón */
+            transform: translateY(-1px); /* Menos movimiento */
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
         }
 
         button:active {
             transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
-        .volume-control {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: white;
-            font-size: 1.1em;
-        }
-
-        .volume-control input[type="range"] {
-            width: 150px;
-            height: 8px;
-            border-radius: 5px;
-            background: #555;
-            outline: none;
-            -webkit-appearance: none; /* Ocultar el estilo predeterminado del navegador */
-            appearance: none;
-            cursor: pointer;
-        }
-
-        .volume-control input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .volume-control input[type="range"]::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #007bff;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-
-        #localVideo,
-        #remoteVideo {
-            border-radius: 12px; /* Bordes más redondeados */
-            margin: 5px; /* Espacio mínimo entre videos */
-            width: 49vw; /* Ocupa casi la mitad del ancho de la ventana */
-            height: 80vh; /* Ocupa casi todo el alto de la ventana */
-            object-fit: cover; /* Asegura que el video cubra el área sin distorsión */
-            border: 3px solid #007bff;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5); /* Sombra más pronunciada */
-            background-color: #000; /* Fondo negro para videos si no hay stream */
-        }
-
-        .video-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center; /* Centra los videos verticalmente */
-            width: 100vw; /* Ocupa todo el ancho de la ventana */
-            height: 85vh; /* Ocupa la mayor parte del alto de la ventana */
-            margin-top: 0; /* Eliminar margen superior */
-        }
-
-        /* Estilo para el mensaje de error/información */
-        #cameraStatusMessage {
-            color: #dc3545; /* Rojo para errores */
+        .error-message {
+            color: #ff4d4d; /* Rojo de error ligeramente más brillante */
             margin-top: 10px;
-            font-size: 1.1em;
+            font-weight: bold;
             text-align: center;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #ffebe8;
-            border: 1px solid #dc3545;
-            display: none; /* Oculto por defecto */
+            font-size: 1em;
         }
 
-        /* Ajustes responsivos */
+        /* Estilos para la pantalla de juego (screen3) */
+        #screen3 {
+            width: 100%;
+            max-width: 1200px;
+            height: 95vh;
+            display: grid;
+            grid-template-rows: 1fr 2fr 1fr;
+            gap: 20px; /* Más espacio entre secciones */
+            padding: 15px;
+            background-color: #1a1a1a; /* Fondo que coincide con el body */
+            border: none;
+            box-shadow: none;
+        }
+
+        .player-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #333333; /* Borde muy sutil */
+            border-radius: 0; /* Bordes rectos */
+            background-color: #2b2b2b; /* Fondo gris oscuro */
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2); /* Sombra interior muy sutil */
+        }
+
+        .opponent-area {
+            order: 1;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .own-area {
+            order: 3;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .board-area {
+            order: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a1a1a; /* Fondo que coincide con el body */
+            border-radius: 0; /* Ahora es cuadrado */
+            border: 1px solid #FF0000; /* Borde fino rojo */
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 550px; /* Coincide con el ancho de las pantallas de inicio */
+            max-height: 550px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3); /* Resplandor rojo más sutil */
+        }
+
+        /* Estilos para las manos y los mazos/descartes */
+        .hand {
+            display: flex;
+            gap: 15px; /* Más espacio entre cartas */
+            min-height: 200px; /* Espacio para cartas más grandes */
+            border: none; /* Sin borde */
+            padding: 10px;
+            border-radius: 0;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .deck-discard-area {
+            display: flex;
+            gap: 40px; /* Más espacio */
+            margin-top: 20px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .deck, .discard-pile {
+            width: 140px; /* Cartas más grandes */
+            height: 200px; /* Cartas más grandes */
+            border: 1px solid #555555; /* Borde sutil */
+            background-color: #333333; /* Fondo oscuro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2em; /* Texto más grande */
+            color: #cccccc;
+            border-radius: 0; /* Bordes rectos */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        /* Estilo para el envés de la carta del rival */
+        .opponent-hand .card-back {
+            background-color: #000000; /* Negro sólido */
+            color: #ffffff;
+            width: 130px; /* Ligeramente más pequeña que la propia */
+            height: 190px;
+            border-radius: 0; /* Bordes rectos */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5em; /* Letras CS más grandes */
+            font-weight: bold;
+            border: 1px solid #444444; /* Borde sutil */
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Estilos para la carta en mano del jugador */
+        .card-in-hand {
+            width: 140px; /* Cartas más grandes */
+            height: 200px; /* Cartas más grandes */
+            background-color: #ffffff; /* Fondo blanco para las cartas */
+            border: 1px solid #333333; /* Borde sutil */
+            border-radius: 0; /* Bordes rectos */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s 0.3s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-in-hand:hover {
+            transform: translateY(-15px) scale(1.25); /* Zoom y elevación más pronunciados */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); /* Sombra más grande al hacer zoom */
+            z-index: 20;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 55%; /* Ocupa más espacio */
+            background-color: #f0f0f0; /* Fondo más claro para la imagen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.9em; /* Texto más grande */
+            color: #666666; /* Gris más oscuro */
+            border-bottom: 1px solid #e0e0e0; /* Borde más claro */
+        }
+
+        .card-info {
+            padding: 10px; /* Más padding */
+            font-size: 0.9em; /* Texto más grande */
+            color: #333333; /* Texto oscuro */
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .card-name-value {
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px; /* Más espacio */
+            font-size: 1.1em; /* Nombre y valor más grandes */
+        }
+
+        .card-effect {
+            font-size: 0.8em; /* Texto de efecto más grande */
+            line-height: 1.4;
+            color: #555555; /* Gris para el efecto */
+        }
+
+        /* Estilo para la última carta jugada */
+        .last-played-card {
+            width: 140px;
+            height: 200px;
+            background-color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Posicionamiento de los nombres de jugador */
+        #ownNameDisplay, #opponentNameDisplay {
+            font-size: 1.5em; /* Nombres más grandes */
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 15px; /* Más margen */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Botón de pasar turno */
+        .game-button {
+            margin-top: 25px; /* Más margen */
+            align-self: center;
+        }
+
+        .game-message {
+            text-align: center;
+            font-size: 1.3em; /* Mensajes más grandes */
+            font-weight: bold;
+            margin-top: 20px;
+            color: #FFD700; /* Amarillo dorado para mensajes de juego, contrasta bien */
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); /* Sombra sutil para el mensaje */
+        }
+
+        /* Estilos para las casillas del tablero circular */
+        .board-cell {
+            position: absolute;
+            width: 50px; /* Casillas más grandes */
+            height: 50px;
+            background-color: #333333; /* Fondo oscuro para casillas */
+            border: 1px solid #555555; /* Borde sutil */
+            border-radius: 0; /* Ahora son cuadradas */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1em; /* Texto más grande */
+            font-weight: bold;
+            color: #ffffff;
+            box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Estilos para los jugadores en el tablero */
+        .player-token {
+            position: absolute;
+            width: 35px; /* Tokens más grandes */
+            height: 35px;
+            border-radius: 0; /* Ahora son cuadrados */
+            border: 2px solid #ffffff; /* Borde blanco */
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .player1-token {
+            background-color: #e74c3c; /* Rojo */
+        }
+
+        .player2-token {
+            background-color: #3498db; /* Azul */
+        }
+
+        /* Opciones al clicar una carta */
+        .card-options {
+            position: absolute;
+            background-color: #2b2b2b; /* Fondo oscuro */
+            border: 1px solid #FF0000; /* Borde rojo */
+            border-radius: 0; /* Bordes rectos */
+            padding: 12px; /* Más padding */
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px; /* Más espacio */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-options button {
+            width: 100%;
+            padding: 10px 18px; /* Más padding */
+            font-size: 1em; /* Fuente más grande */
+            background-color: #FF0000;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        /* Media Queries para responsividad */
         @media (max-width: 768px) {
-            .video-container {
-                flex-direction: column; /* Apila los videos en pantallas pequeñas */
-                height: auto; /* Altura automática para permitir el scroll si es necesario */
+            .game-screen {
+                padding: 15px;
+                max-width: 95%;
             }
-            #localVideo,
-            #remoteVideo {
-                width: 95vw; /* Ocupa casi todo el ancho en móvil */
-                height: 40vh; /* Altura ajustada para móvil */
-                margin: 5px 0;
+
+            h1 {
+                font-size: 1.6em;
+                margin-bottom: 15px;
             }
-            .controls-container {
-                flex-direction: column;
+
+            label {
+                font-size: 1em;
+            }
+
+            input[type="text"], button {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+
+            #screen3 {
+                grid-template-rows: auto 1fr auto;
+                height: auto;
+                min-height: 95vh;
+                padding: 10px;
                 gap: 10px;
             }
-            .volume-control input[type="range"] {
+
+            .player-area, .deck-discard-area {
+                flex-direction: column;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .hand {
+                min-height: 160px;
+                gap: 10px;
+            }
+
+            .card-in-hand, .last-played-card, .opponent-hand .card-back {
                 width: 100px;
+                height: 140px;
+            }
+            .deck, .discard-pile {
+                width: 100px;
+                height: 140px;
+            }
+            .card-image {
+                height: 50%;
+            }
+            .card-info {
+                padding: 6px;
+                font-size: 0.75em;
+            }
+            .card-name-value {
+                font-size: 1em;
+                margin-bottom: 4px;
+            }
+            .card-effect {
+                font-size: 0.7em;
+                line-height: 1.3;
+            }
+            .board-cell {
+                width: 40px;
+                height: 40px;
+                font-size: 0.8em;
+            }
+            .player-token {
+                width: 28px;
+                height: 28px;
+            }
+            #ownNameDisplay, #opponentNameDisplay {
+                font-size: 1.2em;
+                margin-bottom: 8px;
+            }
+            .game-button {
+                margin-top: 15px;
+                padding: 10px 20px;
+            }
+            .game-message {
+                font-size: 1em;
+                margin-top: 15px;
+            }
+            .card-options {
+                padding: 8px;
+                gap: 5px;
+            }
+            .card-options button {
+                padding: 8px 12px;
+                font-size: 0.85em;
             }
         }
     </style>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
 </head>
-
 <body>
-    <div class="controls-container">
-        <button id="btn-toggle-camera">Desactivar cámara</button>
-        <div class="volume-control">
-            <label for="volumeSlider">Micrófono:</label>
-            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1">
+
+    <div id="screen1" class="game-screen active">
+        <h1>¡Bienvenido a CS Cards!</h1>
+        <div class="input-group">
+            <label for="playerName">Introduce tu nombre:</label>
+            <input type="text" id="playerName" placeholder="Tu nombre">
+            <button id="btnEnterName">Aceptar</button>
         </div>
-    </div>
-    <div id="cameraStatusMessage"></div>
-    <div class="video-container">
-        <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline></video>
+        <p id="nameError" class="error-message"></p>
     </div>
 
+    <div id="screen2" class="game-screen">
+        <h1>Conéctate con tu Rival</h1>
+        <div class="input-group">
+            <label for="rivalName">Introduce el nombre de tu rival:</label>
+            <input type="text" id="rivalName" placeholder="Nombre del rival">
+            <button id="btnConnectRival">Conectar</button>
+        </div>
+        <p id="rivalError" class="error-message"></p>
+        <button id="btnBackToName">Volver</button>
+    </div>
 
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <div id="screen3" class="game-screen">
+        <div class="player-area opponent-area">
+            <span id="opponentNameDisplay">Rival</span>
+            <div class="hand opponent-hand" id="opponentHand">
+                </div>
+            <div class="deck-discard-area">
+                <div class="deck" id="deck">Mazo</div>
+                <div class="discard-pile" id="discardPile">Descarte</div>
+            </div>
+        </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        <div class="board-area" id="gameBoard">
+            </div>
 
-        let peer = null; // Inicializar peer a null
-        let localStream = null; // Stream local que se envía y se muestra
-        let originalLocalMediaStream = null; // El stream original de getUserMedia
-        let remotePeerId = null; // Para rastrear el ID del peer remoto conectado
-        let callInProgress = false; // Bandera para evitar múltiples llamadas
-        let reconnectionAttemptInterval = null; // Para almacenar el ID del intervalo de reconexión
-        const RECONNECTION_INTERVAL_MS = 3000; // Intervalo de chequeo de reconexión (3 segundos)
-        let isPeerConnecting = false; // Nueva bandera para evitar múltiples llamadas a initializePeer
+        <div class="player-area own-area">
+            <span id="ownNameDisplay">Tú</span>
+            <div class="hand own-hand" id="ownHand">
+                </div>
+            <button id="btnPassTurn" class="game-button">Pasar Turno</button>
+        </div>
+        <p id="gameMessage" class="game-message"></p>
+    </div>
 
-        // Variables para el control de volumen del micrófono
-        let audioContext = null;
-        let microphoneSource = null;
-        let gainNode = null;
-        let mediaStreamDestination = null;
-
-        const btnToggleCamera = document.getElementById("btn-toggle-camera");
-        const localVideo = document.getElementById("localVideo");
-        const remoteVideo = document.getElementById("remoteVideo");
-        const cameraStatusMessage = document.getElementById("cameraStatusMessage");
-        const volumeSlider = document.getElementById('volumeSlider'); // Nuevo: Slider de volumen
-
-        // Configuración de Firebase
+    <script>
+        // Tu configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAfK_AOq-Pc2bzgXEzIEZ1ESWvnhMJUvwI",
             authDomain: "enraya-51670.firebaseapp.com",
@@ -210,422 +526,1307 @@
         };
 
         // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
+        // Usamos firebase-app-compat y firebase-auth-compat para compatibilidad
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        // ID de la sala para la conexión automática de 2 personas
-        const ROOM_ID = "twoPersonVideoChat";
+        // Referencias a los elementos de las pantallas
+        const screen1 = document.getElementById('screen1');
+        const screen2 = document.getElementById('screen2');
+        const screen3 = document.getElementById('screen3');
 
-        /**
-         * Muestra un mensaje de estado en la interfaz de usuario.
-         * @param {string} message - El mensaje a mostrar.
-         * @param {string} type - El tipo de mensaje ('info', 'error', 'success').
-         */
-        function showStatusMessage(message, type = 'info') {
-            cameraStatusMessage.textContent = message;
-            cameraStatusMessage.style.display = 'block';
-            if (type === 'error') {
-                cameraStatusMessage.style.color = '#dc3545';
-                cameraStatusMessage.style.borderColor = '#dc3545';
-                cameraStatusMessage.style.backgroundColor = '#ffebe8';
-            } else if (type === 'info') {
-                cameraStatusMessage.style.color = '#0056b3';
-                cameraStatusMessage.style.borderColor = '#007bff';
-                cameraStatusMessage.style.backgroundColor = '#e0f2ff';
-            } else if (type === 'success') {
-                cameraStatusMessage.style.color = '#28a745';
-                cameraStatusMessage.style.borderColor = '#28a745';
-                cameraStatusMessage.style.backgroundColor = '#e6ffe6';
-            }
+        const playerNameInput = document.getElementById('playerName');
+        const btnEnterName = document.getElementById('btnEnterName');
+        const nameError = document.getElementById('nameError');
+
+        const rivalNameInput = document.getElementById('rivalName');
+        const btnConnectRival = document.getElementById('btnConnectRival');
+        const rivalError = document.getElementById('rivalError');
+        const btnBackToName = document.getElementById('btnBackToName');
+
+        const ownNameDisplay = document.getElementById('ownNameDisplay');
+        const opponentNameDisplay = document.getElementById('opponentNameDisplay');
+        const opponentHandDiv = document.getElementById('opponentHand');
+        const ownHandDiv = document.getElementById('ownHand');
+        const gameBoardDiv = document.getElementById('gameBoard');
+        const discardPileDiv = document.getElementById('discardPile');
+        const gameMessageDiv = document.getElementById('gameMessage');
+
+        // Variables globales para los nombres de los jugadores y el estado de la partida
+        let currentPlayerName = '';
+        let rivalPlayerName = '';
+        let currentUserId = ''; // UID de Firebase para el jugador actual
+        let currentRivalId = ''; // UID de Firebase para el rival
+        let currentRoomId = ''; // ID del documento de la sala en Firestore
+        let unsubscribeSnapshot = null; // Para desuscribirse de los listeners de Firestore
+
+        // Definición de las cartas
+        const cardDefinitions = [
+            { id: 'muerte', name: 'Muerte', value: -4.9, effect: 'Elige a un jugador, ese jugador pone sus cartas boca abajo y tú descartas 1 de las cartas. Si esa carta vale 0 o menos, avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/000000/FFFFFF?text=Muerte+-4.9' },
+            { id: 'avefenix', name: 'Ave Fénix', value: -3.3, effect: 'Descarta tu mano y roba 3 cartas.', count: 1, image: 'https://placehold.co/90x65/FF4500/000000?text=Ave+Fenix+-3.3' },
+            { id: 'gato', name: 'Gato', value: -3, effect: 'Roba 2 cartas.', count: 1, image: 'https://placehold.co/90x65/8B4513/FFFFFF?text=Gato+-3' },
+            { id: 'caballodetroya', name: 'Caballo de Troya', value: -2.6, effect: 'Elige a un jugador, ese jugador elige 1 de sus cartas y la descarta.', count: 1, image: 'https://placehold.co/90x65/A9A9A9/000000?text=Caballo+Troya+-2.6' },
+            { id: 'ranadelasuerte', name: 'Rana de la Suerte', value: -2, effect: 'Avanza 2 casillas.', count: 1, image: 'https://placehold.co/90x65/32CD32/FFFFFF?text=Rana+-2' },
+            { id: 'perro', name: 'Perro', value: -4, effect: 'El siguiente jugador pierde su turno.', count: 1, image: 'https://placehold.co/90x65/CD853F/FFFFFF?text=Perro+-4' },
+            { id: 'esclavo', name: 'Esclavo', value: -1, effect: 'Si tienes una carta mayor que 4, puedes mostrarla para avanzar 1 casilla.', count: 2, image: 'https://placehold.co/90x65/696969/FFFFFF?text=Esclavo+-1' },
+            { id: 'loco', name: 'Loco', value: -0.5, effect: 'Elige a un jugador, ambos mostráis 1 de vuestras cartas, la más alta gana. Ambas cartas son descartadas. El jugador ganador avanza 2 casillas y el perdedor retrocede 1.', count: 1, image: 'https://placehold.co/90x65/800080/FFFFFF?text=Loco+-0.5' },
+            { id: 'vagabundo', name: 'Vagabundo', value: 0, effect: 'Compara tu carta más baja con la carta más baja de otro jugador, si tu carta es más baja, avanza 2 casillas.', count: 3, image: 'https://placehold.co/90x65/D2B48C/000000?text=Vagabundo+0' },
+            { id: 'filosofo', name: 'Filósofo', value: 0.5, effect: 'Elige a un jugador, ambos robáis una carta y la mostráis, si tu carta es más alta, te la quedas y el otro jugador descarta la carta robada. Si tu carta es más baja, ambos jugadores descartáis las cartas robadas.', count: 1, image: 'https://placehold.co/90x65/F0E68C/000000?text=Filosofo+0.5' },
+            { id: 'nini', name: 'Nini', value: 1, effect: 'Roba 1 carta.', count: 5, image: 'https://placehold.co/90x65/ADD8E6/000000?text=Nini+1' },
+            { id: 'influencer', name: 'Influencer', value: 2, effect: 'Compara tu carta más alta con la carta más alta del jugador que elijas. El ganador avanza 1 casilla, el perdedor retrocede 1 casilla.', count: 3, image: 'https://placehold.co/90x65/FFD700/000000?text=Influencer+2' },
+            { id: 'camello', name: 'Camello', value: 2.1, effect: 'Roba 1 carta, descarta 1 carta. Si muestras una carta de -1 o menor, avanza 1 casilla.', count: 1, image: 'https://placehold.co/90x65/8B4513/FFFFFF?text=Camello+2.1' },
+            { id: 'trabajador', name: 'Trabajador', value: 3, effect: 'Avanza 1 casilla.', count: 5, image: 'https://placehold.co/90x65/A52A2A/FFFFFF?text=Trabajador+3' },
+            { id: 'artesano', name: 'Artesano', value: 3.1, effect: 'Si estás en la casilla 0, 1, 2 o 3, avanza 2 casillas. Si estás en la 4 o superior, avanza 1.', count: 1, image: 'https://placehold.co/90x65/BDB76B/000000?text=Artesano+3.1' },
+            { id: 'policia', name: 'Policía', value: 4, effect: 'Elige 1 jugador, ese jugador retrocede 1 casilla.', count: 4, image: 'https://placehold.co/90x65/1E90FF/FFFFFF?text=Policia+4' },
+            { id: 'detective', name: 'Detective', value: 4.7, effect: 'Elige a un jugador y una carta, si ese jugador tiene esa carta: la muestra y retrocede 2 casillas.', count: 1, image: 'https://placehold.co/90x65/D2691E/FFFFFF?text=Detective+4.7' },
+            { id: 'guardaespaldas', name: 'Guardaespaldas', value: 4.9, effect: 'Hasta tu próximo turno, las cartas del resto de jugadores, no te afectan.', count: 2, image: 'https://placehold.co/90x65/4682B4/FFFFFF?text=Guardaespaldas+4.9' },
+            { id: 'abogado', name: 'Abogado', value: 5, effect: 'Intercambia las cartas con otro jugador.', count: 3, image: 'https://placehold.co/90x65/6A5ACD/FFFFFF?text=Abogado+5' },
+            { id: 'banquero', name: 'Banquero', value: 5.9, effect: 'Si la última carta jugada es igual o mayor que 7, avanzas 2 casillas.', count: 1, image: 'https://placehold.co/90x65/DAA520/000000?text=Banquero+5.9' },
+            { id: 'musico', name: 'Músico', value: 6, effect: 'Roba 2 cartas y descarta 2 cartas.', count: 2, image: 'https://placehold.co/90x65/FF6347/FFFFFF?text=Musico+6' },
+            { id: 'arlequin', name: 'Arlequín', value: 6.4, effect: 'Roba 2 cartas y descarta 1.', count: 1, image: 'https://placehold.co/90x65/800000/FFFFFF?text=Arlequin+6.4' },
+            { id: 'futbolista', name: 'Futbolista', value: 6.7, effect: 'Descarta 1 carta para avanzar 2 casillas.', count: 1, image: 'https://placehold.co/90x65/008000/FFFFFF?text=Futbolista+6.7' },
+            { id: 'capo', name: 'Capo', value: 7, effect: 'Avanzas 1 casilla. Elige un jugador, el jugador elegido retrocede 1 casilla.', count: 2, image: 'https://placehold.co/90x65/8B0000/FFFFFF?text=Capo+7' },
+            { id: 'politico', name: 'Político', value: 8, effect: 'Un jugador, (puedes ser tú), descarta sus cartas y roba la misma cantidad. Avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/483D8B/FFFFFF?text=Politico+8' },
+            { id: 'sectario', name: 'Sectario', value: 9, effect: 'Elige un jugador y mira sus cartas, puedes intercambiar tus cartas por las suyas. Avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/2F4F4F/FFFFFF?text=Sectario+9' },
+            { id: 'astronauta', name: 'Astronauta', value: 10.5, effect: 'Avanza 1 casilla. Si estás en la casilla 8 o superior, roba 1 carta.', count: 1, image: 'https://placehold.co/90x65/708090/FFFFFF?text=Astronauta+10.5' },
+            // Mago y Titán excluidos por ahora
+            { id: 'arcangel', name: 'Arcángel', value: 12, effect: 'Avanza 1 casilla. Roba 3 cartas y descarta 2.', count: 1, image: 'https://placehold.co/90x65/FFD700/000000?text=Arcangel+12' },
+            { id: 'semidios', name: 'Semidiós', value: 13, effect: 'Avanza 1 casilla. Repite tu turno.', count: 1, image: 'https://placehold.co/90x65/DAA520/000000?text=Semidios+13' },
+            { id: 'ojotodove', name: 'Ojo que todo lo ve', value: 13.9, effect: 'Avanza 1 casilla. Mira las cartas de todos los jugadores.', count: 1, image: 'https://placehold.co/90x65/8A2BE2/FFFFFF?text=Ojo+Ve+13.9' }
+        ];
+
+        // Función para cambiar de pantalla
+        function showScreen(screenToShow) {
+            screen1.classList.remove('active');
+            screen2.classList.remove('active');
+            screen3.classList.remove('active');
+            screenToShow.classList.add('active');
         }
 
-        /**
-         * Oculta el mensaje de estado.
-         */
-        function hideStatusMessage() {
-            cameraStatusMessage.style.display = 'none';
-        }
+        // Función para generar una carta visualmente
+        function createCardElement(card, isFaceDown = false) {
+            const cardDiv = document.createElement('div');
+            cardDiv.classList.add('card-in-hand');
+            cardDiv.dataset.cardId = card.id; // Almacenar el ID de la carta
 
-        /**
-         * Configura el stream local con control de volumen.
-         * @param {MediaStream} stream - El stream original de getUserMedia.
-         */
-        function setupLocalStreamWithVolumeControl(stream) {
-            // Detener y cerrar el contexto de audio anterior si existe
-            if (audioContext) {
-                audioContext.close();
-            }
-
-            originalLocalMediaStream = stream; // Guardar el stream original
-
-            const audioTrack = stream.getAudioTracks()[0];
-            const videoTrack = stream.getVideoTracks()[0];
-
-            if (audioTrack) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                microphoneSource = audioContext.createMediaStreamSource(new MediaStream([audioTrack]));
-                gainNode = audioContext.createGain();
-                mediaStreamDestination = audioContext.createMediaStreamDestination();
-
-                microphoneSource.connect(gainNode);
-                gainNode.connect(mediaStreamDestination);
-
-                // Crear un nuevo stream que combina el video original con el audio controlado por el GainNode
-                localStream = new MediaStream([videoTrack, mediaStreamDestination.stream.getAudioTracks()[0]]);
-                gainNode.gain.value = parseFloat(volumeSlider.value); // Establecer el volumen inicial del slider
+            if (isFaceDown) {
+                cardDiv.classList.add('card-back');
+                cardDiv.innerHTML = 'CS';
             } else {
-                // Si no hay pista de audio, simplemente usar el stream original
-                localStream = stream;
-                console.warn("No se encontró pista de audio en el stream local.");
+                cardDiv.innerHTML = `
+                    <div class="card-image" style="background-image: url('${card.image}'); background-size: cover; background-position: center;"></div>
+                    <div class="card-info">
+                        <div class="card-name-value">
+                            <span>${card.name}</span>
+                            <span>${card.value}</span>
+                        </div>
+                        <div class="card-effect">${card.effect}</div>
+                    </div>
+                `;
             }
-
-            localVideo.srcObject = localStream;
-            localVideo.onloadedmetadata = () => localVideo.play();
+            return cardDiv;
         }
 
-        /**
-         * Intenta reinicializar la conexión PeerJS si está desconectada o no inicializada.
-         */
-        function handlePeerReconnection() {
-            if (isPeerConnecting) {
-                console.log("Ya hay un intento de conexión en curso. Esperando...");
-                return;
-            }
-
-            // Si PeerJS no está inicializado o está desconectado
-            if (!peer || peer.disconnected) {
-                console.log("PeerJS desconectado o no inicializado. Intentando reconectar...");
-                // Destruir la instancia de peer existente si existe y no está ya destruida
-                if (peer && !peer.destroyed) {
-                    console.log("Destruyendo instancia de PeerJS existente para reconectar.");
-                    peer.destroy();
-                    peer = null; // Establecer a null para forzar una nueva creación
+        // Función para renderizar la mano del jugador
+        function renderOwnHand(hand) {
+            console.log("Rendering own hand with card IDs:", hand); // Añadido para depuración
+            ownHandDiv.innerHTML = '';
+            hand.forEach(cardId => {
+                const card = cardDefinitions.find(c => c.id === cardId);
+                if (card) {
+                    const cardElement = createCardElement(card);
+                    cardElement.addEventListener('click', () => showCardOptions(cardElement, card));
+                    ownHandDiv.appendChild(cardElement);
+                } else {
+                    console.warn("Card definition not found for ID:", cardId); // Añadido para depuración
                 }
-                initializePeer(); // Reinicializar PeerJS
-            } else if (peer.open) {
-                // Si el peer está abierto, podemos detener el chequeo de reconexión si no es necesario
-                stopReconnectionCheck();
+            });
+        }
+
+        // Función para renderizar la mano del oponente (boca abajo)
+        function renderOpponentHand(numCards) {
+            console.log("Rendering opponent hand with", numCards, "cards (face down)."); // Añadido para depuración
+            opponentHandDiv.innerHTML = '';
+            for (let i = 0; i < numCards; i++) {
+                opponentHandDiv.appendChild(createCardElement({}, true)); // isFaceDown = true
             }
         }
 
-        /**
-         * Inicia el chequeo periódico de reconexión.
-         */
-        function startReconnectionCheck() {
-            if (!reconnectionAttemptInterval) {
-                reconnectionAttemptInterval = setInterval(handlePeerReconnection, RECONNECTION_INTERVAL_MS);
-                console.log(`Iniciando chequeo de reconexión cada ${RECONNECTION_INTERVAL_MS / 1000} segundos.`);
+        // Función para mostrar las opciones de una carta (jugar/nada)
+        function showCardOptions(cardElement, card) {
+            // Eliminar opciones anteriores si existen
+            const existingOptions = document.querySelector('.card-options');
+            if (existingOptions) {
+                existingOptions.remove();
+            }
+
+            const optionsDiv = document.createElement('div');
+            optionsDiv.classList.add('card-options');
+            optionsDiv.style.left = `${cardElement.offsetLeft}px`;
+            optionsDiv.style.top = `${cardElement.offsetTop - optionsDiv.offsetHeight - 10}px`; // Ajustar posición
+
+            const playButton = document.createElement('button');
+            playButton.textContent = 'Jugar';
+            playButton.addEventListener('click', () => {
+                playCard(card.id);
+                optionsDiv.remove();
+            });
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Nada';
+            cancelButton.addEventListener('click', () => {
+                optionsDiv.remove();
+            });
+
+            optionsDiv.appendChild(playButton);
+            optionsDiv.appendChild(cancelButton);
+            ownHandDiv.appendChild(optionsDiv); // Añadir al contenedor de la mano para posicionamiento relativo
+
+            // Ajustar la posición después de añadirlo al DOM para que el offsetHeight sea correcto
+            optionsDiv.style.top = `${cardElement.offsetTop - optionsDiv.offsetHeight - 10}px`;
+            optionsDiv.style.left = `${cardElement.offsetLeft + (cardElement.offsetWidth / 2) - (optionsDiv.offsetWidth / 2)}px`;
+
+            // Cerrar opciones si se clica fuera
+            const closeOptions = (event) => {
+                if (!optionsDiv.contains(event.target) && !cardElement.contains(event.target)) {
+                    optionsDiv.remove();
+                    document.removeEventListener('click', closeOptions);
+                }
+            };
+            document.addEventListener('click', closeOptions);
+        }
+
+
+        // Función para renderizar el tablero circular
+        function renderGameBoard(player1Pos, player2Pos) {
+            gameBoardDiv.innerHTML = ''; // Limpiar casillas existentes
+            const numCells = 14;
+            const radius = gameBoardDiv.offsetWidth / 2 - 30; // Ajustar radio para que las casillas no se salgan
+            const centerX = gameBoardDiv.offsetWidth / 2;
+            const centerY = gameBoardDiv.offsetHeight / 2;
+
+            for (let i = 0; i < numCells; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('board-cell');
+                cell.textContent = i;
+                const angle = (i / numCells) * 2 * Math.PI - Math.PI / 2; // -PI/2 para empezar arriba
+                cell.style.left = `${centerX + radius * Math.cos(angle) - cell.offsetWidth / 2}px`;
+                cell.style.top = `${centerY + radius * Math.sin(angle) - cell.offsetHeight / 2}px`;
+                gameBoardDiv.appendChild(cell);
+            }
+
+            // Renderizar tokens de jugador
+            const player1Token = document.createElement('div');
+            player1Token.classList.add('player-token', 'player1-token');
+            player1Token.id = 'player1Token';
+            gameBoardDiv.appendChild(player1Token);
+
+            const player2Token = document.createElement('div');
+            player2Token.classList.add('player-token', 'player2-token');
+            player2Token.id = 'player2Token';
+            gameBoardDiv.appendChild(player2Token);
+
+            updatePlayerTokens(player1Pos, player2Pos);
+        }
+
+        // Función para actualizar la posición de los tokens de jugador
+        function updatePlayerTokens(player1Pos, player2Pos) {
+            const player1Token = document.getElementById('player1Token');
+            const player2Token = document.getElementById('player2Token');
+            const cells = gameBoardDiv.querySelectorAll('.board-cell');
+
+            if (cells.length > 0) {
+                // Posicionar Jugador 1
+                const cell1 = cells[player1Pos];
+                player1Token.style.left = `${cell1.offsetLeft + (cell1.offsetWidth / 2) - (player1Token.offsetWidth / 2)}px`;
+                player1Token.style.top = `${cell1.offsetTop + (cell1.offsetHeight / 2) - (player1Token.offsetHeight / 2)}px`;
+
+                // Posicionar Jugador 2 (ligeramente desplazado si están en la misma casilla)
+                const cell2 = cells[player2Pos];
+                let offset = 0;
+                if (player1Pos === player2Pos) {
+                    offset = 5; // Pequeño desplazamiento para que no se superpongan completamente
+                }
+                player2Token.style.left = `${cell2.offsetLeft + (cell2.offsetWidth / 2) - (player2Token.offsetWidth / 2) + offset}px`;
+                player2Token.style.top = `${cell2.offsetTop + (cell2.offsetHeight / 2) - (player2Token.offsetHeight / 2) - offset}px`;
             }
         }
 
-        /**
-         * Detiene el chequeo periódico de reconexión.
-         */
-        function stopReconnectionCheck() {
-            if (reconnectionAttemptInterval) {
-                clearInterval(reconnectionAttemptInterval);
-                reconnectionAttemptInterval = null;
-                console.log("Deteniendo chequeo de reconexión.");
+        // Helper function to draw a card, handling reshuffling
+        function drawCardForTurn(mazo, pilaDescarte, messageDiv) {
+            if (mazo.length === 0) {
+                if (pilaDescarte.length > 0) {
+                    mazo.push(...shuffleArray(pilaDescarte));
+                    pilaDescarte.length = 0;
+                    messageDiv.textContent = '¡Mazo barajado con el descarte!';
+                } else {
+                    messageDiv.textContent = 'No hay cartas en el mazo ni en el descarte para robar.';
+                    return null;
+                }
+            }
+            return mazo.shift();
+        }
+
+        // --- Lógica de Firebase y Partida ---
+
+        // Función para iniciar sesión anónimamente y obtener el UID
+        async function signInAnonymouslyAndGetUid() {
+            try {
+                const userCredential = await auth.signInAnonymously();
+                currentUserId = userCredential.user.uid;
+                console.log('Autenticado anónimamente con UID:', currentUserId);
+            } catch (error) {
+                console.error('Error al autenticar anónimamente:', error);
+                gameMessageDiv.textContent = 'Error de autenticación. Por favor, recarga la página.';
             }
         }
 
-        /**
-         * Inicializa PeerJS y maneja la lógica de conexión automática.
-         */
-        function initializePeer() {
-            if (isPeerConnecting) {
-                console.log("initializePeer: Ya hay un intento de conexión en curso. Abortando.");
-                return;
-            }
-            isPeerConnecting = true; // Establecer la bandera para indicar que hay un intento de conexión
+        // Función para buscar o crear una sala
+        async function findOrCreateRoom(player1Name, player2Name) {
+            try {
+                const roomsRef = db.collection('SALAS');
+                // Buscar salas donde los nombres de los jugadores coincidan en cualquier orden
+                const query1 = roomsRef.where('jugador1Nombre', '==', player1Name)
+                                      .where('jugador2Nombre', '==', player2Name);
+                const query2 = roomsRef.where('jugador1Nombre', '==', player2Name)
+                                      .where('jugador2Nombre', '==', player1Name);
 
-            // Si ya existe una instancia de peer y no está destruida, destruirla para evitar conflictos
-            if (peer && !peer.destroyed) {
-                console.log("initializePeer: Destruyendo instancia de PeerJS existente antes de crear una nueva.");
-                peer.destroy();
-                peer = null; // Establecer a null después de destruir
-            }
+                const [snapshot1, snapshot2] = await Promise.all([query1.get(), query2.get()]);
 
-            peer = new Peer();
+                let roomDoc = null;
 
-            // Evento cuando el PeerJS está abierto y se obtiene un ID
-            peer.on("open", id => {
-                console.log("Mi ID de Peer:", id);
-                isPeerConnecting = false; // Restablecer la bandera ya que la conexión se ha abierto
-                stopReconnectionCheck(); // Detener el chequeo de reconexión una vez conectado
-                startReconnectionCheck(); // Y luego reiniciarlo para monitorear futuras desconexiones
-                showStatusMessage("Conectado al servidor de señalización. Esperando otro usuario...", 'info');
+                if (!snapshot1.empty) {
+                    roomDoc = snapshot1.docs[0];
+                } else if (!snapshot2.empty) {
+                    roomDoc = snapshot2.docs[0];
+                }
 
+                if (roomDoc) {
+                    // Sala existente, unirse a ella
+                    currentRoomId = roomDoc.id;
+                    const roomData = roomDoc.data();
+                    const roomRef = db.collection('SALAS').doc(currentRoomId);
 
-                // Registrar el ID del peer actual en Firebase
-                const peerRef = ref(database, `rooms/${ROOM_ID}/peers/${id}`);
-                set(peerRef, true) // Establecer un valor simple para indicar la presencia
-                    .then(() => {
-                        console.log(`Peer ${id} registrado en la sala ${ROOM_ID}`);
-                    })
-                    .catch(error => {
-                        console.error("Error al registrar el peer en Firebase:", error);
-                        showStatusMessage("Error al registrar el usuario en la sala.", 'error');
-                    });
-
-                // Escuchar a otros peers que se unen a la sala
-                const peersInRoomRef = ref(database, `rooms/${ROOM_ID}/peers`);
-                onValue(peersInRoomRef, (snapshot) => {
-                    const peers = snapshot.val();
-                    if (peers) {
-                        const peerIds = Object.keys(peers);
-                        console.log("Peers en la sala:", peerIds);
-
-                        // Encontrar el otro peer (que no sea el actual)
-                        const otherPeerFound = peerIds.find(peerId => peerId !== id);
-
-                        if (otherPeerFound && !callInProgress) {
-                            remotePeerId = otherPeerFound;
-                            console.log("Otro peer encontrado:", remotePeerId, ". Iniciando llamada...");
-                            callInProgress = true;
-                            stopReconnectionCheck(); // Detener el chequeo de reconexión una vez que se inicia una llamada
-                            showStatusMessage("Otro usuario encontrado. Iniciando videollamada...", 'info');
-                            try {
-                                // Verificar si el stream local está disponible antes de llamar
-                                if (!localStream) {
-                                    console.error("No hay stream local disponible para iniciar la llamada.");
-                                    callInProgress = false; // Restablecer la bandera
-                                    startReconnectionCheck(); // Reanudar el chequeo de reconexión
-                                    showStatusMessage("Error: No se pudo iniciar la llamada. Acceso a la cámara/micrófono denegado o no disponible.", 'error');
-                                    return; // Salir temprano
-                                }
-                                // Usar el localStream con control de volumen
-                                const call = peer.call(remotePeerId, localStream);
-                                // Manejar el stream del peer remoto
-                                call.on("stream", stream => {
-                                    remoteVideo.srcObject = stream;
-                                    remoteVideo.onloadedmetadata = () => remoteVideo.play();
-                                    console.log("Stream remoto recibido.");
-                                    hideStatusMessage(); // Ocultar mensaje de estado cuando la llamada está activa
-                                });
-                                // Manejar el cierre de la llamada
-                                call.on("close", () => {
-                                    console.log("Llamada cerrada.");
-                                    callInProgress = false;
-                                    remoteVideo.srcObject = null;
-                                    startReconnectionCheck(); // Reiniciar el chequeo cuando la llamada termina
-                                    showStatusMessage("Videollamada finalizada. Esperando otro usuario...", 'info');
-                                });
-                                // Manejar errores de la llamada
-                                call.on("error", (err) => {
-                                    console.error("Error en la llamada:", err);
-                                    callInProgress = false;
-                                    remoteVideo.srcObject = null;
-                                    startReconnectionCheck(); // Reiniciar el chequeo en caso de error en la llamada
-                                    showStatusMessage("Error en la videollamada. Intentando reconectar...", 'error');
-                                });
-                            } catch (err) {
-                                console.error("Error al iniciar la llamada:", err);
-                                callInProgress = false;
-                                startReconnectionCheck(); // Reiniciar el chequeo en caso de error al iniciar la llamada
-                                showStatusMessage("Error al iniciar la videollamada. Intentando reconectar...", 'error');
-                            }
-                        } else if (!otherPeerFound && callInProgress) {
-                            // Si el peer remoto desaparece mientras la llamada está en curso, finalizar la llamada
-                            console.log("Otro peer desaparecido mientras la llamada estaba en curso.");
-                            callInProgress = false;
-                            remotePeerId = null;
-                            if (remoteVideo) remoteVideo.srcObject = null;
-                            startReconnectionCheck(); // Reiniciar el chequeo
-                            showStatusMessage("El otro usuario se ha desconectado. Esperando otro usuario...", 'info');
-                        } else if (!otherPeerFound) {
-                            console.log("Esperando a otro peer para unirse...");
-                            callInProgress = false;
-                            remotePeerId = null;
-                            if (remoteVideo) remoteVideo.srcObject = null;
-                            startReconnectionCheck(); // Asegurarse de que el chequeo esté funcionando si no hay otro peer
-                            showStatusMessage("Esperando otro usuario para unirse a la sala...", 'info');
+                    // Determinar si el jugador actual es el jugador1 o jugador2 en la sala existente
+                    if (roomData.jugador1Nombre === currentPlayerName && roomData.jugador1Id === null) {
+                        // Si el jugador 1 de la sala no tiene ID, asignárselo (caso de reconexión o error previo)
+                        await roomRef.update({
+                            jugador1Id: currentUserId,
+                            'estadoJuego.gameStatus': roomData.jugador2Id ? 'inProgress' : 'waitingForPlayer',
+                            [`estadoJuego.drawStatus.${currentUserId}`]: false // Initialize draw status for player1 if rejoining
+                        });
+                        gameMessageDiv.textContent = 'Te has reconectado como Jugador 1.';
+                        currentRivalId = roomData.jugador2Id;
+                    } else if (roomData.jugador2Nombre === currentPlayerName && roomData.jugador2Id === null) {
+                        // Si el jugador 2 de la sala no tiene ID, asignárselo (caso de reconexión o error previo)
+                        await roomRef.update({
+                            jugador2Id: currentUserId,
+                            'estadoJuego.gameStatus': 'inProgress',
+                            'estadoJuego.turnoActual': Math.random() < 0.5 ? roomData.jugador1Id : currentUserId,
+                            [`estadoJuego.drawStatus.${currentUserId}`]: false // Initialize draw status for player2
+                        });
+                        gameMessageDiv.textContent = '¡Te has unido a la partida!';
+                        currentRivalId = roomData.jugador1Id;
+                    } else if (roomData.jugador1Id === currentUserId || roomData.jugador2Id === currentUserId) {
+                        // El jugador ya está en la sala y tiene su ID asignado
+                        gameMessageDiv.textContent = 'Reconectando a la partida existente.';
+                        if (roomData.jugador1Id === currentUserId) {
+                            currentRivalId = roomData.jugador2Id;
+                        } else {
+                            currentRivalId = roomData.jugador1Id;
+                        }
+                        // Ensure drawStatus exists for rejoining player if not already
+                        if (!roomData.estadoJuego.drawStatus || roomData.estadoJuego.drawStatus[currentUserId] === undefined) {
+                            await roomRef.update({
+                                [`estadoJuego.drawStatus.${currentUserId}`]: false
+                            });
                         }
                     } else {
-                        console.log("Aún no hay peers en la sala. Esperando...");
-                        callInProgress = false;
-                        remotePeerId = null;
-                        if (remoteVideo) remoteVideo.srcObject = null;
-                        startReconnectionCheck(); // Asegurarse de que el chequeo esté funcionando si no hay peers
-                        showStatusMessage("Aún no hay usuarios en la sala. Esperando el primer usuario...", 'info');
+                        // La sala existe pero no es para este jugador o ya está llena
+                        console.error('Error: Intentando unirse a una sala que ya está llena o no te corresponde.');
+                        rivalError.textContent = 'La sala ya está completa o no te corresponde. Intenta con otro nombre de rival.';
+                        return; // Evitar mostrar screen3
                     }
-                });
 
-                // Limpiar el ID del peer de Firebase cuando la página se cierra o se recarga
-                window.addEventListener('beforeunload', () => {
-                    const selfPeerRef = ref(database, `rooms/${ROOM_ID}/peers/${id}`);
-                    remove(selfPeerRef)
-                        .then(() => {
-                            console.log(`Peer ${id} eliminado de Firebase.`);
-                        })
-                        .catch(error => {
-                            console.error("Error al eliminar el peer de Firebase:", error);
-                        });
-                    // Cerrar el contexto de audio al salir
-                    if (audioContext) {
-                        audioContext.close();
-                    }
-                });
-            });
+                    listenToRoomChanges(currentRoomId);
+                    showScreen(screen3);
+                } else {
+                    // No existe sala, crear una nueva
+                    console.log("No existing room found, creating a new one.");
+                    const initialDeck = generateInitialDeck();
+                    const shuffledDeck = shuffleArray(initialDeck);
+                    const initialHand1 = shuffledDeck.splice(0, 3);
+                    const initialHand2 = shuffledDeck.splice(0, 3); // Mano inicial para el jugador 2 (vacía si no se une)
 
-            // Evento cuando se recibe una llamada
-            peer.on("call", call => {
-                console.log("Llamada entrante de:", call.peer);
-                callInProgress = true;
-                stopReconnectionCheck(); // Detener el chequeo de reconexión una vez que se recibe una llamada
-                showStatusMessage("Recibiendo videollamada...", 'info');
-                // Verificar si el stream local está disponible antes de responder
-                if (!localStream) {
-                    console.error("No hay stream local disponible para responder a la llamada.");
-                    callInProgress = false; // Restablecer la bandera
-                    startReconnectionCheck(); // Reanudar el chequeo de reconexión
-                    call.close(); // Cerrar la llamada entrante si no hay stream local
-                    showStatusMessage("Error: No se pudo responder a la llamada. Acceso a la cámara/micrófono denegado o no disponible.", 'error');
-                    return; // Salir temprano
+                    const newRoomRef = await roomsRef.add({
+                        jugador1Id: currentUserId,
+                        jugador1Nombre: player1Name,
+                        jugador2Id: null, // Inicialmente nulo
+                        jugador2Nombre: player2Name, // Guardar el nombre del rival esperado
+                        estadoJuego: {
+                            mazo: shuffledDeck,
+                            pilaDescarte: [],
+                            manoJugador1: initialHand1,
+                            manoJugador2: initialHand2,
+                            posicionJugador1: 0,
+                            posicionJugador2: 0,
+                            ultimaCartaJugada: null,
+                            turnoActual: null, // Se asignará cuando el segundo jugador se una
+                            gameStatus: "waitingForPlayer",
+                            ganador: null,
+                            efectosActivos: {},
+                            drawStatus: { [currentUserId]: false } // Inicializar drawStatus para el jugador 1
+                        }
+                    });
+                    currentRoomId = newRoomRef.id;
+                    console.log('Sala creada:', currentRoomId);
+                    gameMessageDiv.textContent = 'Esperando al rival... (ID de sala: ' + currentRoomId + ')'; // Mostrar ID para depuración
+                    listenToRoomChanges(currentRoomId);
+                    showScreen(screen3);
                 }
-                // Responder a la llamada con el localStream con control de volumen
-                call.answer(localStream);
-                call.on("stream", stream => {
-                    remoteVideo.srcObject = stream;
-                    remoteVideo.onloadedmetadata = () => remoteVideo.play();
-                    console.log("Stream remoto recibido en llamada entrante.");
-                    hideStatusMessage(); // Ocultar mensaje de estado cuando la llamada está activa
-                });
-                call.on("close", () => {
-                    console.log("Llamada cerrada.");
-                    callInProgress = false;
-                    remoteVideo.srcObject = null;
-                    startReconnectionCheck(); // Reiniciar el chequeo cuando la llamada termina
-                    showStatusMessage("Videollamada finalizada. Esperando otro usuario...", 'info');
-                });
-                call.on("error", (err) => {
-                    console.error("Error en la llamada entrante:", err);
-                    callInProgress = false;
-                    remoteVideo.srcObject = null;
-                    startReconnectionCheck(); // Reiniciar el chequeo en caso de error en la llamada
-                    showStatusMessage("Error en la videollamada. Intentando reconectar...", 'error');
-                });
-            });
-
-            // Evento cuando PeerJS se desconecta
-            peer.on("disconnected", () => {
-                console.log("Peer desconectado.");
-                callInProgress = false;
-                remotePeerId = null;
-                if (remoteVideo) remoteVideo.srcObject = null;
-                showStatusMessage("Desconectado del servidor de señalización. Intentando reconectar...", 'error');
-                startReconnectionCheck(); // Asegurarse de que el chequeo de reconexión esté funcionando
-            });
-
-            // Evento cuando ocurre un error en PeerJS
-            peer.on("error", (err) => {
-                console.error("Error de PeerJS:", err);
-                isPeerConnecting = false; // Restablecer la bandera en caso de error
-                showStatusMessage(`Error de conexión: ${err.message}. Asegúrate de que el archivo se sirve desde un servidor web (no 'file:///').`, 'error');
-                startReconnectionCheck();
-            });
-
-            // Acceso inicial a la cámara y el micrófono
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    setupLocalStreamWithVolumeControl(stream); // Configurar el stream con control de volumen
-                    btnToggleCamera.textContent = "Desactivar cámara";
-                    hideStatusMessage(); // Ocultar mensaje si la cámara se activa correctamente
-                })
-                .catch(err => {
-                    console.error("Error al acceder a la cámara y el micrófono: ", err);
-                    btnToggleCamera.textContent = "Activar cámara"; // Si falla, el botón debe decir "Activar"
-                    showStatusMessage("Error al acceder a la cámara/micrófono. Asegúrate de que el archivo se sirve desde un servidor web (no 'file:///'), y que has concedido los permisos.", 'error');
-                    startReconnectionCheck(); // Si falla el acceso a los medios, mantener el chequeo de reconexión de PeerJS
-                });
+            } catch (error) {
+                console.error('Error al buscar/crear sala:', error);
+                rivalError.textContent = 'Error al conectar. Inténtalo de nuevo.';
+            }
         }
 
-        // Manejar el botón de alternar cámara
-        btnToggleCamera.addEventListener("click", function() {
-            if (localStream) {
-                // Detener todas las pistas del stream original para liberar recursos
-                if (originalLocalMediaStream) {
-                    originalLocalMediaStream.getTracks().forEach(track => track.stop());
-                }
-                // Cerrar el contexto de audio
-                if (audioContext) {
-                    audioContext.close();
-                    audioContext = null;
-                    microphoneSource = null;
-                    gainNode = null;
-                    mediaStreamDestination = null;
-                }
+        // Función para escuchar cambios en la sala de Firestore
+        function listenToRoomChanges(roomId) {
+            if (unsubscribeSnapshot) {
+                unsubscribeSnapshot(); // Desuscribirse del listener anterior si existe
+            }
+            const roomRef = db.collection('SALAS').doc(roomId);
+            unsubscribeSnapshot = roomRef.onSnapshot(docSnapshot => {
+                if (docSnapshot.exists) {
+                    const roomData = docSnapshot.data();
+                    console.log('Estado de la sala actualizado (onSnapshot):', roomData);
+                    console.log('currentUserId (desde onSnapshot):', currentUserId);
 
-                localStream = null;
-                originalLocalMediaStream = null;
-                localVideo.srcObject = null;
-                btnToggleCamera.textContent = "Activar cámara";
-                showStatusMessage("Cámara y micrófono desactivados.", 'info');
-                // Si se desactiva la cámara, también debería finalizar la llamada si está en curso
-                if (peer && peer.connections) {
-                    for (let conns in peer.connections) {
-                        peer.connections[conns].forEach(conn => {
-                            if (conn.type === 'media' && conn.open) {
-                                conn.close();
-                            }
-                        });
+                    // Determinar currentRivalId y nombres de forma robusta
+                    if (roomData.jugador1Id === currentUserId) {
+                        currentRivalId = roomData.jugador2Id;
+                        currentPlayerName = roomData.jugador1Nombre;
+                        rivalPlayerName = roomData.jugador2Nombre;
+                    } else if (roomData.jugador2Id === currentUserId) {
+                        currentRivalId = roomData.jugador1Id;
+                        currentPlayerName = roomData.jugador2Nombre;
+                        rivalPlayerName = roomData.jugador1Nombre;
+                    } else {
+                        currentRivalId = null;
+                        console.error("Error: currentUserId no coincide con ningún jugador en la sala. Esto no debería ocurrir si el jugador está en una sala activa.");
+                        // Forzar a volver a la pantalla de inicio si el estado es inconsistente
+                        gameMessageDiv.textContent = 'Error en la conexión. Volviendo a la pantalla de inicio.';
+                        showScreen(screen1);
+                        return;
                     }
+
+                    // Actualizar la UI con los últimos datos de la sala
+                    updateGameUI(roomData, roomRef);
+
+                    // Lógica para transiciones de estado del juego y mensajes
+                    if (roomData.estadoJuego.gameStatus === "waitingForPlayer") {
+                        gameMessageDiv.textContent = 'Esperando al rival... (ID de sala: ' + roomId + ')';
+                        btnPassTurn.disabled = true;
+
+                        // Si es el jugador 1, el rival se ha unido y el turno no está asignado, iniciar partida
+                        if (roomData.jugador1Id === currentUserId && roomData.jugador2Id && !roomData.estadoJuego.turnoActual) {
+                            console.log("Jugador 1 detectó que Jugador 2 se unió. Inicializando estado de juego y turno.");
+                            roomRef.update({
+                                'estadoJuego.gameStatus': 'inProgress',
+                                'estadoJuego.turnoActual': Math.random() < 0.5 ? roomData.jugador1Id : roomData.jugador2Id,
+                                [`estadoJuego.drawStatus.${roomData.jugador1Id}`]: false, // Reset draw status for both players on game start
+                                [`estadoJuego.drawStatus.${roomData.jugador2Id}`]: false
+                            }).then(() => {
+                                console.log("Estado de juego y turno actualizados por Jugador 1.");
+                                gameMessageDiv.textContent = '¡Rival conectado! La partida ha comenzado.';
+                            }).catch(error => {
+                                console.error('Error al actualizar estado de juego y turno:', error);
+                            });
+                        }
+                    } else if (roomData.estadoJuego.gameStatus === "inProgress") {
+                        // El mensaje de turno se maneja en updateGameUI
+                        console.log("Juego en progreso. Turno actual:", roomData.estadoJuego.turnoActual);
+                    } else if (roomData.estadoJuego.gameStatus === "finished") {
+                        gameMessageDiv.textContent = `¡Partida terminada! El ganador es: ${roomData.estadoJuego.ganador === currentUserId ? currentPlayerName : rivalPlayerName}`;
+                        btnPassTurn.disabled = true; // Deshabilitar interacciones
+                        // Opcional: mostrar botón de nueva partida
+                    }
+
+                } else {
+                    console.log('La sala ya no existe.');
+                    gameMessageDiv.textContent = 'La partida ha terminado o la sala ha sido eliminada.';
+                    showScreen(screen2); // Volver a la pantalla de selección de rival
+                }
+            }, error => {
+                console.error('Error al escuchar cambios en la sala:', error);
+                gameMessageDiv.textContent = 'Error de conexión. Volviendo a la pantalla de selección de rival.';
+                showScreen(screen2);
+            });
+        }
+
+        // Función para actualizar la UI del juego con los datos de Firestore
+        async function updateGameUI(roomData, roomRef) {
+            const gameState = roomData.estadoJuego;
+
+            // Actualizar nombres
+            const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
+            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
+            ownNameDisplay.textContent = ownName;
+            opponentNameDisplay.textContent = opponentName;
+            console.log(`UI Nombres - Propio: ${ownNameDisplay.textContent}, Rival: ${opponentNameDisplay.textContent}`);
+
+
+            // Actualizar manos
+            const ownHand = roomData.jugador1Id === currentUserId ? gameState.manoJugador1 : gameState.manoJugador2;
+            const opponentHandCount = roomData.jugador1Id === currentUserId ? gameState.manoJugador2.length : gameState.manoJugador1.length;
+            renderOwnHand(ownHand);
+            renderOpponentHand(opponentHandCount);
+
+            // Actualizar pila de descarte
+            discardPileDiv.innerHTML = '';
+            if (gameState.ultimaCartaJugada) {
+                const lastCard = cardDefinitions.find(c => c.id === gameState.ultimaCartaJugada);
+                if (lastCard) {
+                    const lastCardElement = createCardElement(lastCard);
+                    lastCardElement.classList.add('last-played-card');
+                    discardPileDiv.appendChild(lastCardElement);
                 }
             } else {
-                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                    .then(stream => {
-                        setupLocalStreamWithVolumeControl(stream); // Configurar el stream con control de volumen
-                        btnToggleCamera.textContent = "Desactivar cámara";
-                        hideStatusMessage(); // Ocultar mensaje si la cámara se activa correctamente
-                        // Si se activa la cámara, intentar reconectar si hay un peer remoto
-                        if (remotePeerId && !callInProgress) {
-                            console.log("Cámara activada, intentando reconectar con:", remotePeerId);
-                            callInProgress = true;
-                            try {
-                                // Usar el localStream con control de volumen
-                                const call = peer.call(remotePeerId, localStream);
-                                call.on("stream", stream => {
-                                    remoteVideo.srcObject = stream;
-                                    remoteVideo.onloadedmetadata = () => remoteVideo.play();
-                                });
-                                call.on("close", () => {
-                                    console.log("Llamada cerrada después de reconexión.");
-                                    callInProgress = false;
-                                    remoteVideo.srcObject = null;
-                                });
-                                call.on("error", (err) => {
-                                    console.error("Error en la llamada de reconexión:", err);
-                                    callInProgress = false;
-                                    remoteVideo.srcObject = null;
-                                });
-                            } catch (err) {
-                                console.error("Error al iniciar la llamada de reconexión:", err);
-                                callInProgress = false;
+                discardPileDiv.textContent = 'Descarte';
+            }
+
+            // Actualizar tablero y posiciones de jugadores
+            const player1Pos = gameState.posicionJugador1;
+            const player2Pos = gameState.posicionJugador2;
+            renderGameBoard(player1Pos, player2Pos); // Pasar las posiciones tal cual están en Firestore
+
+            // Indicar turno actual y manejar robo de carta al inicio del turno
+            console.log(`UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
+            if (gameState.turnoActual === currentUserId) {
+                gameMessageDiv.textContent = '¡Es tu turno!';
+                btnPassTurn.disabled = false; // Habilitar botón de pasar turno
+                ownHandDiv.style.border = '2px solid #FF0000'; // Resaltar mano del jugador actual con rojo
+
+                // Lógica para robar carta al inicio del turno
+                if (gameState.gameStatus === "inProgress" && gameState.drawStatus && gameState.drawStatus[currentUserId] === false) {
+                    console.log("Detectado que el jugador actual necesita robar una carta.");
+                    const currentMazo = [...gameState.mazo]; // Copia para modificar
+                    const currentPilaDescarte = [...gameState.pilaDescarte]; // Copia para modificar
+                    const currentOwnHand = [...ownHand]; // Copia para modificar
+
+                    const newCard = drawCardForTurn(currentMazo, currentPilaDescarte, gameMessageDiv);
+                    if (newCard) {
+                        currentOwnHand.push(newCard);
+                        console.log(`Carta robada: ${newCard}. Nueva mano:`, currentOwnHand);
+
+                        // Actualizar Firestore con la nueva mano, mazo, descarte y estado de robo
+                        const updatePayload = {
+                            'estadoJuego.mazo': currentMazo,
+                            'estadoJuego.pilaDescarte': currentPilaDescarte,
+                            [`estadoJuego.drawStatus.${currentUserId}`]: true // Marcar como robado para este turno
+                        };
+
+                        if (roomData.jugador1Id === currentUserId) {
+                            updatePayload['estadoJuego.manoJugador1'] = currentOwnHand;
+                        } else {
+                            updatePayload['estadoJuego.manoJugador2'] = currentOwnHand;
+                        }
+
+                        try {
+                            await roomRef.update(updatePayload);
+                            gameMessageDiv.textContent += ' Has robado una carta al inicio de tu turno.';
+                        } catch (e) {
+                            console.error("Error al actualizar Firestore después de robar carta:", e);
+                        }
+                    }
+                }
+
+            } else if (gameState.turnoActual === currentRivalId) {
+                gameMessageDiv.textContent = `Turno de ${opponentNameDisplay.textContent}`;
+                btnPassTurn.disabled = true; // Deshabilitar botón de pasar turno
+                ownHandDiv.style.border = '1px solid #333333'; // Quitar resaltado con un borde sutil
+            } else {
+                 gameMessageDiv.textContent = 'Esperando al rival...';
+                 btnPassTurn.disabled = true;
+                 ownHandDiv.style.border = '1px solid #333333';
+            }
+
+            // Verificar condición de victoria
+            if (gameState.posicionJugador1 >= 13 || gameState.posicionJugador2 >= 13) {
+                const winnerId = gameState.posicionJugador1 >= 13 ? roomData.jugador1Id : roomData.jugador2Id;
+                // Solo actualiza el estado de la partida a "finished" si aún no lo está
+                if (gameState.gameStatus !== "finished") {
+                    if (roomRef) { // Asegurarse de que roomRef esté disponible antes de actualizar
+                        roomRef.update({ 'estadoJuego.ganador': winnerId, 'estadoJuego.gameStatus': 'finished' });
+                    } else {
+                        console.error("roomRef no está disponible para actualizar el estado de victoria.");
+                    }
+                }
+            }
+        }
+
+        // Función para generar el mazo inicial completo
+        function generateInitialDeck() {
+            let deck = [];
+            cardDefinitions.forEach(card => {
+                for (let i = 0; i < card.count; i++) {
+                    deck.push(card.id);
+                }
+            });
+            return deck;
+        }
+
+        // Función para barajar un array (algoritmo Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Lógica de Juego (acciones del jugador) ---
+
+        // Función para jugar una carta
+        async function playCard(cardId) {
+            // Asegurarse de que es el turno del jugador
+            const roomRef = db.collection('SALAS').doc(currentRoomId);
+            const roomDoc = await roomRef.get();
+            const roomData = roomDoc.data();
+            const gameState = roomData.estadoJuego;
+
+            if (gameState.turnoActual !== currentUserId) {
+                gameMessageDiv.textContent = '¡No es tu turno!';
+                return;
+            }
+
+            let ownHand = roomData.jugador1Id === currentUserId ? gameState.manoJugador1 : gameState.manoJugador2;
+            let rivalHand = roomData.jugador1Id === currentUserId ? gameState.manoJugador2 : gameState.manoJugador1;
+            let ownPos = roomData.jugador1Id === currentUserId ? gameState.posicionJugador1 : gameState.posicionJugador2;
+            let rivalPos = roomData.jugador1Id === currentUserId ? gameState.posicionJugador2 : gameState.posicionJugador1;
+            const mazo = gameState.mazo;
+            const pilaDescarte = gameState.pilaDescarte;
+            const lastPlayedCardId = gameState.ultimaCartaJugada;
+
+            const cardIndex = ownHand.indexOf(cardId);
+            if (cardIndex === -1) {
+                gameMessageDiv.textContent = 'Esa carta no está en tu mano.';
+                return;
+            }
+
+            const playedCard = cardDefinitions.find(c => c.id === cardId);
+            ownHand.splice(cardIndex, 1); // Remover la carta de la mano
+            pilaDescarte.push(cardId); // Añadirla a la pila de descarte
+
+            // Aplicar efecto de la carta
+            await applyCardEffect(playedCard, {
+                ownHand, rivalHand, ownPos, rivalPos, mazo, pilaDescarte, lastPlayedCardId,
+                currentUserId, currentRivalId, roomData, roomRef
+            });
+
+            // Determinar el próximo turno. Si la carta es Semidiós, el turno se repite.
+            let nextTurnPlayerId = currentRivalId;
+            if (playedCard.id === 'semidios') {
+                nextTurnPlayerId = currentUserId; // Repetir turno
+            }
+
+            // Actualizar el estado en Firestore
+            let updatedGameState = {
+                ...gameState,
+                mazo: mazo,
+                pilaDescarte: pilaDescarte,
+                ultimaCartaJugada: cardId,
+                manoJugador1: roomData.jugador1Id === currentUserId ? ownHand : rivalHand,
+                manoJugador2: roomData.jugador1Id === currentUserId ? rivalHand : ownHand,
+                posicionJugador1: roomData.jugador1Id === currentUserId ? ownPos : rivalPos,
+                posicionJugador2: roomData.jugador1Id === currentUserId ? rivalPos : ownPos,
+                turnoActual: nextTurnPlayerId // Pasar el turno al rival o repetir
+            };
+
+            await roomRef.update({ estadoJuego: updatedGameState });
+            gameMessageDiv.textContent = `Has jugado ${playedCard.name}. Turno de ${opponentNameDisplay.textContent}.`;
+        }
+
+        // Función para aplicar los efectos de las cartas
+        async function applyCardEffect(card, state) {
+            let { ownHand, rivalHand, ownPos, rivalPos, mazo, pilaDescarte, lastPlayedCardId, currentUserId, currentRivalId, roomData, roomRef } = state;
+            const isPlayer1 = roomData.jugador1Id === currentUserId;
+
+            // Función auxiliar para robar cartas, manejando el barajado del descarte (para efectos)
+            const drawCardForEffect = () => {
+                if (mazo.length === 0) {
+                    if (pilaDescarte.length > 0) {
+                        mazo.push(...shuffleArray(pilaDescarte));
+                        pilaDescarte.length = 0; // Vaciar pila de descarte
+                        gameMessageDiv.textContent = '¡Mazo barajado con el descarte!';
+                    } else {
+                        gameMessageDiv.textContent = 'No hay cartas en el mazo ni en el descarte.';
+                        return null; // No hay cartas para robar
+                    }
+                }
+                return mazo.shift(); // Roba la primera carta del mazo
+            };
+
+            // Función auxiliar para descartar cartas
+            const discardCards = (hand, count) => {
+                for (let i = 0; i < count; i++) {
+                    if (hand.length > 0) {
+                        const discardedCard = hand.pop(); // Descarta la última carta
+                        pilaDescarte.push(discardedCard);
+                    }
+                }
+            };
+
+            // Función auxiliar para elegir un jugador (simplificado por ahora)
+            const choosePlayer = async () => {
+                // Por simplicidad, siempre elegimos al rival por ahora.
+                // En una implementación real, se mostraría un modal con opciones.
+                return isPlayer1 ? roomData.jugador2Id : roomData.jugador1Id;
+            };
+
+            // Función auxiliar para elegir una carta de la mano (simplificado por ahora)
+            const chooseCardFromHand = async (hand) => {
+                // Por simplicidad, elige la primera carta.
+                // En una implementación real, se mostraría un modal para seleccionar.
+                return hand[0];
+            };
+
+
+            switch (card.id) {
+                case 'muerte':
+                    // Efecto: "Elige a un jugador, ese jugador pone sus cartas boca abajo y tú descartas 1 de las cartas. Si esa carta vale 0 o menos, avanzas 1 casilla."
+                    // La parte de "poner cartas boca abajo" es visual y ya se maneja con renderOpponentHand.
+                    // Para el descarte:
+                    const chosenOpponentId = await choosePlayer(); // Simplificado: siempre el rival
+                    const opponentHandToDiscardFrom = isPlayer1 ? rivalHand : ownHand; // Si soy P1, elijo del rival (P2); si soy P2, elijo del rival (P1)
+                    const discardedCardId = await chooseCardFromHand(opponentHandToDiscardFrom); // Simplificado: elige la primera
+                    const discardedCard = cardDefinitions.find(c => c.id === discardedCardId);
+
+                    if (discardedCardId) {
+                        const index = opponentHandToDiscardFrom.indexOf(discardedCardId);
+                        if (index > -1) {
+                            opponentHandToDiscardFrom.splice(index, 1);
+                            pilaDescarte.push(discardedCardId);
+                            gameMessageDiv.textContent = `${opponentNameDisplay.textContent} ha descartado ${discardedCard.name}.`;
+
+                            if (discardedCard.value <= 0) {
+                                ownPos = Math.min(13, ownPos + 1);
+                                gameMessageDiv.textContent += ' ¡Has avanzado 1 casilla!';
                             }
                         }
-                    })
-                    .catch(err => {
-                        console.error("Error al acceder a la cámara y el micrófono: ", err);
-                        showStatusMessage("Error al acceder a la cámara/micrófono. Asegúrate de que el archivo se sirve desde un servidor web (no 'file:///'), y que has concedido los permisos.", 'error');
+                    }
+                    // Actualizar manos y posiciones en el estado global para el update final
+                    if (isPlayer1) { rivalHand = opponentHandToDiscardFrom; } else { ownHand = opponentHandToDiscardFrom; }
+                    break;
+
+                case 'avefenix':
+                    // Efecto: "Descarta tu mano y roba 3 cartas."
+                    discardCards(ownHand, ownHand.length); // Descarta todas las cartas
+                    for (let i = 0; i < 3; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                    }
+                    break;
+
+                case 'gato':
+                    // Efecto: "Roba 2 cartas."
+                    for (let i = 0; i < 2; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                    }
+                    break;
+
+                case 'caballodetroya':
+                    // Efecto: "Elige a un jugador, ese jugador elige 1 de sus cartas y la descarta."
+                    const targetPlayerIdTroya = await choosePlayer();
+                    const targetHandTroya = (targetPlayerIdTroya === currentUserId) ? ownHand : rivalHand;
+                    const cardToDiscardTroya = await chooseCardFromHand(targetHandTroya); // Simplificado
+
+                    if (cardToDiscardTroya) {
+                        const index = targetHandTroya.indexOf(cardToDiscardTroya);
+                        if (index > -1) {
+                            targetHandTroya.splice(index, 1);
+                            pilaDescarte.push(cardToDiscardTroya);
+                            gameMessageDiv.textContent = `${(targetPlayerIdTroya === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado una carta.`;
+                        }
+                    }
+                    // Actualizar manos en el estado global para el update final
+                    if (targetPlayerIdTroya === currentUserId) { ownHand = targetHandTroya; } else { rivalHand = targetHandTroya; }
+                    break;
+
+                case 'ranadelasuerte':
+                    // Efecto: "Avanza 2 casillas."
+                    ownPos = Math.min(13, ownPos + 2);
+                    break;
+
+                case 'perro':
+                    // Efecto: "El siguiente jugador pierde su turno."
+                    // Esto se manejará en la actualización del turno en Firestore.
+                    // Necesitamos un campo en estadoJuego para "nextPlayerLosesTurn"
+                    roomRef.update({
+                        'estadoJuego.efectosActivos.nextPlayerLosesTurn': true
                     });
+                    break;
+
+                case 'esclavo':
+                    // Efecto: "Si tienes una carta mayor que 4, puedes mostrarla para avanzar 1 casilla."
+                    // Esto requerirá una interacción del usuario para "mostrar" la carta.
+                    // Por ahora, lo implementamos como si siempre la mostrara si la tiene.
+                    const cardToReveal = ownHand.find(cId => cardDefinitions.find(cd => cd.id === cId).value > 4);
+                    if (cardToReveal) {
+                        ownPos = Math.min(13, ownPos + 1);
+                        gameMessageDiv.textContent += ' ¡Has mostrado una carta y avanzado 1 casilla!';
+                    } else {
+                        gameMessageDiv.textContent += ' No tienes una carta mayor que 4 para mostrar.';
+                    }
+                    break;
+
+                case 'loco':
+                    // Efecto: "Elige a un jugador, ambos mostráis 1 de vuestras cartas, la más alta gana. Ambas cartas son descartadas. El jugador ganador avanza 2 casillas y el perdedor retrocede 1."
+                    const targetPlayerIdLoco = await choosePlayer();
+                    const targetHandLoco = (targetPlayerIdLoco === currentUserId) ? ownHand : rivalHand;
+
+                    if (ownHand.length === 0 || targetHandLoco.length === 0) {
+                        gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Loco.';
+                        break;
+                    }
+
+                    const ownCardLocoId = await chooseCardFromHand(ownHand); // Simplificado
+                    const rivalCardLocoId = await chooseCardFromHand(targetHandLoco); // Simplificado
+
+                    const ownCardLoco = cardDefinitions.find(c => c.id === ownCardLocoId);
+                    const rivalCardLoco = cardDefinitions.find(c => c.id === rivalCardLocoId);
+
+                    if (ownCardLoco && rivalCardLoco) {
+                        // Descartar ambas cartas
+                        ownHand.splice(ownHand.indexOf(ownCardLocoId), 1);
+                        pilaDescarte.push(ownCardLocoId);
+                        targetHandLoco.splice(targetHandLoco.indexOf(rivalCardLocoId), 1);
+                        pilaDescarte.push(rivalCardLocoId);
+
+                        if (ownCardLoco.value > rivalCardLoco.value) {
+                            ownPos = Math.min(13, ownPos + 2);
+                            rivalPos = Math.max(0, rivalPos - 1);
+                            gameMessageDiv.textContent = `¡Has ganado la comparación con Loco! Avanzas 2, el rival retrocede 1.`;
+                        } else if (rivalCardLoco.value > ownCardLoco.value) {
+                            ownPos = Math.max(0, ownPos - 1);
+                            rivalPos = Math.min(13, rivalPos + 2);
+                            gameMessageDiv.textContent = `¡El rival ha ganado la comparación con Loco! Tú retrocedes 1, el rival avanza 2.`;
+                        } else {
+                            gameMessageDiv.textContent = `Empate en la comparación de Loco. Nadie avanza ni retrocede.`;
+                        }
+                    }
+                    // Actualizar manos y posiciones en el estado global para el update final
+                    if (isPlayer1) { rivalHand = targetHandLoco; } else { ownHand = targetHandLoco; }
+                    break;
+
+                case 'vagabundo':
+                    // Efecto: "Compara tu carta más baja con la carta más baja de otro jugador, si tu carta es más baja, avanza 2 casillas."
+                    const targetPlayerIdVagabundo = await choosePlayer();
+                    const targetHandVagabundo = (targetPlayerIdVagabundo === currentUserId) ? ownHand : rivalHand;
+
+                    if (ownHand.length === 0 || targetHandVagabundo.length === 0) {
+                        gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Vagabundo.';
+                        break;
+                    }
+
+                    const ownLowestCard = ownHand.reduce((minCard, cardId) => {
+                        const card = cardDefinitions.find(c => c.id === cardId);
+                        return (!minCard || card.value < minCard.value) ? card : minCard;
+                    }, null);
+
+                    const rivalLowestCard = targetHandVagabundo.reduce((minCard, cardId) => {
+                        const card = cardDefinitions.find(c => c.id === cardId);
+                        return (!minCard || card.value < minCard.value) ? card : minCard;
+                    }, null);
+
+                    if (ownLowestCard && rivalLowestCard) {
+                        if (ownLowestCard.value < rivalLowestCard.value) {
+                            ownPos = Math.min(13, ownPos + 2);
+                            gameMessageDiv.textContent = `Tu carta más baja (${ownLowestCard.name}) es menor. Avanzas 2 casillas.`;
+                        } else {
+                            gameMessageDiv.textContent = `Tu carta más baja (${ownLowestCard.name}) no es menor que la del rival.`;
+                        }
+                    }
+                    break;
+
+                case 'filosofo':
+                    // Efecto: "Elige a un jugador, ambos robáis una carta y la mostráis, si tu carta es más alta, te la quedas y el otro jugador descarta la carta robada. Si tu carta es más baja, ambos jugadores descartáis las cartas robadas."
+                    const targetPlayerIdFilosofo = await choosePlayer();
+                    const targetHandFilosofo = (targetPlayerIdFilosofo === currentUserId) ? ownHand : rivalHand;
+
+                    const ownDrawnCardId = drawCardForEffect();
+                    const rivalDrawnCardId = drawCardForEffect();
+
+                    if (!ownDrawnCardId || !rivalDrawnCardId) {
+                        gameMessageDiv.textContent = 'No hay suficientes cartas en el mazo para el efecto Filósofo.';
+                        if (ownDrawnCardId) mazo.push(ownDrawnCardId); // Devolver al mazo si solo se robó una
+                        if (rivalDrawnCardId) mazo.push(rivalDrawnCardId);
+                        break;
+                    }
+
+                    const ownDrawnCard = cardDefinitions.find(c => c.id === ownDrawnCardId);
+                    const rivalDrawnCard = cardDefinitions.find(c => c.id === rivalDrawnCardId);
+
+                    gameMessageDiv.textContent = `Ambos robáis: Tú ${ownDrawnCard.name}, Rival ${rivalDrawnCard.name}.`;
+
+                    if (ownDrawnCard.value > rivalDrawnCard.value) {
+                        ownHand.push(ownDrawnCardId);
+                        pilaDescarte.push(rivalDrawnCardId);
+                        gameMessageDiv.textContent += ` Tu carta es más alta, te la quedas y el rival descarta la suya.`;
+                    } else if (ownDrawnCard.value < rivalDrawnCard.value) {
+                        pilaDescarte.push(ownDrawnCardId);
+                        pilaDescarte.push(rivalDrawnCardId);
+                        gameMessageDiv.textContent += ` Tu carta es más baja, ambos descartáis las cartas.`;
+                    } else {
+                        pilaDescarte.push(ownDrawnCardId);
+                        pilaDescarte.push(rivalDrawnCardId);
+                        gameMessageDiv.textContent += ` Empate, ambos descartáis las cartas.`;
+                    }
+                    // Actualizar manos en el estado global para el update final
+                    if (isPlayer1) { rivalHand = targetHandFilosofo; } else { ownHand = targetHandFilosofo; }
+                    break;
+
+                case 'nini':
+                    // Efecto: "Roba 1 carta."
+                    const newCardNini = drawCardForEffect();
+                    if (newCardNini) ownHand.push(newCardNini);
+                    break;
+
+                case 'influencer':
+                    // Efecto: "Compara tu carta más alta con la carta más alta del jugador que elijas. El ganador avanza 1 casilla, el perdedor retrocede 1 casilla."
+                    const targetPlayerIdInfluencer = await choosePlayer();
+                    const targetHandInfluencer = (targetPlayerIdInfluencer === currentUserId) ? ownHand : rivalHand;
+
+                    if (ownHand.length === 0 || targetHandInfluencer.length === 0) {
+                        gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Influencer.';
+                        break;
+                    }
+
+                    const ownHighestCard = ownHand.reduce((maxCard, cardId) => {
+                        const card = cardDefinitions.find(c => c.id === cardId);
+                        return (!maxCard || card.value > maxCard.value) ? card : minCard;
+                    }, null);
+
+                    const rivalHighestCard = targetHandInfluencer.reduce((maxCard, cardId) => {
+                        const card = cardDefinitions.find(c => c.id === cardId);
+                        return (!maxCard || card.value > maxCard.value) ? card : minCard;
+                    }, null);
+
+                    if (ownHighestCard && rivalHighestCard) {
+                        gameMessageDiv.textContent = `Comparando: Tú ${ownHighestCard.name}, Rival ${rivalHighestCard.name}.`;
+                        if (ownHighestCard.value > rivalHighestCard.value) {
+                            ownPos = Math.min(13, ownPos + 1);
+                            rivalPos = Math.max(0, rivalPos - 1);
+                            gameMessageDiv.textContent += ` ¡Tú ganas! Avanzas 1, rival retrocede 1.`;
+                        } else if (rivalHighestCard.value > ownHighestCard.value) {
+                            ownPos = Math.max(0, ownPos - 1);
+                            rivalPos = Math.min(13, rivalPos + 1);
+                            gameMessageDiv.textContent += ` ¡Rival gana! Tú retrocedes 1, rival avanza 1.`;
+                        } else {
+                            gameMessageDiv.textContent += ` Empate. Nadie avanza ni retrocede.`;
+                        }
+                    }
+                    break;
+
+                case 'camello':
+                    // Efecto: "Roba 1 carta, descarta 1 carta. Si muestras una carta de -1 o menor, avanza 1 casilla."
+                    const newCardCamello = drawCardForEffect();
+                    if (newCardCamello) ownHand.push(newCardCamello);
+                    gameMessageDiv.textContent = 'Has robado una carta. Ahora descarta una.';
+                    // Aquí se necesitaría una interfaz para que el jugador elija qué descartar
+                    // Por simplicidad, descartamos la primera carta de la mano
+                    if (ownHand.length > 0) {
+                        const discardedCardCamelloId = ownHand.shift();
+                        pilaDescarte.push(discardedCardCamelloId);
+                        const discardedCardCamello = cardDefinitions.find(c => c.id === discardedCardCamelloId);
+                        gameMessageDiv.textContent += ` Has descartado ${discardedCardCamello.name}.`;
+                        if (discardedCardCamello.value <= -1) {
+                            ownPos = Math.min(13, ownPos + 1);
+                            gameMessageDiv.textContent += ' ¡Y avanzas 1 casilla!';
+                        }
+                    }
+                    break;
+
+                case 'trabajador':
+                    // Efecto: "Avanza 1 casilla."
+                    ownPos = Math.min(13, ownPos + 1);
+                    break;
+
+                case 'artesano':
+                    // Efecto: "Si estás en la casilla 0, 1, 2 o 3, avanza 2 casillas. Si estás en la 4 o superior, avanza 1."
+                    if (ownPos >= 0 && ownPos <= 3) {
+                        ownPos = Math.min(13, ownPos + 2);
+                    } else if (ownPos >= 4) {
+                        ownPos = Math.min(13, ownPos + 1);
+                    }
+                    break;
+
+                case 'policia':
+                    // Efecto: "Elige 1 jugador, ese jugador retrocede 1 casilla."
+                    const targetPlayerIdPolicia = await choosePlayer();
+                    if (targetPlayerIdPolicia === currentUserId) {
+                        ownPos = Math.max(0, ownPos - 1);
+                        gameMessageDiv.textContent = 'Has retrocedido 1 casilla.';
+                    } else {
+                        rivalPos = Math.max(0, rivalPos - 1);
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} retrocede 1 casilla.`;
+                    }
+                    break;
+
+                case 'detective':
+                    // Efecto: "Elige a un jugador y una carta, si ese jugador tiene esa carta: la muestra y retrocede 2 casillas."
+                    const targetPlayerIdDetective = await choosePlayer();
+                    const targetHandDetective = (targetPlayerIdDetective === currentUserId) ? ownHand : rivalHand;
+
+                    // Aquí se necesitaría una interfaz para que el jugador elija la carta a buscar
+                    // Por simplicidad, buscamos una carta de ejemplo (ej. 'nini')
+                    const cardToFindId = 'nini'; // Placeholder
+                    const cardToFind = cardDefinitions.find(c => c.id === cardToFindId);
+
+                    if (targetHandDetective.includes(cardToFindId)) {
+                        gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} tiene la carta ${cardToFind.name} y retrocede 2 casillas.`;
+                        if (targetPlayerIdDetective === currentUserId) {
+                            ownPos = Math.max(0, ownPos - 2);
+                        } else {
+                            rivalPos = Math.max(0, rivalPos - 2);
+                        }
+                    } else {
+                        gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} no tiene la carta ${cardToFind.name}.`;
+                    }
+                    break;
+
+                case 'guardaespaldas':
+                    // Efecto: "Hasta tu próximo turno, las cartas del resto de jugadores, no te afectan."
+                    const effects = roomData.estadoJuego.efectosActivos || {};
+                    effects[currentUserId] = { guardaespaldas: true, turnosRestantes: 1 }; // 1 turno completo
+                    roomRef.update({ 'estadoJuego.efectosActivos': effects });
+                    gameMessageDiv.textContent = '¡Guardaespaldas activado! Estás protegido hasta tu próximo turno.';
+                    break;
+
+                case 'abogado':
+                    // Efecto: "Intercambia las cartas con otro jugador."
+                    const targetPlayerIdAbogado = await choosePlayer();
+                    if (targetPlayerIdAbogado === currentUserId) {
+                        gameMessageDiv.textContent = 'No puedes intercambiar cartas contigo mismo.';
+                        break;
+                    }
+                    // Intercambiar manos
+                    const tempHand = [...ownHand];
+                    ownHand.length = 0;
+                    ownHand.push(...rivalHand);
+                    rivalHand.length = 0;
+                    rivalHand.push(...tempHand);
+                    gameMessageDiv.textContent = '¡Has intercambiado manos con el rival!';
+                    break;
+
+                case 'banquero':
+                    // Efecto: "Si la última carta jugada es igual o mayor que 7, avanzas 2 casillas."
+                    if (lastPlayedCardId) {
+                        const lastCard = cardDefinitions.find(c => c.id === lastPlayedCardId);
+                        if (lastCard && lastCard.value >= 7) {
+                            ownPos = Math.min(13, ownPos + 2);
+                            gameMessageDiv.textContent = `La última carta (${lastCard.name}) es >= 7. Avanzas 2 casillas.`;
+                        } else {
+                            gameMessageDiv.textContent = `La última carta (${lastCard ? lastCard.name : 'ninguna'}) no es >= 7.`;
+                        }
+                    } else {
+                        gameMessageDiv.textContent = 'No hay última carta jugada para Banquero.';
+                    }
+                    break;
+
+                case 'musico':
+                    // Efecto: "Roba 2 cartas y descarta 2 cartas."
+                    for (let i = 0; i < 2; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                    }
+                    gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 2.';
+                    // Aquí se necesitaría una interfaz para que el jugador elija qué descartar
+                    discardCards(ownHand, 2); // Simplificado: descarta las 2 últimas añadidas o existentes
+                    break;
+
+                case 'arlequin':
+                    // Efecto: "Roba 2 cartas y descarta 1."
+                    for (let i = 0; i < 2; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                    }
+                    gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 1.';
+                    // Aquí se necesitaría una interfaz para que el jugador elija qué descartar
+                    discardCards(ownHand, 1); // Simplificado: descarta la última añadida o existente
+                    break;
+
+                case 'futbolista':
+                    // Efecto: "Descarta 1 carta para avanzar 2 casillas."
+                    if (ownHand.length > 0) {
+                        // Aquí se necesitaría una interfaz para que el jugador elija qué descartar
+                        const discardedCardFutbolista = ownHand.shift(); // Simplificado: descarta la primera
+                        pilaDescarte.push(discardedCardFutbolista);
+                        ownPos = Math.min(13, ownPos + 2);
+                        gameMessageDiv.textContent = 'Has descartado una carta y avanzado 2 casillas.';
+                    } else {
+                        gameMessageDiv.textContent = 'No tienes cartas para descartar y usar Futbolista.';
+                    }
+                    break;
+
+                case 'capo':
+                    // Efecto: "Avanzas 1 casilla. Elige un jugador, el jugador elegido retrocede 1 casilla."
+                    ownPos = Math.min(13, ownPos + 1);
+                    const targetPlayerIdCapo = await choosePlayer();
+                    if (targetPlayerIdCapo === currentUserId) {
+                        ownPos = Math.max(0, ownPos - 1); // Retrocede si se elige a sí mismo
+                        gameMessageDiv.textContent = 'Avanzas 1, pero luego retrocedes 1 (te elegiste a ti mismo).';
+                    } else {
+                        rivalPos = Math.max(0, rivalPos - 1);
+                        gameMessageDiv.textContent = `Avanzas 1 casilla. ${opponentNameDisplay.textContent} retrocede 1 casilla.`;
+                    }
+                    break;
+
+                case 'politico':
+                    // Efecto: "Un jugador, (puedes ser tú), descarta sus cartas y roba la misma cantidad. Avanzas 1 casilla."
+                    const targetPlayerIdPolitico = await choosePlayer();
+                    const targetHandPolitico = (targetPlayerIdPolitico === currentUserId) ? ownHand : rivalHand;
+                    const numCardsToRedraw = targetHandPolitico.length;
+
+                    discardCards(targetHandPolitico, numCardsToRedraw); // Descarta todas
+                    for (let i = 0; i < numCardsToRedraw; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) targetHandPolitico.push(newCard);
+                    }
+                    ownPos = Math.min(13, ownPos + 1);
+                    gameMessageDiv.textContent = `${(targetPlayerIdPolitico === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado y robado cartas. Tú avanzas 1.`;
+                    // Actualizar manos en el estado global para el update final
+                    if (isPlayer1) { rivalHand = targetHandPolitico; } else { ownHand = targetHandPolitico; }
+                    break;
+
+                case 'sectario':
+                    // Efecto: "Elige un jugador y mira sus cartas, puedes intercambiar tus cartas por las suyas. Avanzas 1 casilla."
+                    const targetPlayerIdSectario = await choosePlayer();
+                    const targetHandSectario = (targetPlayerIdSectario === currentUserId) ? ownHand : rivalHand;
+
+                    gameMessageDiv.textContent = `Las cartas de ${opponentNameDisplay.textContent} son: ${targetHandSectario.map(cId => cardDefinitions.find(c => c.id === cId).name).join(', ')}.`;
+                    // Aquí se necesitaría una interfaz para decidir si intercambiar o no
+                    // Por simplicidad, siempre intercambiamos si es el rival
+                    if (targetPlayerIdSectario !== currentUserId) {
+                        const tempHand = [...ownHand];
+                        ownHand.length = 0;
+                        ownHand.push(...targetHandSectario);
+                        targetHandSectario.length = 0;
+                        targetHandSectario.push(...tempHand);
+                        gameMessageDiv.textContent += ' ¡Has intercambiado manos!';
+                    } else {
+                        gameMessageDiv.textContent += ' No puedes intercambiar contigo mismo.';
+                    }
+                    ownPos = Math.min(13, ownPos + 1);
+                    // Actualizar manos en el estado global para el update final
+                    if (isPlayer1) { rivalHand = targetHandSectario; } else { ownHand = targetHandSectario; }
+                    break;
+
+                case 'astronauta':
+                    // Efecto: "Avanza 1 casilla. Si estás en la casilla 8 o superior, roba 1 carta."
+                    ownPos = Math.min(13, ownPos + 1);
+                    if (ownPos >= 8) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                        gameMessageDiv.textContent += ' ¡Y has robado 1 carta!';
+                    }
+                    break;
+
+                case 'arcangel':
+                    // Efecto: "Avanza 1 casilla. Roba 3 cartas y descarta 2."
+                    ownPos = Math.min(13, ownPos + 1);
+                    for (let i = 0; i < 3; i++) {
+                        const newCard = drawCardForEffect();
+                        if (newCard) ownHand.push(newCard);
+                    }
+                    gameMessageDiv.textContent = 'Avanzas 1 casilla y robas 3 cartas. Ahora descarta 2.';
+                    // Aquí se necesitaría una interfaz para que el jugador elija qué descartar
+                    discardCards(ownHand, 2); // Simplificado
+                    break;
+
+                case 'semidios':
+                    // Efecto: "Avanza 1 casilla. Repite tu turno."
+                    ownPos = Math.min(13, ownPos + 1);
+                    // Para repetir el turno, no cambiamos el turnoActual al rival.
+                    // Esto se manejará en la función playCard o passTurn.
+                    // La actualización del turno se hace al final de playCard.
+                    // Aquí solo se asegura que el turno NO cambie al rival.
+                    break;
+
+                case 'ojotodove':
+                    // Efecto: "Avanza 1 casilla. Mira las cartas de todos los jugadores."
+                    ownPos = Math.min(13, ownPos + 1);
+                    gameMessageDiv.textContent = `Las cartas de ${opponentNameDisplay.textContent} son: ${rivalHand.map(cId => cardDefinitions.find(c => c.id === cId).name).join(', ')}.`;
+                    // Mostrar las cartas del oponente visualmente por un momento si se desea
+                    break;
+
+                default:
+                    console.warn('Efecto de carta no implementado:', card.name);
+                    gameMessageDiv.textContent = `Has jugado ${card.name}.`;
+                    break;
+            }
+
+            // Asegurarse de que los cambios en las manos y posiciones se reflejen en el objeto de estado
+            if (isPlayer1) {
+                state.manoJugador1 = ownHand;
+                state.manoJugador2 = rivalHand;
+                state.posicionJugador1 = ownPos;
+                state.posicionJugador2 = rivalPos;
+            } else {
+                state.manoJugador1 = rivalHand;
+                state.manoJugador2 = ownHand;
+                state.posicionJugador1 = rivalPos;
+                state.posicionJugador2 = ownPos;
+            }
+            state.mazo = mazo;
+            state.pilaDescarte = pilaDescarte;
+        }
+
+
+        // Función para pasar el turno
+        async function passTurn() {
+            const roomRef = db.collection('SALAS').doc(currentRoomId);
+            const roomDoc = await roomRef.get();
+            const roomData = roomDoc.data();
+            const gameState = roomData.estadoJuego;
+
+            if (gameState.turnoActual !== currentUserId) {
+                gameMessageDiv.textContent = '¡No es tu turno para pasar!';
+                return;
+            }
+
+            // Manejar efecto "Perro" si está activo para el siguiente jugador
+            let nextTurnPlayerId = currentRivalId; // Por defecto, el turno pasa al rival
+            const updatedEffects = { ...gameState.efectosActivos };
+
+            if (updatedEffects && updatedEffects.nextPlayerLosesTurn) {
+                gameMessageDiv.textContent = `${opponentNameDisplay.textContent} pierde su turno por el efecto Perro. ¡Es tu turno de nuevo!`;
+                delete updatedEffects.nextPlayerLosesTurn;
+                nextTurnPlayerId = currentUserId; // El turno se queda en el mismo jugador
+            } else {
+                gameMessageDiv.textContent = `Has pasado el turno. Turno de ${opponentNameDisplay.textContent}.`;
+            }
+
+            // Reducir duración de efectos temporales (ej. Guardaespaldas)
+            if (updatedEffects[currentUserId] && updatedEffects[currentUserId].guardaespaldas) {
+                updatedEffects[currentUserId].turnosRestantes--;
+                if (updatedEffects[currentUserId].turnosRestantes <= 0) {
+                    delete updatedEffects[currentUserId];
+                    gameMessageDiv.textContent += ' El efecto Guardaespaldas ha terminado.';
+                }
+            }
+
+            // Resetear el estado de robo para el siguiente jugador (o para el mismo si repite turno)
+            const newDrawStatus = { ...gameState.drawStatus };
+            newDrawStatus[nextTurnPlayerId] = false; // El siguiente jugador podrá robar
+
+            const updatePayload = {
+                'estadoJuego.turnoActual': nextTurnPlayerId,
+                'estadoJuego.efectosActivos': updatedEffects,
+                'estadoJuego.drawStatus': newDrawStatus
+            };
+            await roomRef.update(updatePayload);
+        }
+
+        // --- Event Listeners ---
+
+        // Lógica para la Pantalla 1: Introducir Nombre de Jugador
+        btnEnterName.addEventListener('click', async () => {
+            const name = playerNameInput.value.trim();
+            if (name) {
+                currentPlayerName = name;
+                nameError.textContent = ''; // Limpiar errores
+                await signInAnonymouslyAndGetUid(); // Autenticar al jugador
+                showScreen(screen2); // Mover a la pantalla del rival
+            } else {
+                nameError.textContent = 'Por favor, introduce tu nombre.';
             }
         });
 
-        // Nuevo: Event listener para el slider de volumen
-        volumeSlider.addEventListener('input', (event) => {
-            if (gainNode) {
-                gainNode.gain.value = parseFloat(event.target.value);
-                console.log("Volumen del micrófono establecido a:", gainNode.gain.value);
+        // Lógica para la Pantalla 2: Introducir Nombre del Rival
+        btnConnectRival.addEventListener('click', async () => {
+            const rival = rivalNameInput.value.trim();
+            if (rival && rival !== currentPlayerName) {
+                rivalPlayerName = rival;
+                rivalError.textContent = ''; // Limpiar errores
+                console.log(`Tu nombre: ${currentPlayerName}, Nombre del rival: ${rivalPlayerName}`);
+                // Iniciar la lógica de búsqueda/creación de sala
+                await findOrCreateRoom(currentPlayerName, rivalPlayerName);
+
+                // Si se crea una nueva sala, el jugador actual es el jugador1
+                // Si se une a una sala existente, el jugador actual es el jugador2
+                // Esto se manejará dentro de findOrCreateRoom y listenToRoomChanges
+            } else if (rival === currentPlayerName) {
+                rivalError.textContent = 'No puedes ser tu propio rival. Introduce un nombre diferente.';
+            } else {
+                rivalError.textContent = 'Por favor, introduce el nombre de tu rival.';
             }
         });
 
+        btnBackToName.addEventListener('click', () => {
+            if (unsubscribeSnapshot) {
+                unsubscribeSnapshot(); // Desuscribirse del listener de la sala al volver
+                unsubscribeSnapshot = null;
+            }
+            showScreen(screen1); // Volver a la pantalla de nombre de jugador
+            gameMessageDiv.textContent = ''; // Limpiar mensajes de juego
+            rivalError.textContent = ''; // Limpiar errores del rival
+        });
 
-        // Iniciar la inicialización de PeerJS cuando la ventana se carga
-        window.onload = function() {
-            initializePeer();
-        };
+        btnPassTurn.addEventListener('click', passTurn);
+
+        // Inicialmente, mostrar la primera pantalla
+        showScreen(screen1);
+
+        // Ajustar el tablero cuando la ventana cambia de tamaño
+        window.addEventListener('resize', () => {
+            if (screen3.classList.contains('active')) {
+                // Solo renderizar si la pantalla de juego está activa
+                // Necesitamos los valores actuales de posición para re-renderizar
+                // Esto requerirá que el estado del juego sea accesible globalmente o se pase
+                // Por ahora, solo se re-renderiza con valores por defecto si no hay estado
+                // Esta llamada debería idealmente usar el estado actual del juego
+                // Para simplificar, asumimos que el updateGameUI se encargará de esto con el onSnapshot
+            }
+        });
+
+        // Asegurarse de que el tablero se renderice correctamente al cargar la pantalla 3
+        // Esto se ejecutará una vez que la pantalla 3 sea activa
+        const observer = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    if (screen3.classList.contains('active')) {
+                        // Dar un pequeño retraso para asegurar que el DOM esté listo y los tamaños calculados
+                        // Se llama a renderGameBoard con 0,0 aquí, pero el onSnapshot lo actualizará con los valores reales
+                        setTimeout(() => {
+                            // Si ya hay un roomData disponible, usarlo. Si no, 0,0 es un buen inicio.
+                            if (currentRoomId) {
+                                db.collection('SALAS').doc(currentRoomId).get().then(doc => {
+                                    if (doc.exists) {
+                                        const roomData = doc.data();
+                                        const ownPos = roomData.jugador1Id === currentUserId ? roomData.estadoJuego.posicionJugador1 : roomData.estadoJuego.posicionJugador2;
+                                        // FIX: Corrected typo here
+                                        const opponentPos = roomData.jugador1Id === currentUserId ? roomData.estadoJuego.posicionJugador2 : roomData.estadoJuego.posicionJugador1;
+                                        renderGameBoard(ownPos, opponentPos);
+                                    } else {
+                                        renderGameBoard(0, 0);
+                                    }
+                                }).catch(error => {
+                                    console.error("Error al obtener datos de la sala para renderizar tablero:", error);
+                                    renderGameBoard(0, 0);
+                                });
+                            } else {
+                                renderGameBoard(0, 0);
+                            }
+                        }, 100);
+                    }
+                }
+            }
+        });
+        observer.observe(screen3, { attributes: true });
+
     </script>
-
 </body>
-
 </html>
