@@ -88,13 +88,11 @@ height: 100%; width: 100%;            margin: 0;
 
         button:hover {
             background-color: #CC0000; /* Rojo más oscuro al pasar el ratón */
-            transform: translateY(-1px); /* Menos movimiento */
-            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
+             box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
         }
 
         button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
         .error-message {
@@ -109,15 +107,20 @@ height: 100%; width: 100%;            margin: 0;
    #screen3 {
     width: 100%;
     max-width: 1200px;
-    height: 95vh;
+    height: 100%;
+display: none;
+transform: translateY(10%);
     display: grid;
-    /* CAMBIO AQUÍ: Ajusta la primera fracción para reducir el espacio superior */
-    grid-template-rows: auto 2fr 1fr; /* Cambia '1fr' a 'auto' para que la fila superior tome el tamaño de su contenido */
-    gap: 20px; /* Más espacio entre secciones */
+    /* Las filas se ajustan a la altura de su contenido para permitir el centrado vertical del bloque */
+    grid-template-rows: auto auto auto;
+      gap: 20px; /* Más espacio entre secciones */
     padding: 15px;
     background-color: #1a1a1a; /* Fondo que coincide con el body */
     border: none;
     box-shadow: none;
+   justify-content: center; /* Centra el grid horizontalmente si es más estrecho que su contenedor */
+    align-content: center;   /* Centra el contenido del grid (las filas) verticalmente dentro de #screen3 */
+   
 }
 
         .player-area {
@@ -193,7 +196,7 @@ height: 100%; width: 100%;            margin: 0;
         .hand {
             display: flex;
             gap: 15px; /* Más espacio entre cartas */
-            min-height: 200px; /* Espacio para cartas más grandes */
+            min-height: 160px; /* Espacio para cartas más grandes */
             border: none; /* Sin borde */
             padding: 10px;
             border-radius: 0;
@@ -206,8 +209,8 @@ height: 100%; width: 100%;            margin: 0;
         .opponent-hand .card-back {
             background-color: #000000; /* Negro sólido */
             color: #ffffff;
-            width: 130px; /* Ligeramente más pequeña que la propia */
-            height: 190px;
+            width: 120px; /* Ligeramente más pequeña que la propia */
+            height: 160px;
             border-radius: 0; /* Bordes rectos */
             display: flex;
             justify-content: center;
@@ -296,7 +299,7 @@ height: 100%; width: 100%;            margin: 0;
             font-size: 1.5em; /* Nombres más grandes */
             font-weight: bold;
             color: #ffffff;
-            margin-bottom: 15px; /* Más margen */
+            margin-bottom: 5px; /* Más margen */
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -337,7 +340,11 @@ height: 100%; width: 100%;            margin: 0;
 
         /* Botón de pasar turno */
         .game-button {
-            margin-top: 25px; /* Más margen */
+            position: absolute;
+            left: 0%;
+            bottom: 0%;
+            transform: translateX(-50%) translateY(50%);
+            margin-top: 0px; /* Más margen */
             align-self: center;
         }
 
@@ -590,7 +597,7 @@ height: 100%; width: 100%;            margin: 0;
                 margin-bottom: 8px;
             }
             .game-button {
-                margin-top: 15px;
+           
                 padding: 10px 20px;
             }
             .game-message {
