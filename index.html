@@ -7,12 +7,12 @@
     <style>
         /* Estilos CSS embebidos */
         body {
+            zoom: 87%;
             font-family: 'Inter', sans-serif; /* Usamos Inter como se sugiere */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+height: 100%; width: 100%;            margin: 0;
             background-color: #1a1a1a; /* Fondo casi negro para elegancia */
             color: #ffffff; /* Texto blanco puro */
             overflow: hidden; /* Evita el scroll si el contenido es un poco más grande */
@@ -106,18 +106,19 @@
         }
 
         /* Estilos para la pantalla de juego (screen3) */
-        #screen3 {
-            width: 100%;
-            max-width: 1200px;
-            height: 95vh;
-            display: grid;
-            grid-template-rows: 1fr 2fr 1fr;
-            gap: 20px; /* Más espacio entre secciones */
-            padding: 15px;
-            background-color: #1a1a1a; /* Fondo que coincide con el body */
-            border: none;
-            box-shadow: none;
-        }
+   #screen3 {
+    width: 100%;
+    max-width: 1200px;
+    height: 95vh;
+    display: grid;
+    /* CAMBIO AQUÍ: Ajusta la primera fracción para reducir el espacio superior */
+    grid-template-rows: auto 2fr 1fr; /* Cambia '1fr' a 'auto' para que la fila superior tome el tamaño de su contenido */
+    gap: 20px; /* Más espacio entre secciones */
+    padding: 15px;
+    background-color: #1a1a1a; /* Fondo que coincide con el body */
+    border: none;
+    box-shadow: none;
+}
 
         .player-area {
             display: flex;
@@ -142,45 +143,18 @@
             position: relative;
         }
 
-        /* Nuevo estilo para el tablero lineal */
-        .board-area {
-            order: 2;
-            display: flex; /* Usar flexbox para la línea de casillas */
-            justify-content: space-between; /* Espacio entre casillas */
-            align-items: center;
-            background-color: #1a1a1a;
-            border: 1px solid #FF0000;
-            border-radius: 0;
-            position: relative;
-            width: 100%;
-            max-width: 900px; /* Ancho máximo para el tablero lineal */
-            height: 80px; /* Altura fija para la línea */
-            margin: auto;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-            padding: 0 10px; /* Pequeño padding horizontal */
-        }
-
-        /* Estilos para las manos y los mazos/descartes */
-        .hand {
+        /* Nuevo contenedor para la baraja, el tablero y la pila de descarte */
+        .game-central-layout {
+            order: 2; /* Para que esté entre el área del oponente y la propia */
             display: flex;
-            gap: 15px; /* Más espacio entre cartas */
-            min-height: 200px; /* Espacio para cartas más grandes */
-            border: none; /* Sin borde */
-            padding: 10px;
-            border-radius: 0;
-            align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
+            justify-content: space-around; /* Distribuye el espacio entre los elementos */
+            align-items: center; /* Centra verticalmente los elementos */
+            width: 100%; /* Ocupa todo el ancho disponible */
+            padding: 10px; /* Pequeño padding interno */
+            box-sizing: border-box;
         }
 
-        .deck-discard-area {
-            display: flex;
-            gap: 40px; /* Más espacio */
-            margin-top: 20px;
-            justify-content: center;
-            align-items: center;
-        }
-
+        /* Estilos para la baraja y la pila de descarte */
         .deck, .discard-pile {
             width: 140px; /* Cartas más grandes */
             height: 200px; /* Cartas más grandes */
@@ -194,6 +168,38 @@
             border-radius: 0; /* Bordes rectos */
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
+            flex-shrink: 0; /* Evita que se encojan si el espacio es limitado */
+        }
+
+        /* Estilos para el tablero lineal */
+        .board-area {
+            display: flex; /* Usar flexbox para la línea de casillas */
+            justify-content: space-between; /* Espacio entre casillas */
+            align-items: center;
+            background-color: #1a1a1a;
+            border: 1px solid #FF0000;
+            border-radius: 0;
+            position: relative;
+            width: 100%; /* Ocupa el ancho disponible en el contenedor flex */
+            max-width: 900px; /* Ancho máximo para el tablero lineal */
+            height: 80px; /* Altura fija para la línea */
+            margin: auto; /* Centra horizontalmente dentro de game-central-layout */
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            padding: 0 10px; /* Pequeño padding horizontal */
+            flex-grow: 1; /* Permite que el tablero ocupe el espacio restante */
+        }
+
+        /* Estilos para las manos y los mazos/descartes (el .deck-discard-area antiguo ya no es necesario) */
+        .hand {
+            display: flex;
+            gap: 15px; /* Más espacio entre cartas */
+            min-height: 200px; /* Espacio para cartas más grandes */
+            border: none; /* Sin borde */
+            padding: 10px;
+            border-radius: 0;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         /* Estilo para el envés de la carta del rival */
@@ -536,7 +542,7 @@
                 gap: 10px;
             }
 
-            .player-area, .deck-discard-area {
+            .player-area, .game-central-layout { /* Ajuste para game-central-layout */
                 flex-direction: column;
                 gap: 8px;
                 padding: 8px;
@@ -761,14 +767,13 @@
             <div id="opponentActiveEffects" class="active-effects-container"></div>
             <div class="hand opponent-hand" id="opponentHand">
             </div>
-            <div class="deck-discard-area">
-                <div class="deck" id="deck">Mazo</div>
-                <div class="discard-pile" id="discardPile">Descarte</div>
-            </div>
         </div>
 
-        <div class="board-area" id="gameBoard">
-            </div>
+        <div class="game-central-layout">
+            <div class="deck" id="deck">Mazo</div>
+            <div class="board-area" id="gameBoard"></div>
+            <div class="discard-pile" id="discardPile">Descarte</div>
+        </div>
 
         <div class="player-area own-area">
             <span id="ownNameDisplay">Tú</span>
@@ -795,7 +800,7 @@
             authDomain: "enraya-51670.firebaseapp.com",
             databaseURL: "https://enraya-51670-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "enraya-51670",
-            storageBucket: "enraya-51670.firebasestorage.app",
+            storageBucket: "enraya-51670.firebase-storage.app",
             messagingSenderId: "103343380727",
             appId: "1:103343380727:web:b2fa02aee03c9506915bf2",
             measurementId: "G-2G31LLJY1T"
@@ -898,8 +903,6 @@
 
         // Función para cambiar de pantalla
         function showScreen(screenToShow) {
-            // Asegurarse de que el modal esté oculto al cambiar de pantalla
-            hideModal(); // Add this line
             screen1.classList.remove('active');
             screen2.classList.remove('active'); // Asegurarse de que screen2 también se desactive
             screen3.classList.remove('active');
@@ -1214,9 +1217,9 @@
                         currentPlayerName = roomData.jugador1Nombre;
                         rivalPlayerName = roomData.jugador2Nombre;
                     } else if (roomData.jugador2Id === currentUserId) {
-                        currentRivalId = roomData.jug1Nombre;
-                        currentPlayerName = roomData.jug2Nombre;
-                        rivalPlayerName = roomData.jug1Nombre; // Corrected typo
+                        currentRivalId = roomData.jugador1Id;
+                        currentPlayerName = roomData.jugador2Nombre;
+                        rivalPlayerName = roomData.jugador1Nombre; // Corrected typo
                     } else {
                         currentRivalId = null;
                         console.error("Error: currentUserId no coincide con ningún jugador en la sala. Esto no debería ocurrir si el jugador está en una sala activa.");
@@ -1302,7 +1305,7 @@
 
             // Actualizar nombres
             const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
-            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jug1Nombre;
+            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
             ownNameDisplay.textContent = ownName;
             opponentNameDisplay.textContent = opponentName;
             console.log(`UI Nombres - Propio: ${ownNameDisplay.textContent}, Rival: ${opponentNameDisplay.textContent}`);
@@ -1333,7 +1336,7 @@
             renderGameBoard(player1Pos, player2Pos); // Pasar las posiciones tal cual están en Firestore
 
             // Renderizar efectos activos
-            renderActiveEffects(gameState.efectosActivos, roomData.jugador1Id, roomData.jugador2Id, roomData.jugador1Nombre, roomData.jug2Nombre);
+            renderActiveEffects(gameState.efectosActivos, roomData.jugador1Id, roomData.jugador2Id, roomData.jugador1Nombre, roomData.jugador2Nombre);
 
             // Indicar turno actual y manejar robo de carta al inicio del turno
             console.log(`DEBUG: UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
@@ -1394,7 +1397,7 @@
 
             // Verificar condición de victoria
             if (gameState.posicionJugador1 >= 13 || gameState.posicionJugador2 >= 13) {
-                const winnerId = gameState.posicionJugador1 >= 13 ? roomData.jugador1Id : roomData.jug2Id;
+                const winnerId = gameState.posicionJugador1 >= 13 ? roomData.jugador1Id : roomData.jugador2Id;
                 // Solo actualiza el estado de la partida a "finished" si aún no lo está
                 if (gameState.gameStatus !== "finished") {
                     if (roomRef) { // Asegurarse de que roomRef esté disponible antes de actualizar
@@ -1410,12 +1413,12 @@
         // Función para actualizar la pantalla de fin de partida
         function updateGameOverScreen(roomData) {
             const gameState = roomData.estadoJuego;
-            const winnerName = gameState.ganador === roomData.jugador1Id ? roomData.jugador1Nombre : roomData.jug2Nombre;
-            const ownName = roomData.jugador1Id === currentUserId ? roomData.jug1Nombre : roomData.jug2Nombre;
-            const opponentName = roomData.jug1Id === currentUserId ? roomData.jug2Nombre : roomData.jug1Nombre;
+            const winnerName = gameState.ganador === roomData.jugador1Id ? roomData.jugador1Nombre : roomData.jugador2Nombre;
+            const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
+            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
 
             winnerDisplay.textContent = `Ganador: ${winnerName}`;
-            playerNamesDisplay.textContent = `Jugadores: ${roomData.jug1Nombre} vs ${roomData.jug2Nombre}`;
+            playerNamesDisplay.textContent = `Jugadores: ${roomData.jugador1Nombre} vs ${roomData.jugador2Nombre}`;
             playerNameInputScreen2.value = ownName;
             rivalNameInputScreen2.value = opponentName;
 
@@ -1496,7 +1499,7 @@
             const roomRef = db.collection('SALAS').doc(currentRoomId);
             const roomDoc = await roomRef.get();
             const roomData = roomDoc.data();
-            const gameState = roomData.estadoJuego;
+            const gameState = roomDoc.data().estadoJuego; // Accede directamente a estadoJuego
 
             if (gameState.turnoActual !== currentUserId) {
                 gameMessageDiv.textContent = '¡No es tu turno!';
@@ -2617,7 +2620,7 @@
             const roomRef = db.collection('SALAS').doc(currentRoomId);
             const roomDoc = await roomRef.get();
             const roomData = roomDoc.data();
-            const gameState = roomData.estadoJuego;
+            const gameState = roomDoc.data().estadoJuego; // Accede directamente a estadoJuego
 
             if (gameState.turnoActual !== currentUserId) {
                 gameMessageDiv.textContent = '¡No es tu turno para pasar!';
