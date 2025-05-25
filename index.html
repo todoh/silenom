@@ -109,7 +109,7 @@
         #screen3 {
             width: 100%;
             max-width: 1200px;
-            height: 95vh;
+            height: 95vh; /* Ajustado para mejor responsividad */
             display: grid;
             grid-template-rows: 1fr 2fr 1fr;
             gap: 20px; /* Más espacio entre secciones */
@@ -235,42 +235,55 @@
             z-index: 20;
         }
 
-        .card-image {
+        /* Nuevo diseño de carta */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px; /* Ajustado padding */
+            font-weight: bold;
+            font-size: 0.9em; /* Ajustado tamaño de fuente */
+            color: #333333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-image-container {
             width: 100%;
-            height: 55%; /* Ocupa más espacio */
-            background-color: #f0f0f0; /* Fondo más claro para la imagen */
+            height: 100px; /* Altura fija para la imagen cuadrada */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.9em; /* Texto más grande */
-            color: #666666; /* Gris más oscuro */
-            border-bottom: 1px solid #e0e0e0; /* Borde más claro */
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .card-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
         }
 
         .card-info {
-            padding: 10px; /* Más padding */
-            font-size: 0.9em; /* Texto más grande */
-            color: #333333; /* Texto oscuro */
+            padding: 8px 10px; /* Ajustado padding */
+            font-size: 0.8em; /* Ajustado tamaño de fuente */
+            color: #333333;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-            justify-content: space-between;
+            justify-content: flex-start; /* Alinea el texto del efecto arriba */
         }
 
         .card-name-value {
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px; /* Más espacio */
-            font-size: 1.1em; /* Nombre y valor más grandes */
+            display: none; /* Ocultar el nombre y valor original */
         }
 
         .card-effect {
-            font-size: 0.8em; /* Texto de efecto más grande */
-            line-height: 1.4;
-            color: #555555; /* Gris para el efecto */
+            line-height: 1.3;
+            color: #555555;
+            text-align: left; /* Alinea el texto del efecto a la izquierda */
         }
+
 
         /* Estilo para la última carta jugada */
         .last-played-card {
@@ -555,20 +568,19 @@
                 width: 100px;
                 height: 140px;
             }
-            .card-image {
-                height: 50%;
+            .card-header {
+                padding: 6px 8px;
+                font-size: 0.8em;
+            }
+            .card-image-container {
+                height: 70px; /* Ajustado para móviles */
             }
             .card-info {
-                padding: 6px;
-                font-size: 0.75em;
-            }
-            .card-name-value {
-                font-size: 1em;
-                margin-bottom: 4px;
+                padding: 6px 8px;
+                font-size: 0.7em;
             }
             .card-effect {
-                font-size: 0.7em;
-                line-height: 1.3;
+                line-height: 1.2;
             }
             .board-cell {
                 width: 40px;
@@ -856,39 +868,48 @@
         let currentRoomId = ''; // ID del documento de la sala en Firestore
         let unsubscribeSnapshot = null; // Para desuscribirse de los listeners de Firestore
 
+        // Función para obtener la ruta de la imagen de la carta
+        function getCardImagePath(cardId) {
+            // Normaliza el ID de la carta para que coincida con el formato del nombre del archivo
+            // Ej: "rana_de_la_suerte" -> "rana_de_la_suerte.jpg"
+            // Asegúrate de que los nombres de archivo en tu carpeta coincidan con este formato.
+            const normalizedId = cardId.toLowerCase().replace(/ /g, '_').replace(/á/g, 'a').replace(/é/g, 'e').replace(/í/g, 'i').replace(/ó/g, 'o').replace(/ú/g, 'u').replace(/ü/g, 'u').replace(/ñ/g, 'n');
+            return `./images/${normalizedId}.jpg`;
+        }
+
         // Definición de las cartas
         const cardDefinitions = [
-            { id: 'muerte', name: 'Muerte', value: -4.9, effect: 'Elige a un jugador, ese jugador pone sus cartas boca abajo y tú descartas 1 de las cartas. Si esa carta vale 0 o menos, avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/000000/FFFFFF?text=Muerte+-4.9' },
-            { id: 'avefenix', name: 'Ave Fénix', value: -3.3, effect: 'Descarta tu mano y roba 3 cartas.', count: 1, image: 'https://placehold.co/90x65/FF4500/000000?text=Ave+Fenix+-3.3' },
-            { id: 'gato', name: 'Gato', value: -3, effect: 'Roba 2 cartas.', count: 1, image: 'https://placehold.co/90x65/8B4513/FFFFFF?text=Gato+-3' },
-            { id: 'caballodetroya', name: 'Caballo de Troya', value: -2.6, effect: 'Elige a un jugador, ese jugador elige 1 de sus cartas y la descarta.', count: 1, image: 'https://placehold.co/90x65/A9A9A9/000000?text=Caballo+Troya+-2.6' },
-            { id: 'ranadelasuerte', name: 'Rana de la Suerte', value: -2, effect: 'Avanza 2 casillas.', count: 1, image: 'https://placehold.co/90x65/32CD32/FFFFFF?text=Rana+-2' },
-            { id: 'perro', name: 'Perro', value: -4, effect: 'El siguiente jugador pierde su turno.', count: 1, image: 'https://placehold.co/90x65/CD853F/FFFFFF?text=Perro+-4' },
-            { id: 'esclavo', name: 'Esclavo', value: -1, effect: 'Si tienes una carta mayor que 4, puedes mostrarla para avanzar 1 casilla.', count: 2, image: 'https://placehold.co/90x65/696969/FFFFFF?text=Esclavo+-1' },
-            { id: 'loco', name: 'Loco', value: -0.5, effect: 'Elige a un jugador, ambos mostráis 1 de vuestras cartas, la más alta gana. Ambas cartas son descartadas. El jugador ganador avanza 2 casillas y el perdedor retrocede 1.', count: 1, image: 'https://placehold.co/90x65/800080/FFFFFF?text=Loco+-0.5' },
-            { id: 'vagabundo', name: 'Vagabundo', value: 0, effect: 'Compara tu carta más baja con la carta más baja de otro jugador, si tu carta es más baja, avanza 2 casillas.', count: 3, image: 'https://placehold.co/90x65/D2B48C/000000?text=Vagabundo+0' },
-            { id: 'filosofo', name: 'Filósofo', value: 0.5, effect: 'Elige a un jugador, ambos robáis una carta y la mostráis, si tu carta es más alta, te la quedas y el otro jugador descarta la carta robada. Si tu carta es más baja, ambos jugadores descartáis las cartas robadas.', count: 1, image: 'https://placehold.co/90x65/F0E68C/000000?text=Filosofo+0.5' },
-            { id: 'nini', name: 'Nini', value: 1, effect: 'Roba 1 carta.', count: 5, image: 'https://placehold.co/90x65/ADD8E6/000000?text=Nini+1' },
-            { id: 'influencer', name: 'Influencer', value: 2, effect: 'Compara tu carta más alta con la carta más alta del jugador que elijas. El ganador avanza 1 casilla, el perdedor retrocede 1 casilla.', count: 3, image: 'https://placehold.co/90x65/FFD700/000000?text=Influencer+2' },
-            { id: 'camello', name: 'Camello', value: 2.1, effect: 'Roba 1 carta, descarta 1 carta. Si muestras una carta de -1 o menor, avanza 1 casilla.', count: 1, image: 'https://placehold.co/90x65/8B4513/FFFFFF?text=Camello+2.1' },
-            { id: 'trabajador', name: 'Trabajador', value: 3, effect: 'Avanza 1 casilla.', count: 5, image: 'https://placehold.co/90x65/A52A2A/FFFFFF?text=Trabajador+3' },
-            { id: 'artesano', name: 'Artesano', value: 3.1, effect: 'Si estás en la casilla 0, 1, 2 o 3, avanza 2 casillas. Si estás en la 4 o superior, avanza 1.', count: 1, image: 'https://placehold.co/90x65/BDB76B/000000?text=Artesano+3.1' },
-            { id: 'policia', name: 'Policía', value: 4, effect: 'Elige 1 jugador, ese jugador retrocede 1 casilla.', count: 4, image: 'https://placehold.co/90x65/1E90FF/FFFFFF?text=Policia+4' },
-            { id: 'detective', name: 'Detective', value: 4.7, effect: 'Elige a un jugador y una carta, si ese jugador tiene esa carta: la muestra y retrocede 2 casillas.', count: 1, image: 'https://placehold.co/90x65/D2691E/FFFFFF?text=Detective+4.7' },
-            { id: 'guardaespaldas', name: 'Guardaespaldas', value: 4.9, effect: 'Hasta tu próximo turno, las cartas del resto de jugadores, no te afectan.', count: 2, image: 'https://placehold.co/90x65/4682B4/FFFFFF?text=Guardaespaldas+4.9' },
-            { id: 'abogado', name: 'Abogado', value: 5, effect: 'Intercambia las cartas con otro jugador.', count: 3, image: 'https://placehold.co/90x65/6A5ACD/FFFFFF?text=Abogado+5' },
-            { id: 'banquero', name: 'Banquero', value: 5.9, effect: 'Si la última carta jugada es igual o mayor que 7, avanzas 2 casillas.', count: 1, image: 'https://placehold.co/90x65/DAA520/000000?text=Banquero+5.9' },
-            { id: 'musico', name: 'Músico', value: 6, effect: 'Roba 2 cartas y descarta 2 cartas.', count: 2, image: 'https://placehold.co/90x65/FF6347/FFFFFF?text=Musico+6' },
-            { id: 'arlequin', name: 'Arlequín', value: 6.4, effect: 'Roba 2 cartas y descarta 1.', count: 1, image: 'https://placehold.co/90x65/800000/FFFFFF?text=Arlequin+6.4' },
-            { id: 'futbolista', name: 'Futbolista', value: 6.7, effect: 'Descarta 1 carta para avanzar 2 casillas.', count: 1, image: 'https://placehold.co/90x65/008000/FFFFFF?text=Futbolista+6.7' },
-            { id: 'capo', name: 'Capo', value: 7, effect: 'Avanzas 1 casilla. Elige un jugador, el jugador elegido retrocede 1 casilla.', count: 2, image: 'https://placehold.co/90x65/8B0000/FFFFFF?text=Capo+7' },
-            { id: 'politico', name: 'Político', value: 8, effect: 'Un jugador, (puedes ser tú), descarta sus cartas y roba la misma cantidad. Avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/483D8B/FFFFFF?text=Politico+8' },
-            { id: 'sectario', name: 'Sectario', value: 9, effect: 'Elige un jugador y mira sus cartas, puedes intercambiar tus cartas por las suyas. Avanzas 1 casilla.', count: 1, image: 'https://placehold.co/90x65/2F4F4F/FFFFFF?text=Sectario+9' },
-            { id: 'astronauta', name: 'Astronauta', value: 10.5, effect: 'Avanza 1 casilla. Si estás en la casilla 8 o superior, roba 1 carta.', count: 1, image: 'https://placehold.co/90x65/708090/FFFFFF?text=Astronauta+10.5' },
+            { id: 'muerte', name: 'Muerte', value: -4.9, effect: 'Elige a un jugador, ese jugador pone sus cartas boca abajo y tú descartas 1 de las cartas. Si esa carta vale 0 o menos, avanzas 1 casilla.', count: 1, image: getCardImagePath('muerte') },
+            { id: 'avefenix', name: 'Ave Fénix', value: -3.3, effect: 'Descarta tu mano y roba 3 cartas.', count: 1, image: getCardImagePath('avefenix') },
+            { id: 'gato', name: 'Gato', value: -3, effect: 'Roba 2 cartas.', count: 1, image: getCardImagePath('gato') },
+            { id: 'caballodetroya', name: 'Caballo de Troya', value: -2.6, effect: 'Elige a un jugador, ese jugador elige 1 de sus cartas y la descarta.', count: 1, image: getCardImagePath('caballodetroya') },
+            { id: 'ranadelasuerte', name: 'Rana de la Suerte', value: -2, effect: 'Avanza 2 casillas.', count: 1, image: getCardImagePath('rana de la suerte') },
+            { id: 'perro', name: 'Perro', value: -4, effect: 'El siguiente jugador pierde su turno.', count: 1, image: getCardImagePath('perro') },
+            { id: 'esclavo', name: 'Esclavo', value: -1, effect: 'Si tienes una carta mayor que 4, puedes mostrarla para avanzar 1 casilla.', count: 2, image: getCardImagePath('esclavo') },
+            { id: 'loco', name: 'Loco', value: -0.5, effect: 'Elige a un jugador, ambos mostráis 1 de vuestras cartas, la más alta gana. Ambas cartas son descartadas. El jugador ganador avanza 2 casillas y el perdedor retrocede 1.', count: 1, image: getCardImagePath('loco') },
+            { id: 'vagabundo', name: 'Vagabundo', value: 0, effect: 'Compara tu carta más baja con la carta más baja de otro jugador, si tu carta es más baja, avanza 2 casillas.', count: 3, image: getCardImagePath('vagabundo') },
+            { id: 'filosofo', name: 'Filósofo', value: 0.5, effect: 'Elige a un jugador, ambos robáis una carta y la mostráis, si tu carta es más alta, te la quedas y el otro jugador descarta la carta robada. Si tu carta es más baja, ambos jugadores descartáis las cartas robadas.', count: 1, image: getCardImagePath('filosofo') },
+            { id: 'nini', name: 'Nini', value: 1, effect: 'Roba 1 carta.', count: 5, image: getCardImagePath('nini') },
+            { id: 'influencer', name: 'Influencer', value: 2, effect: 'Compara tu carta más alta con la carta más alta del jugador que elijas. El ganador avanza 1 casilla, el perdedor retrocede 1 casilla.', count: 3, image: getCardImagePath('influencer') },
+            { id: 'camello', name: 'Camello', value: 2.1, effect: 'Roba 1 carta, descarta 1 carta. Si muestras una carta de -1 o menor, avanza 1 casilla.', count: 1, image: getCardImagePath('camello') },
+            { id: 'trabajador', name: 'Trabajador', value: 3, effect: 'Avanza 1 casilla.', count: 5, image: getCardImagePath('trabajador') },
+            { id: 'artesano', name: 'Artesano', value: 3.1, effect: 'Si estás en la casilla 0, 1, 2 o 3, avanza 2 casillas. Si estás en la 4 o superior, avanza 1.', count: 1, image: getCardImagePath('artesano') },
+            { id: 'policia', name: 'Policía', value: 4, effect: 'Elige 1 jugador, ese jugador retrocede 1 casilla.', count: 4, image: getCardImagePath('policia') },
+            { id: 'detective', name: 'Detective', value: 4.7, effect: 'Elige a un jugador y una carta, si ese jugador tiene esa carta: la muestra y retrocede 2 casillas.', count: 1, image: getCardImagePath('detective') },
+            { id: 'guardaespaldas', name: 'Guardaespaldas', value: 4.9, effect: 'Hasta tu próximo turno, las cartas del resto de jugadores, no te afectan.', count: 2, image: getCardImagePath('guardaespaldas') },
+            { id: 'abogado', name: 'Abogado', value: 5, effect: 'Intercambia las cartas con otro jugador.', count: 3, image: getCardImagePath('abogado') },
+            { id: 'banquero', name: 'Banquero', value: 5.9, effect: 'Si la última carta jugada es igual o mayor que 7, avanzas 2 casillas.', count: 1, image: getCardImagePath('banquero') },
+            { id: 'musico', name: 'Músico', value: 6, effect: 'Roba 2 cartas y descarta 2 cartas.', count: 2, image: getCardImagePath('musico') },
+            { id: 'arlequin', name: 'Arlequín', value: 6.4, effect: 'Roba 2 cartas y descarta 1.', count: 1, image: getCardImagePath('arlequin') },
+            { id: 'futbolista', name: 'Futbolista', value: 6.7, effect: 'Descarta 1 carta para avanzar 2 casillas.', count: 1, image: getCardImagePath('futbolista') },
+            { id: 'capo', name: 'Capo', value: 7, effect: 'Avanzas 1 casilla. Elige un jugador, el jugador elegido retrocede 1 casilla.', count: 2, image: getCardImagePath('capo') },
+            { id: 'politico', name: 'Político', value: 8, effect: 'Un jugador, (puedes ser tú), descarta sus cartas y roba la misma cantidad. Avanzas 1 casilla.', count: 1, image: getCardImagePath('politico') },
+            { id: 'sectario', name: 'Sectario', value: 9, effect: 'Elige un jugador y mira sus cartas, puedes intercambiar tus cartas por las suyas. Avanzas 1 casilla.', count: 1, image: getCardImagePath('sectario') },
+            { id: 'astronauta', name: 'Astronauta', value: 10.5, effect: 'Avanza 1 casilla. Si estás en la casilla 8 o superior, roba 1 carta.', count: 1, image: getCardImagePath('astronauta') },
             // Mago y Titán excluidos por ahora
-            { id: 'arcangel', name: 'Arcángel', value: 12, effect: 'Avanza 1 casilla. Roba 3 cartas y descarta 2.', count: 1, image: 'https://placehold.co/90x65/FFD700/000000?text=Arcangel+12' },
-            { id: 'semidios', name: 'Semidiós', value: 13, effect: 'Avanza 1 casilla. Repite tu turno.', count: 1, image: 'https://placehold.co/90x65/DAA520/000000?text=Semidios+13' },
-            { id: 'ojotodove', name: 'Ojo que todo lo ve', value: 13.9, effect: 'Avanza 1 casilla. Mira las cartas de todos los jugadores.', count: 1, image: 'https://placehold.co/90x65/8A2BE2/FFFFFF?text=Ojo+Ve+13.9' }
+            { id: 'arcangel', name: 'Arcángel', value: 12, effect: 'Avanza 1 casilla. Roba 3 cartas y descarta 2.', count: 1, image: getCardImagePath('arcangel') },
+            { id: 'semidios', name: 'Semidiós', value: 13, effect: 'Avanza 1 casilla. Repite tu turno.', count: 1, image: getCardImagePath('semidios') },
+            { id: 'ojotodove', name: 'Ojo que todo lo ve', value: 13.9, effect: 'Avanza 1 casilla. Mira las cartas de todos los jugadores.', count: 1, image: getCardImagePath('ojo que todo lo ve') }
         ];
 
         // Lista de IDs de cartas con efectos adversos que pueden ser bloqueados por Guardaespaldas
@@ -898,6 +919,8 @@
 
         // Función para cambiar de pantalla
         function showScreen(screenToShow) {
+            // Asegurarse de que el modal esté oculto al cambiar de pantalla
+            hideModal(); // Add this line
             screen1.classList.remove('active');
             screen2.classList.remove('active'); // Asegurarse de que screen2 también se desactive
             screen3.classList.remove('active');
@@ -915,12 +938,14 @@
                 cardDiv.innerHTML = 'CS';
             } else {
                 cardDiv.innerHTML = `
-                    <div class="card-image" style="background-image: url('${card.image}'); background-size: cover; background-position: center;"></div>
+                    <div class="card-header">
+                        <span>${card.name}</span>
+                        <span>${card.value}</span>
+                    </div>
+                    <div class="card-image-container">
+                        <img src="${card.image}" alt="${card.name}" onerror="this.onerror=null;this.src='https://placehold.co/100x100/CCCCCC/000000?text=No+Image';">
+                    </div>
                     <div class="card-info">
-                        <div class="card-name-value">
-                            <span>${card.name}</span>
-                            <span>${card.value}</span>
-                        </div>
                         <div class="card-effect">${card.effect}</div>
                     </div>
                 `;
@@ -1212,9 +1237,9 @@
                         currentPlayerName = roomData.jugador1Nombre;
                         rivalPlayerName = roomData.jugador2Nombre;
                     } else if (roomData.jugador2Id === currentUserId) {
-                        currentRivalId = roomData.jugador1Id;
-                        currentPlayerName = roomData.jugador2Nombre;
-                        rivalPlayerName = roomData.jugador1Nombre; // Corrected typo
+                        currentRivalId = roomData.jug1Nombre;
+                        currentPlayerName = roomData.jug2Nombre;
+                        rivalPlayerName = roomData.jug1Nombre; // Corrected typo
                     } else {
                         currentRivalId = null;
                         console.error("Error: currentUserId no coincide con ningún jugador en la sala. Esto no debería ocurrir si el jugador está en una sala activa.");
@@ -1239,9 +1264,9 @@
                                 'estadoJuego.gameStatus': 'inProgress',
                                 'estadoJuego.turnoActual': Math.random() < 0.5 ? roomData.jugador1Id : roomData.jugador2Id,
                                 [`estadoJuego.drawStatus.${roomData.jugador1Id}`]: false, // Reset draw status for both players on game start
-                                [`estadoJuego.drawStatus.${roomData.jugador2Id}`]: false,
-                                [`estadoJuego.rematchStatus.${roomData.jugador1Id}`]: false, // Reset rematch status on game start
-                                [`estadoJuego.rematchStatus.${roomData.jugador2Id}`]: false
+                                [`estadoJuego.drawStatus.${roomData.jug2Id}`]: false,
+                                [`estadoJuego.rematchStatus.${roomData.jug1Id}`]: false, // Reset rematch status on game start
+                                [`estadoJuego.rematchStatus.${roomData.jug2Id}`]: false
                             }).then(() => {
                                 console.log("Estado de juego y turno actualizados por Jugador 1.");
                                 gameMessageDiv.textContent = '¡Rival conectado! La partida ha comenzado.';
@@ -1300,7 +1325,7 @@
 
             // Actualizar nombres
             const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
-            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
+            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jug1Nombre;
             ownNameDisplay.textContent = ownName;
             opponentNameDisplay.textContent = opponentName;
             console.log(`UI Nombres - Propio: ${ownNameDisplay.textContent}, Rival: ${opponentNameDisplay.textContent}`);
@@ -1331,7 +1356,7 @@
             renderGameBoard(player1Pos, player2Pos); // Pasar las posiciones tal cual están en Firestore
 
             // Renderizar efectos activos
-            renderActiveEffects(gameState.efectosActivos, roomData.jugador1Id, roomData.jugador2Id, roomData.jugador1Nombre, roomData.jugador2Nombre);
+            renderActiveEffects(gameState.efectosActivos, roomData.jugador1Id, roomData.jugador2Id, roomData.jugador1Nombre, roomData.jug2Nombre);
 
             // Indicar turno actual y manejar robo de carta al inicio del turno
             console.log(`DEBUG: UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
@@ -1392,7 +1417,7 @@
 
             // Verificar condición de victoria
             if (gameState.posicionJugador1 >= 13 || gameState.posicionJugador2 >= 13) {
-                const winnerId = gameState.posicionJugador1 >= 13 ? roomData.jugador1Id : roomData.jugador2Id;
+                const winnerId = gameState.posicionJugador1 >= 13 ? roomData.jugador1Id : roomData.jug2Id;
                 // Solo actualiza el estado de la partida a "finished" si aún no lo está
                 if (gameState.gameStatus !== "finished") {
                     if (roomRef) { // Asegurarse de que roomRef esté disponible antes de actualizar
@@ -1408,12 +1433,12 @@
         // Función para actualizar la pantalla de fin de partida
         function updateGameOverScreen(roomData) {
             const gameState = roomData.estadoJuego;
-            const winnerName = gameState.ganador === roomData.jugador1Id ? roomData.jugador1Nombre : roomData.jugador2Nombre;
-            const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
-            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
+            const winnerName = gameState.ganador === roomData.jugador1Id ? roomData.jugador1Nombre : roomData.jug2Nombre;
+            const ownName = roomData.jugador1Id === currentUserId ? roomData.jug1Nombre : roomData.jug2Nombre;
+            const opponentName = roomData.jug1Id === currentUserId ? roomData.jug2Nombre : roomData.jug1Nombre;
 
             winnerDisplay.textContent = `Ganador: ${winnerName}`;
-            playerNamesDisplay.textContent = `Jugadores: ${roomData.jugador1Nombre} vs ${roomData.jugador2Nombre}`;
+            playerNamesDisplay.textContent = `Jugadores: ${roomData.jug1Nombre} vs ${roomData.jug2Nombre}`;
             playerNameInputScreen2.value = ownName;
             rivalNameInputScreen2.value = opponentName;
 
@@ -1564,9 +1589,9 @@
                 pilaDescarte: mutableState.pilaDescarte,
                 ultimaCartaJugada: cardId,
                 manoJugador1: roomData.jugador1Id === currentUserId ? mutableState.ownHand : mutableState.rivalHand,
-                manoJugador2: roomData.jugador1Id === currentUserId ? mutableState.rivalHand : mutableState.ownHand,
+                manoJugador2: roomData.jug1Id === currentUserId ? mutableState.rivalHand : mutableState.ownHand,
                 posicionJugador1: roomData.jugador1Id === currentUserId ? mutableState.ownPos : mutableState.rivalPos,
-                posicionJugador2: roomData.jugador1Id === currentUserId ? mutableState.rivalPos : mutableState.ownPos,
+                posicionJugador2: roomData.jug1Id === currentUserId ? mutableState.rivalPos : mutableState.ownPos,
                 turnoActual: nextTurnPlayerId, // Pasar el turno al rival o repetir
                 efectosActivos: mutableState.effectsActivos, // Update effects from mutableState
                 drawStatus: newDrawStatus // Update drawStatus
