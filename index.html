@@ -373,6 +373,89 @@
             text-transform: uppercase;
         }
 
+        /* Estilos para el modal y el overlay */
+        .modal-overlay {
+            display: none; /* Oculto por defecto */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+            backdrop-filter: blur(5px); /* Efecto de desenfoque */
+            z-index: 1000; /* Por encima de todo */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #222222; /* Fondo gris oscuro */
+            border: 1px solid #FF0000; /* Borde rojo */
+            border-radius: 0; /* Bordes rectos */
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            max-width: 90%;
+            width: 600px; /* Ancho fijo para el modal */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modal-content h2 {
+            color: #FF0000;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            max-height: 400px; /* Altura máxima para el scroll */
+            overflow-y: auto; /* Scroll si el contenido es demasiado grande */
+            padding-right: 10px; /* Espacio para la barra de scroll */
+        }
+
+        .modal-body .card-in-hand {
+            /* Reutilizar estilos de carta, pero ajustarlos para el modal si es necesario */
+            width: 120px; /* Un poco más pequeñas en el modal */
+            height: 170px;
+            cursor: default; /* No clicables en el modal de visualización */
+            transform: none; /* Eliminar hover effects */
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .modal-body .card-in-hand:hover {
+            transform: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .modal-buttons button {
+            padding: 12px 25px;
+            font-size: 1em;
+            background-color: #FF0000;
+            color: #ffffff;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .modal-buttons button:hover {
+            background-color: #CC0000;
+        }
+
+
         /* Media Queries para responsividad */
         @media (max-width: 768px) {
             .game-screen {
@@ -465,6 +548,29 @@
                 padding: 8px 12px;
                 font-size: 0.85em;
             }
+            /* Media queries para el modal en pantallas pequeñas */
+            .modal-content {
+                padding: 20px;
+                width: 95%;
+            }
+            .modal-content h2 {
+                font-size: 1.5em;
+            }
+            .modal-body {
+                gap: 10px;
+            }
+            .modal-body .card-in-hand {
+                width: 90px;
+                height: 120px;
+            }
+            .modal-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .modal-buttons button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+            }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -511,6 +617,14 @@
         <p id="gameMessage" class="game-message"></p>
     </div>
 
+    <div id="cardInteractionModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2 id="modalTitle"></h2>
+            <div id="modalBody" class="modal-body"></div>
+            <div id="modalButtons" class="modal-buttons"></div>
+        </div>
+    </div>
+
     <script>
         // Tu configuración de Firebase
         const firebaseConfig = {
@@ -549,6 +663,13 @@
         const gameBoardDiv = document.getElementById('gameBoard');
         const discardPileDiv = document.getElementById('discardPile');
         const gameMessageDiv = document.getElementById('gameMessage');
+
+        // Referencias a los elementos del modal
+        const cardInteractionModal = document.getElementById('cardInteractionModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        const modalButtons = document.getElementById('modalButtons');
+
 
         // Variables globales para los nombres de los jugadores y el estado de la partida
         let currentPlayerName = '';
@@ -825,7 +946,7 @@
                         if (roomData.jugador1Id === currentUserId) {
                             currentRivalId = roomData.jugador2Id;
                         } else {
-                            currentRivalId = roomData.jugador1Id;
+                            currentRivalId = roomData.jugator1Id;
                         }
                         // Ensure drawStatus exists for rejoining player if not already
                         if (!roomData.estadoJuego.drawStatus || roomData.estadoJuego.drawStatus[currentUserId] === undefined) {
@@ -902,7 +1023,7 @@
                     } else if (roomData.jugador2Id === currentUserId) {
                         currentRivalId = roomData.jugador1Id;
                         currentPlayerName = roomData.jugador2Nombre;
-                        rivalPlayerName = roomData.jugador1Nombre;
+                        rivalPlayerName = roomData.jug1Nombre;
                     } else {
                         currentRivalId = null;
                         console.error("Error: currentUserId no coincide con ningún jugador en la sala. Esto no debería ocurrir si el jugador está en una sala activa.");
@@ -993,7 +1114,10 @@
             renderGameBoard(player1Pos, player2Pos); // Pasar las posiciones tal cual están en Firestore
 
             // Indicar turno actual y manejar robo de carta al inicio del turno
-            console.log(`UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
+            console.log(`DEBUG: UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
+            console.log(`DEBUG: UI Turno - drawStatus para ${currentUserId}: ${gameState.drawStatus ? gameState.drawStatus[currentUserId] : 'undefined'}`);
+            console.log(`DEBUG: UI Turno - gameStatus: ${gameState.gameStatus}`);
+
             if (gameState.turnoActual === currentUserId) {
                 gameMessageDiv.textContent = '¡Es tu turno!';
                 btnPassTurn.disabled = false; // Habilitar botón de pasar turno
@@ -1001,7 +1125,7 @@
 
                 // Lógica para robar carta al inicio del turno
                 if (gameState.gameStatus === "inProgress" && gameState.drawStatus && gameState.drawStatus[currentUserId] === false) {
-                    console.log("Detectado que el jugador actual necesita robar una carta.");
+                    console.log("DEBUG: UI Turno - Detectado que el jugador actual necesita robar una carta.");
                     const currentMazo = [...gameState.mazo]; // Copia para modificar
                     const currentPilaDescarte = [...gameState.pilaDescarte]; // Copia para modificar
                     const currentOwnHand = [...ownHand]; // Copia para modificar
@@ -1009,7 +1133,7 @@
                     const newCard = drawCardForTurn(currentMazo, currentPilaDescarte, gameMessageDiv);
                     if (newCard) {
                         currentOwnHand.push(newCard);
-                        console.log(`Carta robada: ${newCard}. Nueva mano:`, currentOwnHand);
+                        console.log(`DEBUG: UI Turno - Carta robada: ${newCard}. Nueva mano:`, currentOwnHand);
 
                         // Actualizar Firestore con la nueva mano, mazo, descarte y estado de robo
                         const updatePayload = {
@@ -1027,9 +1151,12 @@
                         try {
                             await roomRef.update(updatePayload);
                             gameMessageDiv.textContent += ' Has robado una carta al inicio de tu turno.';
+                            console.log("DEBUG: UI Turno - Firestore actualizado después de robar carta.");
                         } catch (e) {
                             console.error("Error al actualizar Firestore después de robar carta:", e);
                         }
+                    } else {
+                        console.log("DEBUG: UI Turno - No se pudo robar una carta.");
                     }
                 }
 
@@ -1050,6 +1177,7 @@
                 if (gameState.gameStatus !== "finished") {
                     if (roomRef) { // Asegurarse de que roomRef esté disponible antes de actualizar
                         roomRef.update({ 'estadoJuego.ganador': winnerId, 'estadoJuego.gameStatus': 'finished' });
+                        console.log("DEBUG: Condición de victoria alcanzada. Ganador:", winnerId);
                     } else {
                         console.error("roomRef no está disponible para actualizar el estado de victoria.");
                     }
@@ -1089,22 +1217,25 @@
 
             if (gameState.turnoActual !== currentUserId) {
                 gameMessageDiv.textContent = '¡No es tu turno!';
+                console.log("DEBUG: playCard - No es tu turno.");
                 return;
             }
-            console.log(`Jugando carta: ${cardId}`); // Debugging
-            gameMessageDiv.textContent = `Jugando ${cardDefinitions.find(c => c.id === cardId).name}...`; // Mensaje de acción
+            console.log(`DEBUG: playCard - Jugando carta: ${cardDefinitions.find(c => c.id === cardId).name}`);
+            gameMessageDiv.textContent = `Jugando ${cardDefinitions.find(c => c.id === cardId).name}...`;
 
-            let ownHand = roomData.jugador1Id === currentUserId ? gameState.manoJugador1 : gameState.manoJugador2;
-            let rivalHand = roomData.jugador1Id === currentUserId ? gameState.manoJugador2 : gameState.manoJugador1;
+            let ownHand = roomData.jugador1Id === currentUserId ? [...gameState.manoJugador1] : [...gameState.manoJugador2];
+            let rivalHand = roomData.jugador1Id === currentUserId ? [...gameState.manoJugador2] : [...gameState.manoJugador1];
             let ownPos = roomData.jugador1Id === currentUserId ? gameState.posicionJugador1 : gameState.posicionJugador2;
             let rivalPos = roomData.jugador1Id === currentUserId ? gameState.posicionJugador2 : gameState.posicionJugador1;
-            const mazo = gameState.mazo;
-            const pilaDescarte = gameState.pilaDescarte;
+            let mazo = [...gameState.mazo];
+            let pilaDescarte = [...gameState.pilaDescarte];
             const lastPlayedCardId = gameState.ultimaCartaJugada;
+            let effectsActivos = {...gameState.efectosActivos}; // Copy effects
 
             const cardIndex = ownHand.indexOf(cardId);
             if (cardIndex === -1) {
                 gameMessageDiv.textContent = 'Esa carta no está en tu mano.';
+                console.log("DEBUG: playCard - Carta no encontrada en mano.");
                 return;
             }
 
@@ -1112,43 +1243,89 @@
             ownHand.splice(cardIndex, 1); // Remover la carta de la mano
             pilaDescarte.push(cardId); // Añadirla a la pila de descarte
 
-            // Aplicar efecto de la carta
-            await applyCardEffect(playedCard, {
-                ownHand, rivalHand, ownPos, rivalPos, mazo, pilaDescarte, lastPlayedCardId,
-                currentUserId, currentRivalId, roomData, roomRef
-            });
+            // Crear un objeto de estado mutable para pasar a applyCardEffect
+            let mutableState = {
+                ownHand: ownHand,
+                rivalHand: rivalHand,
+                ownPos: ownPos,
+                rivalPos: rivalPos,
+                mazo: mazo,
+                pilaDescarte: pilaDescarte,
+                lastPlayedCardId: lastPlayedCardId,
+                currentUserId: currentUserId,
+                currentRivalId: currentRivalId,
+                roomData: roomData,
+                roomRef: roomRef,
+                effectsActivos: effectsActivos // Pass effects to mutableState
+            };
+
+            // Aplicar efecto de la carta, modificando mutableState
+            await applyCardEffect(playedCard, mutableState);
 
             // Determinar el próximo turno. Si la carta es Semidiós, el turno se repite.
             let nextTurnPlayerId = currentRivalId;
+            let newDrawStatus = {...gameState.drawStatus}; // Copy drawStatus
+
             if (playedCard.id === 'semidios') {
                 nextTurnPlayerId = currentUserId; // Repetir turno
+                newDrawStatus[currentUserId] = false; // Reset draw status for repeated turn
+                console.log("DEBUG: playCard - Semidiós jugado. Repitiendo turno y reseteando drawStatus para el jugador actual.");
+            } else {
+                newDrawStatus[currentRivalId] = false; // Reset draw status for the next player
+                console.log("DEBUG: playCard - Turno normal. Reseteando drawStatus para el rival.");
             }
 
-            // Actualizar el estado en Firestore
+            // Actualizar el estado en Firestore con los valores modificados de mutableState
             let updatedGameState = {
                 ...gameState,
-                mazo: mazo,
-                pilaDescarte: pilaDescarte,
+                mazo: mutableState.mazo,
+                pilaDescarte: mutableState.pilaDescarte,
                 ultimaCartaJugada: cardId,
-                manoJugador1: roomData.jugador1Id === currentUserId ? ownHand : rivalHand,
-                manoJugador2: roomData.jugador1Id === currentUserId ? rivalHand : ownHand,
-                posicionJugador1: roomData.jugador1Id === currentUserId ? ownPos : rivalPos,
-                posicionJugador2: roomData.jugador1Id === currentUserId ? rivalPos : ownPos,
-                turnoActual: nextTurnPlayerId // Pasar el turno al rival o repetir
+                manoJugador1: roomData.jugador1Id === currentUserId ? mutableState.ownHand : mutableState.rivalHand,
+                manoJugador2: roomData.jugador1Id === currentUserId ? mutableState.rivalHand : mutableState.ownHand,
+                posicionJugador1: roomData.jugador1Id === currentUserId ? mutableState.ownPos : mutableState.rivalPos,
+                posicionJugador2: roomData.jugador1Id === currentUserId ? mutableState.rivalPos : mutableState.ownPos,
+                turnoActual: nextTurnPlayerId, // Pasar el turno al rival o repetir
+                efectosActivos: mutableState.effectsActivos, // Update effects from mutableState
+                drawStatus: newDrawStatus // Update drawStatus
             };
-            console.log("Estado del juego a actualizar en Firestore:", updatedGameState); // Debugging
+            console.log("DEBUG: playCard - Estado del juego a actualizar en Firestore:", updatedGameState);
 
             await roomRef.update({ estadoJuego: updatedGameState });
             gameMessageDiv.textContent = `Has jugado ${playedCard.name}. Turno de ${opponentNameDisplay.textContent}.`;
         }
 
+        // Función auxiliar para elegir un jugador (simplificado por ahora)
+        // NOTA: Para una experiencia multijugador completa, esto debería ser un modal interactivo
+        // que permita al jugador actual elegir entre sí mismo o el rival, y que el rival reciba una notificación.
+        async function choosePlayer() {
+            console.log("DEBUG: choosePlayer llamado. Por simplicidad, siempre se elige al rival.");
+            // Por ahora, siempre elegimos al rival para efectos que afectan a "otro jugador".
+            // Para efectos donde se puede elegir "a ti mismo o a otro", se necesitaría una UI.
+            return currentRivalId;
+        }
+
+        // Función auxiliar para elegir una carta de la mano (simplificado por ahora)
+        // NOTA: Para una experiencia multijugador completa, si el rival debe elegir una carta,
+        // esto debería involucrar una interacción en la UI del rival y una actualización en Firestore.
+        async function chooseCardFromHand(hand) {
+            console.log("DEBUG: chooseCardFromHand llamado. Por simplicidad, se elige la primera carta.");
+            // Por ahora, simplemente elige la primera carta disponible en la mano.
+            // Si la mano está vacía, devuelve null.
+            if (hand && hand.length > 0) {
+                return hand[0];
+            }
+            return null;
+        }
+
         // Función para aplicar los efectos de las cartas
         async function applyCardEffect(card, state) {
-            let { ownHand, rivalHand, ownPos, rivalPos, mazo, pilaDescarte, lastPlayedCardId, currentUserId, currentRivalId, roomData, roomRef } = state;
+            // Desestructurar el estado para facilitar el acceso y la modificación
+            let { ownHand, rivalHand, ownPos, rivalPos, mazo, pilaDescarte, lastPlayedCardId, currentUserId, currentRivalId, roomData, roomRef, effectsActivos } = state;
             const isPlayer1 = roomData.jugador1Id === currentUserId;
 
-            console.log(`Aplicando efecto de carta: ${card.name}`); // Debugging
-            console.log("Estado inicial del efecto:", { ownHand: [...ownHand], rivalHand: [...rivalHand], ownPos, rivalPos, mazo: [...mazo], pilaDescarte: [...pilaDescarte] }); // Debugging
+            console.log(`DEBUG: applyCardEffect - Aplicando efecto de carta: ${card.name}`);
+            console.log("DEBUG: applyCardEffect - Estado inicial del efecto:", { ownHand: [...ownHand], rivalHand: [...rivalHand], ownPos, rivalPos, mazo: [...mazo], pilaDescarte: [...pilaDescarte], effectsActivos: {...effectsActivos} });
 
             // Función auxiliar para robar cartas, manejando el barajado del descarte (para efectos)
             const drawCardForEffect = () => {
@@ -1157,149 +1334,178 @@
                         mazo.push(...shuffleArray(pilaDescarte));
                         pilaDescarte.length = 0; // Vaciar pila de descarte
                         gameMessageDiv.textContent = '¡Mazo barajado con el descarte!';
-                        console.log("Mazo barajado con descarte. Nuevo mazo:", mazo); // Debugging
+                        console.log("DEBUG: drawCardForEffect - Mazo barajado con descarte. Nuevo mazo:", mazo);
                     } else {
                         gameMessageDiv.textContent = 'No hay cartas en el mazo ni en el descarte para robar.';
-                        console.log("No hay cartas para robar."); // Debugging
+                        console.log("DEBUG: drawCardForEffect - No hay cartas para robar.");
                         return null; // No hay cartas para robar
                     }
                 }
                 const drawnCard = mazo.shift(); // Roba la primera carta del mazo
-                console.log("Carta robada:", drawnCard); // Debugging
+                console.log("DEBUG: drawCardForEffect - Carta robada:", drawnCard);
                 return drawnCard;
             };
 
-            // Función auxiliar para descartar cartas
+            // Función auxiliar para descartar cartas (simplificado: descarta la última)
+            // NOTA: Para permitir al jugador elegir qué carta descartar, se necesitaría una interfaz de usuario interactiva (modal).
             const discardCards = (hand, count) => {
+                console.log(`DEBUG: discardCards - Intentando descartar ${count} cartas de la mano:`, hand);
                 for (let i = 0; i < count; i++) {
                     if (hand.length > 0) {
                         const discardedCard = hand.pop(); // Descarta la última carta
                         pilaDescarte.push(discardedCard);
-                        console.log("Carta descartada:", discardedCard); // Debugging
+                        console.log("DEBUG: discardCards - Carta descartada:", discardedCard);
+                    } else {
+                        console.log("DEBUG: discardCards - No hay más cartas en la mano para descartar.");
+                        break;
                     }
                 }
             };
 
-            // Función auxiliar para elegir un jugador (simplificado por ahora)
-            const choosePlayer = async () => {
-                // Por simplicidad, siempre elegimos al rival por ahora.
-                // En una implementación real, se mostraría un modal con opciones.
-                console.log("Eligiendo jugador. Rival ID:", isPlayer1 ? roomData.jugador2Id : roomData.jugador1Id); // Debugging
-                return isPlayer1 ? roomData.jugador2Id : roomData.jugador1Id;
-            };
+            // Función para mostrar un modal interactivo
+            function showModal(title, contentHtml, buttons) {
+                return new Promise(resolve => {
+                    modalTitle.textContent = title;
+                    modalBody.innerHTML = ''; // Limpiar contenido previo
+                    modalBody.appendChild(contentHtml); // Añadir el contenido HTML proporcionado
 
-            // Función auxiliar para elegir una carta de la mano (simplificado por ahora)
-            const chooseCardFromHand = async (hand) => {
-                // Por simplicidad, elige la primera carta.
-                // En una implementación real, se mostraría un modal para seleccionar.
-                console.log("Eligiendo carta de la mano. Carta elegida (primera):", hand[0]); // Debugging
-                return hand[0];
-            };
+                    modalButtons.innerHTML = ''; // Limpiar botones previos
+                    buttons.forEach(btn => {
+                        const buttonElement = document.createElement('button');
+                        buttonElement.textContent = btn.text;
+                        buttonElement.addEventListener('click', () => {
+                            hideModal();
+                            resolve(btn.action); // Resolver la promesa con la acción del botón
+                        });
+                        modalButtons.appendChild(buttonElement);
+                    });
+
+                    cardInteractionModal.style.display = 'flex'; // Mostrar el modal
+                });
+            }
+
+            // Función para ocultar el modal
+            function hideModal() {
+                cardInteractionModal.style.display = 'none';
+                modalTitle.textContent = '';
+                modalBody.innerHTML = '';
+                modalButtons.innerHTML = '';
+            }
 
 
             switch (card.id) {
                 case 'muerte':
-                    console.log("Efecto Muerte activado.");
-                    const chosenOpponentId = await choosePlayer();
-                    const opponentHandToDiscardFrom = (isPlayer1 && chosenOpponentId === currentRivalId) ? rivalHand : ownHand;
-                    const discardedCardId = await chooseCardFromHand(opponentHandToDiscardFrom);
-                    const discardedCard = cardDefinitions.find(c => c.id === discardedCardId);
+                    console.log("DEBUG: Efecto Muerte activado.");
+                    const chosenOpponentIdMuerte = await choosePlayer(); // Elegir rival
+                    let opponentHandToDiscardFromMuerte = (isPlayer1 && chosenOpponentIdMuerte === currentRivalId) ? rivalHand : ownHand;
+                    const discardedCardIdMuerte = await chooseCardFromHand(opponentHandToDiscardFromMuerte); // Elegir primera carta del rival
 
-                    if (discardedCardId) {
-                        const index = opponentHandToDiscardFrom.indexOf(discardedCardId);
+                    if (discardedCardIdMuerte) {
+                        const index = opponentHandToDiscardFromMuerte.indexOf(discardedCardIdMuerte);
                         if (index > -1) {
-                            opponentHandToDiscardFrom.splice(index, 1);
-                            pilaDescarte.push(discardedCardId);
-                            gameMessageDiv.textContent = `${(chosenOpponentId === currentUserId ? ownNameDisplay.textContent : opponentNameDisplay.textContent)} ha descartado ${discardedCard.name}.`;
-                            console.log("Muerte: Carta descartada del rival:", discardedCard.name);
+                            opponentHandToDiscardFromMuerte.splice(index, 1);
+                            pilaDescarte.push(discardedCardIdMuerte);
+                            const discardedCardMuerte = cardDefinitions.find(c => c.id === discardedCardIdMuerte);
+                            gameMessageDiv.textContent = `${(chosenOpponentIdMuerte === currentUserId ? ownNameDisplay.textContent : opponentNameDisplay.textContent)} ha descartado ${discardedCardMuerte.name}.`;
+                            console.log("DEBUG: Muerte: Carta descartada del rival:", discardedCardMuerte.name);
 
-                            if (discardedCard.value <= 0) {
+                            if (discardedCardMuerte.value <= 0) {
                                 ownPos = Math.min(13, ownPos + 1);
                                 gameMessageDiv.textContent += ' ¡Has avanzado 1 casilla!';
-                                console.log("Muerte: Avanza 1 casilla.");
+                                console.log("DEBUG: Muerte: Avanza 1 casilla. Nueva posición:", ownPos);
                             }
                         }
                     }
-                    if (isPlayer1 && chosenOpponentId === currentRivalId) { rivalHand = opponentHandToDiscardFrom; } else if (chosenOpponentId === currentUserId) { ownHand = opponentHandToDiscardFrom; }
+                    if (isPlayer1 && chosenOpponentIdMuerte === currentRivalId) { rivalHand = opponentHandToDiscardFromMuerte; } else if (chosenOpponentIdMuerte === currentUserId) { ownHand = opponentHandToDiscardFromMuerte; }
                     break;
 
                 case 'avefenix':
-                    console.log("Efecto Ave Fénix activado.");
-                    discardCards(ownHand, ownHand.length);
+                    console.log("DEBUG: Efecto Ave Fénix activado.");
+                    discardCards(ownHand, ownHand.length); // Discard all cards
+                    ownHand.length = 0; // Ensure hand is empty after discarding
                     for (let i = 0; i < 3; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                     }
-                    console.log("Ave Fénix: Mano actualizada:", ownHand);
+                    gameMessageDiv.textContent = 'Has descartado tu mano y robado 3 cartas.';
+                    console.log("DEBUG: Ave Fénix: Mano actualizada:", ownHand);
                     break;
 
                 case 'gato':
-                    console.log("Efecto Gato activado.");
+                    console.log("DEBUG: Efecto Gato activado.");
                     for (let i = 0; i < 2; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                     }
-                    console.log("Gato: Mano actualizada:", ownHand);
+                    gameMessageDiv.textContent += ' Has robado 2 cartas.';
+                    console.log("DEBUG: Gato: Mano actualizada:", ownHand);
                     break;
 
                 case 'caballodetroya':
-                    console.log("Efecto Caballo de Troya activado.");
-                    const targetPlayerIdTroya = await choosePlayer();
-                    const targetHandTroya = (targetPlayerIdTroya === currentUserId) ? ownHand : rivalHand;
-                    const cardToDiscardTroya = await chooseCardFromHand(targetHandTroya);
+                    console.log("DEBUG: Efecto Caballo de Troya activado.");
+                    const targetPlayerIdTroya = await choosePlayer(); // Elegir rival
+                    let targetHandTroya = (isPlayer1 && targetPlayerIdTroya === currentRivalId) ? rivalHand : ownHand;
+                    const cardToDiscardTroya = await chooseCardFromHand(targetHandTroya); // Elegir primera carta del rival
 
                     if (cardToDiscardTroya) {
                         const index = targetHandTroya.indexOf(cardToDiscardTroya);
                         if (index > -1) {
                             targetHandTroya.splice(index, 1);
                             pilaDescarte.push(cardToDiscardTroya);
-                            gameMessageDiv.textContent = `${(targetPlayerIdTroya === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado una carta.`;
-                            console.log("Caballo de Troya: Carta descartada:", cardToDiscardTroya);
+                            const discardedCardTroya = cardDefinitions.find(c => c.id === cardToDiscardTroya);
+                            gameMessageDiv.textContent = `${(targetPlayerIdTroya === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado ${discardedCardTroya.name}.`;
+                            console.log("DEBUG: Caballo de Troya: Carta descartada:", discardedCardTroya.name);
                         }
                     }
-                    if (targetPlayerIdTroya === currentUserId) { ownHand = targetHandTroya; } else { rivalHand = targetHandTroya; }
+                    if (isPlayer1 && targetPlayerIdTroya === currentRivalId) { rivalHand = targetHandTroya; } else if (targetPlayerIdTroya === currentUserId) { ownHand = targetHandTroya; }
                     break;
 
                 case 'ranadelasuerte':
-                    console.log("Efecto Rana de la Suerte activado.");
+                    console.log("DEBUG: Efecto Rana de la Suerte activado.");
                     ownPos = Math.min(13, ownPos + 2);
                     gameMessageDiv.textContent += ' ¡Has avanzado 2 casillas!';
-                    console.log("Rana de la Suerte: Nueva posición:", ownPos);
+                    console.log("DEBUG: Rana de la Suerte: Nueva posición:", ownPos);
                     break;
 
                 case 'perro':
-                    console.log("Efecto Perro activado.");
-                    roomRef.update({
-                        'estadoJuego.efectosActivos.nextPlayerLosesTurn': true
-                    });
+                    console.log("DEBUG: Efecto Perro activado.");
+                    // En un juego de 2 jugadores, si el siguiente jugador pierde su turno,
+                    // el jugador actual efectivamente repite su turno.
+                    effectsActivos.nextPlayerLosesTurn = true;
                     gameMessageDiv.textContent += ' El siguiente jugador perderá su turno.';
-                    console.log("Perro: Efecto 'nextPlayerLosesTurn' activado.");
+                    console.log("DEBUG: Perro: Efecto 'nextPlayerLosesTurn' activado. En 2 jugadores, esto significa que el jugador actual repetirá turno.");
                     break;
 
                 case 'esclavo':
-                    console.log("Efecto Esclavo activado.");
-                    const cardToReveal = ownHand.find(cId => cardDefinitions.find(cd => cd.id === cId).value > 4);
-                    if (cardToReveal) {
+                    console.log("DEBUG: Efecto Esclavo activado.");
+                    // Encuentra la carta con valor > 4 en la mano del jugador
+                    const cardToRevealEsclavo = ownHand.find(cId => {
+                        const cardDef = cardDefinitions.find(cd => cd.id === cId);
+                        return cardDef && cardDef.value > 4;
+                    });
+
+                    if (cardToRevealEsclavo) {
                         ownPos = Math.min(13, ownPos + 1);
-                        gameMessageDiv.textContent += ' ¡Has mostrado una carta y avanzado 1 casilla!';
-                        console.log("Esclavo: Avanza 1 casilla.");
+                        gameMessageDiv.textContent += ` ¡Has mostrado la carta ${cardDefinitions.find(c => c.id === cardToRevealEsclavo).name} y avanzado 1 casilla!`;
+                        console.log("DEBUG: Esclavo: Avanza 1 casilla. Nueva posición:", ownPos);
                     } else {
                         gameMessageDiv.textContent += ' No tienes una carta mayor que 4 para mostrar.';
-                        console.log("Esclavo: No hay carta para mostrar.");
+                        console.log("DEBUG: Esclavo: No hay carta para mostrar.");
                     }
                     break;
 
                 case 'loco':
-                    console.log("Efecto Loco activado.");
-                    const targetPlayerIdLoco = await choosePlayer();
-                    const targetHandLoco = (targetPlayerIdLoco === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Loco activado.");
+                    const targetPlayerIdLoco = await choosePlayer(); // Elegir rival
+                    let targetHandLoco = (isPlayer1 && targetPlayerIdLoco === currentRivalId) ? rivalHand : ownHand;
 
                     if (ownHand.length === 0 || targetHandLoco.length === 0) {
                         gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Loco.';
-                        console.log("Loco: Jugador sin cartas.");
+                        console.log("DEBUG: Loco: Jugador sin cartas.");
                         break;
                     }
 
+                    // Por simplicidad, se eligen las primeras cartas de cada mano
                     const ownCardLocoId = await chooseCardFromHand(ownHand);
                     const rivalCardLocoId = await chooseCardFromHand(targetHandLoco);
 
@@ -1307,181 +1513,223 @@
                     const rivalCardLoco = cardDefinitions.find(c => c.id === rivalCardLocoId);
 
                     if (ownCardLoco && rivalCardLoco) {
+                        // Remover las cartas de las manos y moverlas a la pila de descarte
                         ownHand.splice(ownHand.indexOf(ownCardLocoId), 1);
                         pilaDescarte.push(ownCardLocoId);
                         targetHandLoco.splice(targetHandLoco.indexOf(rivalCardLocoId), 1);
                         pilaDescarte.push(rivalCardLocoId);
-                        console.log("Loco: Cartas descartadas:", ownCardLoco.name, rivalCardLoco.name);
+
+                        gameMessageDiv.textContent = `Ambos mostráis: Tú ${ownCardLoco.name}, Rival ${rivalCardLoco.name}.`;
+                        console.log("DEBUG: Loco: Cartas descartadas:", ownCardLoco.name, rivalCardLoco.name);
 
                         if (ownCardLoco.value > rivalCardLoco.value) {
                             ownPos = Math.min(13, ownPos + 2);
                             rivalPos = Math.max(0, rivalPos - 1);
-                            gameMessageDiv.textContent = `¡Has ganado la comparación con Loco! Avanzas 2, el rival retrocede 1.`;
-                            console.log("Loco: Gana propio. Posiciones:", ownPos, rivalPos);
+                            gameMessageDiv.textContent += ` ¡Has ganado la comparación con Loco! Avanzas 2, el rival retrocede 1.`;
+                            console.log("DEBUG: Loco: Gana propio. Posiciones:", ownPos, rivalPos);
                         } else if (rivalCardLoco.value > ownCardLoco.value) {
                             ownPos = Math.max(0, ownPos - 1);
                             rivalPos = Math.min(13, rivalPos + 2);
-                            gameMessageDiv.textContent = `¡El rival ha ganado la comparación con Loco! Tú retrocedes 1, el rival avanza 2.`;
-                            console.log("Loco: Gana rival. Posiciones:", ownPos, rivalPos);
+                            gameMessageDiv.textContent += ` ¡El rival ha ganado la comparación con Loco! Tú retrocedes 1, el rival avanza 2.`;
+                            console.log("DEBUG: Loco: Gana rival. Posiciones:", ownPos, rivalPos);
                         } else {
-                            gameMessageDiv.textContent = `Empate en la comparación de Loco. Nadie avanza ni retrocede.`;
-                            console.log("Loco: Empate.");
+                            gameMessageDiv.textContent += ` Empate en la comparación de Loco. Nadie avanza ni retrocede.`;
+                            console.log("DEBUG: Loco: Empate.");
                         }
                     }
-                    if (targetPlayerIdLoco === currentUserId) { ownHand = targetHandLoco; } else { rivalHand = targetHandLoco; }
+                    if (isPlayer1 && targetPlayerIdLoco === currentRivalId) { rivalHand = targetHandLoco; } else if (targetPlayerIdLoco === currentUserId) { ownHand = targetHandLoco; }
                     break;
 
                 case 'vagabundo':
-                    console.log("Efecto Vagabundo activado.");
-                    const targetPlayerIdVagabundo = await choosePlayer();
-                    const targetHandVagabundo = (targetPlayerIdVagabundo === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Vagabundo activado.");
+                    const targetPlayerIdVagabundo = await choosePlayer(); // Elegir rival
+                    const targetHandVagabundo = (isPlayer1 && targetPlayerIdVagabundo === currentRivalId) ? rivalHand : ownHand;
 
                     if (ownHand.length === 0 || targetHandVagabundo.length === 0) {
                         gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Vagabundo.';
-                        console.log("Vagabundo: Jugador sin cartas.");
+                        console.log("DEBUG: Vagabundo: Jugador sin cartas.");
                         break;
                     }
 
                     const ownLowestCard = ownHand.reduce((minCard, cardId) => {
                         const card = cardDefinitions.find(c => c.id === cardId);
-                        return (!minCard || card.value < minCard.value) ? card : minCard;
-                    }, null);
+                        return (!minCard || (card && card.value < minCard.value)) ? card : minCard;
+                    }, {value: Infinity}); // Initialize with a very high value
 
                     const rivalLowestCard = targetHandVagabundo.reduce((minCard, cardId) => {
                         const card = cardDefinitions.find(c => c.id === cardId);
-                        return (!minCard || card.value < minCard.value) ? card : minCard;
-                    }, null);
+                        return (!minCard || (card && card.value < minCard.value)) ? card : minCard;
+                    }, {value: Infinity}); // Initialize with a very high value
 
-                    if (ownLowestCard && rivalLowestCard) {
-                        console.log("Vagabundo: Cartas más bajas - Propia:", ownLowestCard.name, "Rival:", rivalLowestCard.name);
+                    if (ownLowestCard.value !== Infinity && rivalLowestCard.value !== Infinity) {
+                        gameMessageDiv.textContent = `Comparando cartas más bajas: Tú ${ownLowestCard.name}, Rival ${rivalLowestCard.name}.`;
+                        console.log("DEBUG: Vagabundo: Cartas más bajas - Propia:", ownLowestCard.name, "Rival:", rivalLowestCard.name);
                         if (ownLowestCard.value < rivalLowestCard.value) {
                             ownPos = Math.min(13, ownPos + 2);
-                            gameMessageDiv.textContent = `Tu carta más baja (${ownLowestCard.name}) es menor. Avanzas 2 casillas.`;
-                            console.log("Vagabundo: Avanza 2 casillas.");
+                            gameMessageDiv.textContent += ` Tu carta más baja (${ownLowestCard.name}) es menor. Avanzas 2 casillas.`;
+                            console.log("DEBUG: Vagabundo: Avanza 2 casillas. Nueva posición:", ownPos);
                         } else {
-                            gameMessageDiv.textContent = `Tu carta más baja (${ownLowestCard.name}) no es menor que la del rival.`;
-                            console.log("Vagabundo: No avanza.");
+                            gameMessageDiv.textContent += ` Tu carta más baja (${ownLowestCard.name}) no es menor que la del rival.`;
+                            console.log("DEBUG: Vagabundo: No avanza.");
                         }
+                    } else {
+                        gameMessageDiv.textContent = 'No se pudieron encontrar las cartas más bajas para la comparación.';
+                        console.log("DEBUG: Vagabundo: No se pudieron encontrar las cartas más bajas.");
                     }
                     break;
 
                 case 'filosofo':
-                    console.log("Efecto Filósofo activado.");
-                    const targetPlayerIdFilosofo = await choosePlayer();
-                    const targetHandFilosofo = (targetPlayerIdFilosofo === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Filósofo activado.");
+                    const targetPlayerIdFilosofo = await choosePlayer(); // Elegir rival
+                    let targetHandFilosofo = (isPlayer1 && targetPlayerIdFilosofo === currentRivalId) ? rivalHand : ownHand;
 
                     const ownDrawnCardId = drawCardForEffect();
                     const rivalDrawnCardId = drawCardForEffect();
 
                     if (!ownDrawnCardId || !rivalDrawnCardId) {
                         gameMessageDiv.textContent = 'No hay suficientes cartas en el mazo para el efecto Filósofo.';
+                        // Devolver las cartas robadas al mazo si no se pueden completar las dos
                         if (ownDrawnCardId) mazo.push(ownDrawnCardId);
                         if (rivalDrawnCardId) mazo.push(rivalDrawnCardId);
-                        console.log("Filósofo: Mazo insuficiente.");
+                        console.log("DEBUG: Filósofo: Mazo insuficiente.");
                         break;
                     }
 
                     const ownDrawnCard = cardDefinitions.find(c => c.id === ownDrawnCardId);
                     const rivalDrawnCard = cardDefinitions.find(c => c.id === rivalDrawnCardId);
 
+                    // Crear el contenido HTML para mostrar ambas cartas
+                    const comparisonCardsDiv = document.createElement('div');
+                    comparisonCardsDiv.classList.add('hand'); // Reutilizar estilos de mano
+                    comparisonCardsDiv.style.justifyContent = 'space-around'; // Espaciar las cartas
+                    comparisonCardsDiv.style.width = '100%';
+
+                    const ownCardElement = createCardElement(ownDrawnCard);
+                    const rivalCardElement = createCardElement(rivalDrawnCard);
+
+                    comparisonCardsDiv.innerHTML = `
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <span>Tu Carta:</span>
+                            ${ownCardElement.outerHTML}
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <span>Carta del Rival:</span>
+                            ${rivalCardElement.outerHTML}
+                        </div>
+                    `;
+
+                    await showModal(
+                        'Comparación de Cartas (Filósofo)',
+                        comparisonCardsDiv,
+                        [{ text: 'Cerrar', action: 'close' }]
+                    );
+
                     gameMessageDiv.textContent = `Ambos robáis: Tú ${ownDrawnCard.name}, Rival ${rivalDrawnCard.name}.`;
-                    console.log("Filósofo: Cartas robadas - Propia:", ownDrawnCard.name, "Rival:", rivalDrawnCard.name);
+                    console.log("DEBUG: Filósofo: Cartas robadas - Propia:", ownDrawnCard.name, "Rival:", rivalDrawnCard.name);
 
                     if (ownDrawnCard.value > rivalDrawnCard.value) {
                         ownHand.push(ownDrawnCardId);
                         pilaDescarte.push(rivalDrawnCardId);
                         gameMessageDiv.textContent += ` Tu carta es más alta, te la quedas y el rival descarta la suya.`;
-                        console.log("Filósofo: Propia más alta.");
+                        console.log("DEBUG: Filósofo: Propia más alta.");
                     } else if (ownDrawnCard.value < rivalDrawnCard.value) {
                         pilaDescarte.push(ownDrawnCardId);
                         pilaDescarte.push(rivalDrawnCardId);
                         gameMessageDiv.textContent += ` Tu carta es más baja, ambos descartáis las cartas.`;
-                        console.log("Filósofo: Rival más alta.");
+                        console.log("DEBUG: Filósofo: Rival más alta.");
                     } else {
                         pilaDescarte.push(ownDrawnCardId);
                         pilaDescarte.push(rivalDrawnCardId);
                         gameMessageDiv.textContent += ` Empate, ambos descartáis las cartas.`;
-                        console.log("Filósofo: Empate.");
+                        console.log("DEBUG: Filósofo: Empate.");
                     }
-                    if (isPlayer1) { rivalHand = targetHandFilosofo; } else { ownHand = targetHandFilosofo; }
+                    if (isPlayer1 && targetPlayerIdFilosofo === currentRivalId) { rivalHand = targetHandFilosofo; } else if (targetPlayerIdFilosofo === currentUserId) { ownHand = targetHandFilosofo; }
                     break;
 
                 case 'nini':
-                    console.log("Efecto Nini activado.");
+                    console.log("DEBUG: Efecto Nini activado.");
                     const newCardNini = drawCardForEffect();
                     if (newCardNini) ownHand.push(newCardNini);
-                    console.log("Nini: Mano actualizada:", ownHand);
+                    gameMessageDiv.textContent += ' Has robado 1 carta.';
+                    console.log("DEBUG: Nini: Mano actualizada:", ownHand);
                     break;
 
                 case 'influencer':
-                    console.log("Efecto Influencer activado.");
-                    const targetPlayerIdInfluencer = await choosePlayer();
-                    const targetHandInfluencer = (targetPlayerIdInfluencer === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Influencer activado.");
+                    const targetPlayerIdInfluencer = await choosePlayer(); // Elegir rival
+                    const targetHandInfluencer = (isPlayer1 && targetPlayerIdInfluencer === currentRivalId) ? rivalHand : ownHand;
 
                     if (ownHand.length === 0 || targetHandInfluencer.length === 0) {
                         gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Influencer.';
-                        console.log("Influencer: Jugador sin cartas.");
+                        console.log("DEBUG: Influencer: Jugador sin cartas.");
                         break;
                     }
 
                     const ownHighestCard = ownHand.reduce((maxCard, cardId) => {
                         const card = cardDefinitions.find(c => c.id === cardId);
-                        return (!maxCard || card.value > maxCard.value) ? card : maxCard;
-                    }, null);
+                        return (!maxCard || (card && card.value > maxCard.value)) ? card : maxCard;
+                    }, {value: -Infinity}); // Initialize with a very low value
 
                     const rivalHighestCard = targetHandInfluencer.reduce((maxCard, cardId) => {
                         const card = cardDefinitions.find(c => c.id === cardId);
-                        return (!maxCard || card.value > maxCard.value) ? card : maxCard;
-                    }, null);
+                        return (!maxCard || (card && card.value > maxCard.value)) ? card : maxCard;
+                    }, {value: -Infinity}); // Initialize with a very low value
 
-                    if (ownHighestCard && rivalHighestCard) {
-                        gameMessageDiv.textContent = `Comparando: Tú ${ownHighestCard.name}, Rival ${rivalHighestCard.name}.`;
-                        console.log("Influencer: Cartas más altas - Propia:", ownHighestCard.name, "Rival:", rivalHighestCard.name);
+                    if (ownHighestCard.value !== -Infinity && rivalHighestCard.value !== -Infinity) {
+                        gameMessageDiv.textContent = `Comparando cartas más altas: Tú ${ownHighestCard.name}, Rival ${rivalHighestCard.name}.`;
+                        console.log("DEBUG: Influencer: Cartas más altas - Propia:", ownHighestCard.name, "Rival:", rivalHighestCard.name);
                         if (ownHighestCard.value > rivalHighestCard.value) {
                             ownPos = Math.min(13, ownPos + 1);
                             rivalPos = Math.max(0, rivalPos - 1);
                             gameMessageDiv.textContent += ` ¡Tú ganas! Avanzas 1, rival retrocede 1.`;
-                            console.log("Influencer: Gana propio. Posiciones:", ownPos, rivalPos);
+                            console.log("DEBUG: Influencer: Gana propio. Posiciones:", ownPos, rivalPos);
                         } else if (rivalHighestCard.value > ownHighestCard.value) {
                             ownPos = Math.max(0, ownPos - 1);
                             rivalPos = Math.min(13, rivalPos + 1);
-                            gameMessageDiv.textContent += ` ¡Rival gana! Tú retrocedes 1, rival avanza 1.`;
-                            console.log("Influencer: Gana rival. Posiciones:", ownPos, rivalPos);
+                            gameMessageDiv.textContent += ` ¡El rival gana! Tú retrocedes 1, rival avanza 1.`;
+                            console.log("DEBUG: Influencer: Gana rival. Posiciones:", ownPos, rivalPos);
                         } else {
                             gameMessageDiv.textContent += ` Empate. Nadie avanza ni retrocede.`;
-                            console.log("Influencer: Empate.");
+                            console.log("DEBUG: Influencer: Empate.");
                         }
+                    } else {
+                        gameMessageDiv.textContent = 'No se pudieron encontrar las cartas más altas para la comparación.';
+                        console.log("DEBUG: Influencer: No se pudieron encontrar las cartas más altas.");
                     }
                     break;
 
                 case 'camello':
-                    console.log("Efecto Camello activado.");
+                    console.log("DEBUG: Efecto Camello activado.");
                     const newCardCamello = drawCardForEffect();
                     if (newCardCamello) ownHand.push(newCardCamello);
                     gameMessageDiv.textContent = 'Has robado una carta. Ahora descarta una.';
                     if (ownHand.length > 0) {
+                        // Por simplicidad, descarta la primera carta
                         const discardedCardCamelloId = ownHand.shift();
                         pilaDescarte.push(discardedCardCamelloId);
                         const discardedCardCamello = cardDefinitions.find(c => c.id === discardedCardCamelloId);
                         gameMessageDiv.textContent += ` Has descartado ${discardedCardCamello.name}.`;
-                        console.log("Camello: Carta descartada:", discardedCardCamello.name);
-                        if (discardedCardCamello.value <= -1) {
+                        console.log("DEBUG: Camello: Carta descartada:", discardedCardCamello.name);
+                        if (discardedCardCamello && discardedCardCamello.value <= -1) { // Check if discardedCardCamello is not null
                             ownPos = Math.min(13, ownPos + 1);
                             gameMessageDiv.textContent += ' ¡Y avanzas 1 casilla!';
-                            console.log("Camello: Avanza 1 casilla.");
+                            console.log("DEBUG: Camello: Avanza 1 casilla. Nueva posición:", ownPos);
                         }
+                    } else {
+                        gameMessageDiv.textContent += ' No tienes cartas para descartar.';
+                        console.log("DEBUG: Camello: No hay cartas para descartar.");
                     }
                     break;
 
                 case 'trabajador':
-                    console.log("Efecto Trabajador activado.");
+                    console.log("DEBUG: Efecto Trabajador activado.");
                     ownPos = Math.min(13, ownPos + 1);
                     gameMessageDiv.textContent += ' ¡Has avanzado 1 casilla!';
-                    console.log("Trabajador: Nueva posición:", ownPos);
+                    console.log("DEBUG: Trabajador: Nueva posición:", ownPos);
                     break;
 
                 case 'artesano':
-                    console.log("Efecto Artesano activado.");
+                    console.log("DEBUG: Efecto Artesano activado.");
                     if (ownPos >= 0 && ownPos <= 3) {
                         ownPos = Math.min(13, ownPos + 2);
                         gameMessageDiv.textContent += ' Avanzas 2 casillas.';
@@ -1489,60 +1737,58 @@
                         ownPos = Math.min(13, ownPos + 1);
                         gameMessageDiv.textContent += ' Avanzas 1 casilla.';
                     }
-                    console.log("Artesano: Nueva posición:", ownPos);
+                    console.log("DEBUG: Artesano: Nueva posición:", ownPos);
                     break;
 
                 case 'policia':
-                    console.log("Efecto Policía activado.");
-                    const targetPlayerIdPolicia = await choosePlayer();
+                    console.log("DEBUG: Efecto Policía activado.");
+                    const targetPlayerIdPolicia = await choosePlayer(); // Elegir rival
                     if (targetPlayerIdPolicia === currentUserId) {
                         ownPos = Math.max(0, ownPos - 1);
                         gameMessageDiv.textContent = 'Has retrocedido 1 casilla.';
-                        console.log("Policía: Propio retrocede 1.");
+                        console.log("DEBUG: Policía: Propio retrocede 1. Nueva posición:", ownPos);
                     } else {
                         rivalPos = Math.max(0, rivalPos - 1);
                         gameMessageDiv.textContent = `${opponentNameDisplay.textContent} retrocede 1 casilla.`;
-                        console.log("Policía: Rival retrocede 1.");
+                        console.log("DEBUG: Policía: Rival retrocede 1. Nueva posición:", rivalPos);
                     }
                     break;
 
                 case 'detective':
-                    console.log("Efecto Detective activado.");
-                    const targetPlayerIdDetective = await choosePlayer();
-                    const targetHandDetective = (targetPlayerIdDetective === currentUserId) ? ownHand : rivalHand;
-                    const cardToFindId = 'nini'; // Placeholder: debería ser elegida por el jugador
+                    console.log("DEBUG: Efecto Detective activado.");
+                    const targetPlayerIdDetective = await choosePlayer(); // Elegir rival
+                    const targetHandDetective = (isPlayer1 && targetPlayerIdDetective === currentRivalId) ? rivalHand : ownHand;
+                    const cardToFindId = 'nini'; // Placeholder: debería ser elegida por el jugador que juega Detective
                     const cardToFind = cardDefinitions.find(c => c.id === cardToFindId);
 
                     if (targetHandDetective.includes(cardToFindId)) {
                         gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} tiene la carta ${cardToFind.name} y retrocede 2 casillas.`;
                         if (targetPlayerIdDetective === currentUserId) {
                             ownPos = Math.max(0, ownPos - 2);
-                            console.log("Detective: Propio retrocede 2.");
+                            console.log("DEBUG: Detective: Propio retrocede 2. Nueva posición:", ownPos);
                         } else {
                             rivalPos = Math.max(0, rivalPos - 2);
-                            console.log("Detective: Rival retrocede 2.");
+                            console.log("DEBUG: Detective: Rival retrocede 2. Nueva posición:", rivalPos);
                         }
                     } else {
                         gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} no tiene la carta ${cardToFind.name}.`;
-                        console.log("Detective: Carta no encontrada.");
+                        console.log("DEBUG: Detective: Carta no encontrada.");
                     }
                     break;
 
                 case 'guardaespaldas':
-                    console.log("Efecto Guardaespaldas activado.");
-                    const effects = roomData.estadoJuego.efectosActivos || {};
-                    effects[currentUserId] = { guardaespaldas: true, turnosRestantes: 1 };
-                    roomRef.update({ 'estadoJuego.efectosActivos': effects });
+                    console.log("DEBUG: Efecto Guardaespaldas activado.");
+                    effectsActivos[currentUserId] = { guardaespaldas: true, turnosRestantes: 1 };
                     gameMessageDiv.textContent = '¡Guardaespaldas activado! Estás protegido hasta tu próximo turno.';
-                    console.log("Guardaespaldas: Efecto activado para el jugador actual.");
+                    console.log("DEBUG: Guardaespaldas: Efecto activado para el jugador actual.");
                     break;
 
                 case 'abogado':
-                    console.log("Efecto Abogado activado.");
-                    const targetPlayerIdAbogado = await choosePlayer();
+                    console.log("DEBUG: Efecto Abogado activado.");
+                    const targetPlayerIdAbogado = await choosePlayer(); // Elegir rival
                     if (targetPlayerIdAbogado === currentUserId) {
                         gameMessageDiv.textContent = 'No puedes intercambiar cartas contigo mismo.';
-                        console.log("Abogado: Intento de intercambio consigo mismo.");
+                        console.log("DEBUG: Abogado: Intento de intercambio consigo mismo.");
                         break;
                     }
                     const tempHand = [...ownHand];
@@ -1551,176 +1797,254 @@
                     rivalHand.length = 0;
                     rivalHand.push(...tempHand);
                     gameMessageDiv.textContent = '¡Has intercambiado manos con el rival!';
-                    console.log("Abogado: Manos intercambiadas.");
+                    console.log("DEBUG: Abogado: Manos intercambiadas.");
                     break;
 
                 case 'banquero':
-                    console.log("Efecto Banquero activado.");
+                    console.log("DEBUG: Efecto Banquero activado.");
                     if (lastPlayedCardId) {
                         const lastCard = cardDefinitions.find(c => c.id === lastPlayedCardId);
                         if (lastCard && lastCard.value >= 7) {
                             ownPos = Math.min(13, ownPos + 2);
                             gameMessageDiv.textContent = `La última carta (${lastCard.name}) es >= 7. Avanzas 2 casillas.`;
-                            console.log("Banquero: Avanza 2 casillas.");
+                            console.log("DEBUG: Banquero: Avanza 2 casillas. Nueva posición:", ownPos);
                         } else {
                             gameMessageDiv.textContent = `La última carta (${lastCard ? lastCard.name : 'ninguna'}) no es >= 7.`;
-                            console.log("Banquero: No avanza.");
+                            console.log("DEBUG: Banquero: No avanza.");
                         }
                     } else {
                         gameMessageDiv.textContent = 'No hay última carta jugada para Banquero.';
-                        console.log("Banquero: No hay última carta.");
+                        console.log("DEBUG: Banquero: No hay última carta.");
                     }
                     break;
 
                 case 'musico':
-                    console.log("Efecto Músico activado.");
+                    console.log("DEBUG: Efecto Músico activado.");
                     for (let i = 0; i < 2; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 2.';
-                    discardCards(ownHand, 2);
-                    console.log("Músico: Mano actualizada:", ownHand);
+                    discardCards(ownHand, 2); // Discard 2 cards
+                    console.log("DEBUG: Músico: Mano actualizada:", ownHand);
                     break;
 
                 case 'arlequin':
-                    console.log("Efecto Arlequín activado.");
+                    console.log("DEBUG: Efecto Arlequín activado.");
                     for (let i = 0; i < 2; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 1.';
-                    discardCards(ownHand, 1);
-                    console.log("Arlequín: Mano actualizada:", ownHand);
+                    discardCards(ownHand, 1); // Discard 1 card
+                    console.log("DEBUG: Arlequín: Mano actualizada:", ownHand);
                     break;
 
                 case 'futbolista':
-                    console.log("Efecto Futbolista activado.");
+                    console.log("DEBUG: Efecto Futbolista activado.");
                     if (ownHand.length > 0) {
+                        // Por simplicidad, descarta la primera carta
                         const discardedCardFutbolista = ownHand.shift();
                         pilaDescarte.push(discardedCardFutbolista);
                         ownPos = Math.min(13, ownPos + 2);
                         gameMessageDiv.textContent = 'Has descartado una carta y avanzado 2 casillas.';
-                        console.log("Futbolista: Avanza 2 casillas.");
+                        console.log("DEBUG: Futbolista: Avanza 2 casillas. Nueva posición:", ownPos);
                     } else {
                         gameMessageDiv.textContent = 'No tienes cartas para descartar y usar Futbolista.';
-                        console.log("Futbolista: No hay cartas para descartar.");
+                        console.log("DEBUG: Futbolista: No hay cartas para descartar.");
                     }
                     break;
 
                 case 'capo':
-                    console.log("Efecto Capo activado.");
+                    console.log("DEBUG: Efecto Capo activado.");
                     ownPos = Math.min(13, ownPos + 1);
-                    const targetPlayerIdCapo = await choosePlayer();
+                    const targetPlayerIdCapo = await choosePlayer(); // Elegir rival
                     if (targetPlayerIdCapo === currentUserId) {
                         ownPos = Math.max(0, ownPos - 1);
                         gameMessageDiv.textContent = 'Avanzas 1, pero luego retrocedes 1 (te elegiste a ti mismo).';
-                        console.log("Capo: Propio avanza y retrocede.");
+                        console.log("DEBUG: Capo: Propio avanza y retrocede. Nueva posición:", ownPos);
                     } else {
                         rivalPos = Math.max(0, rivalPos - 1);
                         gameMessageDiv.textContent = `Avanzas 1 casilla. ${opponentNameDisplay.textContent} retrocede 1 casilla.`;
-                        console.log("Capo: Rival retrocede 1.");
+                        console.log("DEBUG: Capo: Rival retrocede 1. Nueva posición:", rivalPos);
                     }
                     break;
 
                 case 'politico':
-                    console.log("Efecto Político activado.");
-                    const targetPlayerIdPolitico = await choosePlayer();
-                    const targetHandPolitico = (targetPlayerIdPolitico === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Político activado.");
+                    ownPos = Math.min(13, ownPos + 1); // Avanza 1 casilla siempre
+
+                    const playerChoiceDiv = document.createElement('div');
+                    playerChoiceDiv.innerHTML = `
+                        <p>¿A quién quieres aplicar el efecto de descartar y robar cartas?</p>
+                    `;
+
+                    const chosenPlayerIdPolitico = await showModal(
+                        'Efecto Político: Elegir Jugador',
+                        playerChoiceDiv,
+                        [
+                            { text: 'A mí', action: currentUserId },
+                            { text: 'Al Rival', action: currentRivalId }
+                        ]
+                    );
+
+                    let targetHandPolitico;
+                    let targetPlayerNamePolitico;
+
+                    if (chosenPlayerIdPolitico === currentUserId) {
+                        targetHandPolitico = ownHand;
+                        targetPlayerNamePolitico = ownNameDisplay.textContent;
+                    } else {
+                        targetHandPolitico = rivalHand;
+                        targetPlayerNamePolitico = opponentNameDisplay.textContent;
+                    }
+
                     const numCardsToRedraw = targetHandPolitico.length;
 
-                    discardCards(targetHandPolitico, numCardsToRedraw);
+                    discardCards(targetHandPolitico, numCardsToRedraw); // Discard all cards
+                    targetHandPolitico.length = 0; // Ensure hand is empty after discarding
                     for (let i = 0; i < numCardsToRedraw; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) targetHandPolitico.push(newCard);
                     }
-                    ownPos = Math.min(13, ownPos + 1);
-                    gameMessageDiv.textContent = `${(targetPlayerIdPolitico === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado y robado cartas. Tú avanzas 1.`;
-                    console.log("Político: Cartas descartadas/robadas. Propio avanza 1.");
-                    if (isPlayer1) { rivalHand = targetHandPolitico; } else { ownHand = targetHandPolitico; }
+                    
+                    gameMessageDiv.textContent = `Avanzas 1 casilla. ${targetPlayerNamePolitico} ha descartado y robado cartas.`;
+                    console.log("DEBUG: Político: Cartas descartadas/robadas. Propio avanza 1.");
+                    
+                    // Asegurarse de que las manos se actualicen correctamente en el estado
+                    if (chosenPlayerIdPolitico === currentUserId) {
+                        ownHand = targetHandPolitico;
+                    } else {
+                        rivalHand = targetHandPolitico;
+                    }
                     break;
 
                 case 'sectario':
-                    console.log("Efecto Sectario activado.");
-                    const targetPlayerIdSectario = await choosePlayer();
-                    const targetHandSectario = (targetPlayerIdSectario === currentUserId) ? ownHand : rivalHand;
+                    console.log("DEBUG: Efecto Sectario activado.");
+                    const targetPlayerIdSectario = await choosePlayer(); // Elegir rival
+                    let targetHandSectario = (isPlayer1 && targetPlayerIdSectario === currentRivalId) ? rivalHand : ownHand;
 
-                    gameMessageDiv.textContent = `Las cartas de ${opponentNameDisplay.textContent} son: ${targetHandSectario.map(cId => cardDefinitions.find(c => c.id === cId).name).join(', ')}.`;
-                    if (targetPlayerIdSectario !== currentUserId) {
-                        const tempHand = [...ownHand];
-                        ownHand.length = 0;
-                        ownHand.push(...targetHandSectario);
-                        targetHandSectario.length = 0;
-                        targetHandSectario.push(...tempHand);
-                        gameMessageDiv.textContent += ' ¡Has intercambiado manos!';
-                        console.log("Sectario: Manos intercambiadas.");
+                    // Crear el contenido HTML para mostrar las cartas del rival
+                    const rivalHandDisplayDivSectario = document.createElement('div');
+                    rivalHandDisplayDivSectario.classList.add('hand'); // Reutilizar estilos de mano
+                    if (targetHandSectario.length > 0) {
+                        targetHandSectario.forEach(cardId => {
+                            const card = cardDefinitions.find(c => c.id === cardId);
+                            if (card) {
+                                rivalHandDisplayDivSectario.appendChild(createCardElement(card));
+                            }
+                        });
                     } else {
-                        gameMessageDiv.textContent += ' No puedes intercambiar contigo mismo.';
-                        console.log("Sectario: Intento de intercambio consigo mismo.");
+                        rivalHandDisplayDivSectario.textContent = 'El rival no tiene cartas en la mano.';
                     }
+
+                    const exchangeDecision = await showModal(
+                        'Cartas del Rival (Sectario)',
+                        rivalHandDisplayDivSectario,
+                        [
+                            { text: 'Intercambiar Cartas', action: 'exchange' },
+                            { text: 'No Intercambiar', action: 'no_exchange' }
+                        ]
+                    );
+
+                    if (exchangeDecision === 'exchange') {
+                        if (targetPlayerIdSectario !== currentUserId) { // Asegurarse de no intercambiar consigo mismo
+                            const tempHand = [...ownHand];
+                            ownHand.length = 0;
+                            ownHand.push(...targetHandSectario);
+                            targetHandSectario.length = 0;
+                            targetHandSectario.push(...tempHand);
+                            gameMessageDiv.textContent = '¡Has intercambiado manos!';
+                            console.log("DEBUG: Sectario: Manos intercambiadas.");
+                        } else {
+                            gameMessageDiv.textContent = 'No puedes intercambiar contigo mismo.';
+                            console.log("DEBUG: Sectario: Intento de intercambio consigo mismo.");
+                        }
+                    } else {
+                        gameMessageDiv.textContent = 'Has decidido no intercambiar cartas.';
+                        console.log("DEBUG: Sectario: No se intercambiaron cartas.");
+                    }
+
                     ownPos = Math.min(13, ownPos + 1);
-                    if (isPlayer1) { rivalHand = targetHandSectario; } else { ownHand = targetHandSectario; }
+                    if (isPlayer1 && targetPlayerIdSectario === currentRivalId) { rivalHand = targetHandSectario; } else if (targetPlayerIdSectario === currentUserId) { ownHand = targetHandSectario; }
                     break;
 
                 case 'astronauta':
-                    console.log("Efecto Astronauta activado.");
+                    console.log("DEBUG: Efecto Astronauta activado.");
                     ownPos = Math.min(13, ownPos + 1);
                     if (ownPos >= 8) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                         gameMessageDiv.textContent += ' ¡Y has robado 1 carta!';
-                        console.log("Astronauta: Roba 1 carta.");
+                        console.log("DEBUG: Astronauta: Roba 1 carta.");
                     }
+                    console.log("DEBUG: Astronauta: Nueva posición:", ownPos);
                     break;
 
                 case 'arcangel':
-                    console.log("Efecto Arcángel activado.");
+                    console.log("DEBUG: Efecto Arcángel activado.");
                     ownPos = Math.min(13, ownPos + 1);
                     for (let i = 0; i < 3; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Avanzas 1 casilla y robas 3 cartas. Ahora descarta 2.';
-                    discardCards(ownHand, 2);
-                    console.log("Arcángel: Mano actualizada:", ownHand);
+                    discardCards(ownHand, 2); // Discard 2 cards
+                    console.log("DEBUG: Arcángel: Mano actualizada:", ownHand);
                     break;
 
                 case 'semidios':
-                    console.log("Efecto Semidiós activado.");
+                    console.log("DEBUG: Efecto Semidiós activado.");
                     ownPos = Math.min(13, ownPos + 1);
                     gameMessageDiv.textContent += ' Avanzas 1 casilla y repites tu turno.';
-                    console.log("Semidiós: Repite turno.");
+                    console.log("DEBUG: Semidiós: Repite turno. Nueva posición:", ownPos);
                     break;
 
                 case 'ojotodove':
-                    console.log("Efecto Ojo que todo lo ve activado.");
+                    console.log("DEBUG: Efecto Ojo que todo lo ve activado.");
                     ownPos = Math.min(13, ownPos + 1);
-                    gameMessageDiv.textContent = `Las cartas de ${opponentNameDisplay.textContent} son: ${rivalHand.map(cId => cardDefinitions.find(c => c.id === cId).name).join(', ')}.`;
-                    console.log("Ojo que todo lo ve: Cartas del rival mostradas.");
+
+                    // Crear el contenido HTML para mostrar las cartas del rival
+                    const rivalHandDisplayDivOjo = document.createElement('div');
+                    rivalHandDisplayDivOjo.classList.add('hand'); // Reutilizar estilos de mano
+                    if (rivalHand.length > 0) {
+                        rivalHand.forEach(cardId => {
+                            const card = cardDefinitions.find(c => c.id === cardId);
+                            if (card) {
+                                rivalHandDisplayDivOjo.appendChild(createCardElement(card));
+                            }
+                        });
+                    } else {
+                        rivalHandDisplayDivOjo.textContent = 'El rival no tiene cartas en la mano.';
+                    }
+
+                    await showModal(
+                        'Cartas del Rival (Ojo que todo lo ve)',
+                        rivalHandDisplayDivOjo,
+                        [{ text: 'Cerrar', action: 'close' }]
+                    );
+
+                    gameMessageDiv.textContent = `Avanzas 1 casilla. Has visto las cartas del rival.`;
+                    console.log("DEBUG: Ojo que todo lo ve: Cartas del rival mostradas.");
                     break;
 
                 default:
-                    console.warn('Efecto de carta no implementado:', card.name);
+                    console.warn('DEBUG: Efecto de carta no implementado:', card.name);
                     gameMessageDiv.textContent = `Has jugado ${card.name}.`;
                     break;
             }
 
             // Asegurarse de que los cambios en las manos y posiciones se reflejen en el objeto de estado
-            if (isPlayer1) {
-                state.manoJugador1 = ownHand;
-                state.manoJugador2 = rivalHand;
-                state.posicionJugador1 = ownPos;
-                state.posicionJugador2 = rivalPos;
-            } else {
-                state.manoJugador1 = rivalHand;
-                state.manoJugador2 = ownHand;
-                state.posicionJugador1 = rivalPos;
-                state.posicionJugador2 = ownPos;
-            }
+            // Asignar de nuevo las variables locales modificadas al objeto 'state' que se pasó por referencia
+            state.ownHand = ownHand;
+            state.rivalHand = rivalHand;
+            state.ownPos = ownPos;
+            state.rivalPos = rivalPos;
             state.mazo = mazo;
             state.pilaDescarte = pilaDescarte;
+            state.effectsActivos = effectsActivos; // Update effects in state
 
-            console.log("Estado final del efecto:", { ownHand: [...ownHand], rivalHand: [...rivalHand], ownPos, rivalPos, mazo: [...mazo], pilaDescarte: [...pilaDescarte] }); // Debugging
+            console.log("DEBUG: applyCardEffect - Estado final del efecto:", { ownHand: [...ownHand], rivalHand: [...rivalHand], ownPos, rivalPos, mazo: [...mazo], pilaDescarte: [...pilaDescarte], effectsActivos: {...effectsActivos} });
         }
 
 
@@ -1735,7 +2059,7 @@
                 gameMessageDiv.textContent = '¡No es tu turno para pasar!';
                 return;
             }
-            console.log("Pasando turno..."); // Debugging
+            console.log("DEBUG: Pasando turno...");
 
             // Manejar efecto "Perro" si está activo para el siguiente jugador
             let nextTurnPlayerId = currentRivalId; // Por defecto, el turno pasa al rival
@@ -1745,10 +2069,10 @@
                 gameMessageDiv.textContent = `${opponentNameDisplay.textContent} pierde su turno por el efecto Perro. ¡Es tu turno de nuevo!`;
                 delete updatedEffects.nextPlayerLosesTurn;
                 nextTurnPlayerId = currentUserId; // El turno se queda en el mismo jugador
-                console.log("Perro: Rival pierde turno, propio repite."); // Debugging
+                console.log("DEBUG: Perro: Rival pierde turno, propio repite.");
             } else {
                 gameMessageDiv.textContent = `Has pasado el turno. Turno de ${opponentNameDisplay.textContent}.`;
-                console.log("Turno pasado al rival."); // Debugging
+                console.log("DEBUG: Turno pasado al rival.");
             }
 
             // Reducir duración de efectos temporales (ej. Guardaespaldas)
@@ -1757,21 +2081,21 @@
                 if (updatedEffects[currentUserId].turnosRestantes <= 0) {
                     delete updatedEffects[currentUserId];
                     gameMessageDiv.textContent += ' El efecto Guardaespaldas ha terminado.';
-                    console.log("Guardaespaldas: Efecto terminado."); // Debugging
+                    console.log("DEBUG: Guardaespaldas: Efecto terminado.");
                 }
             }
 
             // Resetear el estado de robo para el siguiente jugador (o para el mismo si repite turno)
             const newDrawStatus = { ...gameState.drawStatus };
             newDrawStatus[nextTurnPlayerId] = false; // El siguiente jugador podrá robar
-            console.log("Estado de robo reseteado para:", nextTurnPlayerId); // Debugging
+            console.log("DEBUG: Estado de robo reseteado para:", nextTurnPlayerId, "a false. newDrawStatus:", newDrawStatus);
 
             const updatePayload = {
                 'estadoJuego.turnoActual': nextTurnPlayerId,
                 'estadoJuego.efectosActivos': updatedEffects,
                 'estadoJuego.drawStatus': newDrawStatus
             };
-            console.log("Payload de actualización de turno:", updatePayload); // Debugging
+            console.log("DEBUG: Payload de actualización de turno:", updatePayload);
             await roomRef.update(updatePayload);
         }
 
