@@ -295,6 +295,40 @@
             letter-spacing: 1px;
         }
 
+        /* Contenedor para efectos activos */
+        .active-effects-container {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            align-items: flex-end;
+            z-index: 50;
+        }
+
+        .active-effect-card {
+            display: flex;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #FFD700;
+            border-radius: 5px;
+            padding: 5px 10px;
+            color: #FFD700;
+            font-size: 0.9em;
+            gap: 10px;
+        }
+
+        .active-effect-card .card-image-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 3px;
+            background-size: cover;
+            background-position: center;
+            border: 1px solid #FFD700;
+        }
+
+
         /* Botón de pasar turno */
         .game-button {
             margin-top: 25px; /* Más margen */
@@ -403,6 +437,13 @@
             gap: 20px;
         }
 
+        /* Estilo específico para el modal de descarte */
+        .modal-content.discard-modal-content {
+            border: 2px solid #800080; /* Purple border */
+            outline: 2px solid white; /* White outline */
+            outline-offset: -4px; /* To make it appear as a nested border */
+        }
+
         .modal-content h2 {
             color: #FF0000;
             margin-bottom: 15px;
@@ -429,9 +470,19 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
-        .modal-body .card-in-hand:hover {
-            transform: none;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        .modal-body .card-in-hand.selectable {
+            cursor: pointer;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .modal-body .card-in-hand.selectable:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .modal-body .card-in-hand.selected {
+            border: 3px solid white; /* White border for selected */
+            box-shadow: 0 0 15px white; /* Glow for selected */
         }
 
         .modal-buttons {
@@ -571,6 +622,14 @@
                 padding: 10px 20px;
                 font-size: 0.9em;
             }
+            .active-effect-card {
+                font-size: 0.8em;
+                padding: 3px 8px;
+            }
+            .active-effect-card .card-image-small {
+                width: 30px;
+                height: 30px;
+            }
         }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
@@ -597,6 +656,7 @@
     <div id="screen3" class="game-screen">
         <div class="player-area opponent-area">
             <span id="opponentNameDisplay">Rival</span>
+            <div id="opponentActiveEffects" class="active-effects-container"></div>
             <div class="hand opponent-hand" id="opponentHand">
             </div>
             <div class="deck-discard-area">
@@ -610,6 +670,7 @@
 
         <div class="player-area own-area">
             <span id="ownNameDisplay">Tú</span>
+            <div id="ownActiveEffects" class="active-effects-container"></div>
             <div class="hand own-hand" id="ownHand">
             </div>
             <button id="btnPassTurn" class="game-button">Pasar Turno</button>
@@ -670,6 +731,10 @@
         const modalBody = document.getElementById('modalBody');
         const modalButtons = document.getElementById('modalButtons');
 
+        // Referencias a los contenedores de efectos activos
+        const ownActiveEffectsDiv = document.getElementById('ownActiveEffects');
+        const opponentActiveEffectsDiv = document.getElementById('opponentActiveEffects');
+
 
         // Variables globales para los nombres de los jugadores y el estado de la partida
         let currentPlayerName = '';
@@ -712,6 +777,11 @@
             { id: 'arcangel', name: 'Arcángel', value: 12, effect: 'Avanza 1 casilla. Roba 3 cartas y descarta 2.', count: 1, image: 'https://placehold.co/90x65/FFD700/000000?text=Arcangel+12' },
             { id: 'semidios', name: 'Semidiós', value: 13, effect: 'Avanza 1 casilla. Repite tu turno.', count: 1, image: 'https://placehold.co/90x65/DAA520/000000?text=Semidios+13' },
             { id: 'ojotodove', name: 'Ojo que todo lo ve', value: 13.9, effect: 'Avanza 1 casilla. Mira las cartas de todos los jugadores.', count: 1, image: 'https://placehold.co/90x65/8A2BE2/FFFFFF?text=Ojo+Ve+13.9' }
+        ];
+
+        // Lista de IDs de cartas con efectos adversos que pueden ser bloqueados por Guardaespaldas
+        const adverseEffectCards = [
+            'muerte', 'caballodetroya', 'loco', 'influencer', 'policia', 'detective', 'capo'
         ];
 
         // Función para cambiar de pantalla
@@ -1113,6 +1183,9 @@
             const player2Pos = gameState.posicionJugador2;
             renderGameBoard(player1Pos, player2Pos); // Pasar las posiciones tal cual están en Firestore
 
+            // Renderizar efectos activos
+            renderActiveEffects(gameState.efectosActivos, roomData.jugador1Id, roomData.jugador2Id, roomData.jugador1Nombre, roomData.jugador2Nombre);
+
             // Indicar turno actual y manejar robo de carta al inicio del turno
             console.log(`DEBUG: UI Turno - Turno actual en Firestore: ${gameState.turnoActual}, Mi UID: ${currentUserId}, Rival UID: ${currentRivalId}`);
             console.log(`DEBUG: UI Turno - drawStatus para ${currentUserId}: ${gameState.drawStatus ? gameState.drawStatus[currentUserId] : 'undefined'}`);
@@ -1205,6 +1278,48 @@
             return array;
         }
 
+        // Función para renderizar los efectos activos
+        function renderActiveEffects(effectsActivos, jugador1Id, jugador2Id, jugador1Nombre, jugador2Nombre) {
+            ownActiveEffectsDiv.innerHTML = '';
+            opponentActiveEffectsDiv.innerHTML = '';
+
+            // Determine which player is current user and which is opponent
+            const isPlayer1 = currentUserId === jugador1Id;
+            const ownPlayerId = currentUserId;
+            const opponentPlayerId = isPlayer1 ? jugador2Id : jugador1Id;
+
+            // Render effects for current user
+            if (effectsActivos[ownPlayerId] && effectsActivos[ownPlayerId].guardaespaldas) {
+                const cardDef = cardDefinitions.find(c => c.id === 'guardaespaldas');
+                if (cardDef) {
+                    const effectDiv = document.createElement('div');
+                    effectDiv.classList.add('active-effect-card');
+                    effectDiv.innerHTML = `
+                        <div class="card-image-small" style="background-image: url('${cardDef.image}');"></div>
+                        <span>Guardaespaldas activo</span>
+                        <span>Activada por: ${isPlayer1 ? jugador1Nombre : jugador2Nombre}</span>
+                    `;
+                    ownActiveEffectsDiv.appendChild(effectDiv);
+                }
+            }
+
+            // Render effects for opponent
+            if (effectsActivos[opponentPlayerId] && effectsActivos[opponentPlayerId].guardaespaldas) {
+                const cardDef = cardDefinitions.find(c => c.id === 'guardaespaldas');
+                if (cardDef) {
+                    const effectDiv = document.createElement('div');
+                    effectDiv.classList.add('active-effect-card');
+                    effectDiv.innerHTML = `
+                        <div class="card-image-small" style="background-image: url('${cardDef.image}');"></div>
+                        <span>Guardaespaldas activo</span>
+                        <span>Activada por: ${isPlayer1 ? jugador2Nombre : jugador1Nombre}</span>
+                    `;
+                    opponentActiveEffectsDiv.appendChild(effectDiv);
+                }
+            }
+        }
+
+
         // --- Lógica de Juego (acciones del jugador) ---
 
         // Función para jugar una carta
@@ -1269,6 +1384,7 @@
             if (playedCard.id === 'semidios') {
                 nextTurnPlayerId = currentUserId; // Repetir turno
                 newDrawStatus[currentUserId] = false; // Reset draw status for repeated turn
+                gameMessageDiv.textContent += ' ¡Repites tu turno!';
                 console.log("DEBUG: playCard - Semidiós jugado. Repitiendo turno y reseteando drawStatus para el jugador actual.");
             } else {
                 newDrawStatus[currentRivalId] = false; // Reset draw status for the next player
@@ -1305,18 +1421,176 @@
             return currentRivalId;
         }
 
-        // Función auxiliar para elegir una carta de la mano (simplificado por ahora)
-        // NOTA: Para una experiencia multijugador completa, si el rival debe elegir una carta,
-        // esto debería involucrar una interacción en la UI del rival y una actualización en Firestore.
-        async function chooseCardFromHand(hand) {
-            console.log("DEBUG: chooseCardFromHand llamado. Por simplicidad, se elige la primera carta.");
-            // Por ahora, simplemente elige la primera carta disponible en la mano.
-            // Si la mano está vacía, devuelve null.
-            if (hand && hand.length > 0) {
-                return hand[0];
-            }
-            return null;
+        // Función para mostrar un modal interactivo
+        function showModal(title, contentHtml, buttons, customClass = '') {
+            return new Promise(resolve => {
+                modalTitle.textContent = title;
+                modalBody.innerHTML = ''; // Limpiar contenido previo
+                modalBody.appendChild(contentHtml); // Añadir el contenido HTML proporcionado
+
+                modalButtons.innerHTML = ''; // Limpiar botones previos
+                buttons.forEach(btn => {
+                    const buttonElement = document.createElement('button');
+                    buttonElement.textContent = btn.text;
+                    buttonElement.addEventListener('click', () => {
+                        hideModal();
+                        resolve(btn.action); // Resolver la promesa con la acción del botón
+                    });
+                    modalButtons.appendChild(buttonElement);
+                });
+
+                // Add custom class if provided
+                if (customClass) {
+                    cardInteractionModal.querySelector('.modal-content').classList.add(customClass);
+                }
+
+                cardInteractionModal.style.display = 'flex'; // Mostrar el modal
+            });
         }
+
+        // Función para ocultar el modal
+        function hideModal() {
+            cardInteractionModal.style.display = 'none';
+            modalTitle.textContent = '';
+            modalBody.innerHTML = '';
+            modalButtons.innerHTML = '';
+            // Remove any custom class when hiding
+            cardInteractionModal.querySelector('.modal-content').classList.remove('discard-modal-content');
+        }
+
+        // New function to allow player to choose cards to discard
+        async function chooseCardsToDiscard(hand, numToDiscard, targetPlayerName) {
+            return new Promise(resolve => {
+                let selectedCards = [];
+                const discardContainer = document.createElement('div');
+                discardContainer.classList.add('hand'); // Reuse hand styling
+                discardContainer.style.flexWrap = 'wrap';
+                discardContainer.style.justifyContent = 'center';
+                discardContainer.style.gap = '15px';
+                // Border styling will be applied via .discard-modal-content class on the modal-content itself
+
+                const selectionCounter = document.createElement('p');
+                selectionCounter.style.color = 'white';
+                selectionCounter.style.fontSize = '1.2em';
+                selectionCounter.style.marginBottom = '15px';
+                selectionCounter.textContent = `Elige las cartas a descartar: 0/${numToDiscard}`;
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = 'Confirmar Descarte';
+                confirmButton.disabled = true; // Disabled until correct number of cards are selected
+
+                // Function to update the counter and button state
+                const updateSelection = () => {
+                    selectionCounter.textContent = `Elige las cartas a descartar: ${selectedCards.length}/${numToDiscard}`;
+                    confirmButton.disabled = selectedCards.length !== numToDiscard;
+                };
+
+                // Create card elements for selection
+                hand.forEach(cardId => {
+                    const card = cardDefinitions.find(c => c.id === cardId);
+                    if (card) {
+                        const cardElement = createCardElement(card);
+                        cardElement.classList.add('selectable'); // Add selectable class for styling
+                        cardElement.addEventListener('click', () => {
+                            const index = selectedCards.indexOf(cardId);
+                            if (index > -1) {
+                                // Card already selected, deselect it
+                                selectedCards.splice(index, 1);
+                                cardElement.classList.remove('selected');
+                            } else if (selectedCards.length < numToDiscard) {
+                                // Card not selected and we can select more
+                                selectedCards.push(cardId);
+                                cardElement.classList.add('selected');
+                            }
+                            updateSelection();
+                        });
+                        discardContainer.appendChild(cardElement);
+                    }
+                });
+
+                confirmButton.addEventListener('click', () => {
+                    hideModal(); // Hide the modal when confirmed
+                    resolve(selectedCards);
+                });
+
+                const modalContentDiv = document.createElement('div');
+                modalContentDiv.appendChild(selectionCounter);
+                modalContentDiv.appendChild(discardContainer);
+
+                // Show the modal with the custom class
+                showModal(
+                    `Descartar Cartas (${targetPlayerName})`,
+                    modalContentDiv,
+                    [], // No default buttons, we'll add our custom one
+                    'discard-modal-content' // Custom class for styling
+                );
+
+                // Manually add the confirm button to the modalButtons div
+                modalButtons.innerHTML = ''; // Clear existing buttons
+                modalButtons.appendChild(confirmButton);
+            });
+        }
+
+        // New function to allow player to choose a card from all definitions
+        async function chooseCardFromAllDefinitions(promptText) {
+            return new Promise(resolve => {
+                const selectionContainer = document.createElement('div');
+                selectionContainer.classList.add('hand');
+                selectionContainer.style.flexWrap = 'wrap';
+                selectionContainer.style.justifyContent = 'center';
+                selectionContainer.style.gap = '10px';
+
+                const promptElement = document.createElement('p');
+                promptElement.style.color = 'white';
+                promptElement.style.fontSize = '1.2em';
+                promptElement.style.marginBottom = '15px';
+                promptElement.textContent = promptText;
+
+                let selectedCardId = null;
+
+                cardDefinitions.forEach(card => {
+                    const cardElement = createCardElement(card);
+                    cardElement.classList.add('selectable');
+                    cardElement.style.cursor = 'pointer';
+                    cardElement.addEventListener('click', () => {
+                        // Deselect previous card if any
+                        const prevSelected = selectionContainer.querySelector('.card-in-hand.selected');
+                        if (prevSelected) {
+                            prevSelected.classList.remove('selected');
+                        }
+                        // Select current card
+                        cardElement.classList.add('selected');
+                        selectedCardId = card.id;
+                        confirmButton.disabled = false; // Enable confirm button
+                    });
+                    selectionContainer.appendChild(cardElement);
+                });
+
+                const confirmButton = document.createElement('button');
+                confirmButton.textContent = 'Confirmar Selección';
+                confirmButton.disabled = true; // Disabled until a card is selected
+
+                confirmButton.addEventListener('click', () => {
+                    hideModal();
+                    resolve(selectedCardId);
+                });
+
+                const modalContentDiv = document.createElement('div');
+                modalContentDiv.appendChild(promptElement);
+                modalContentDiv.appendChild(selectionContainer);
+
+                showModal(
+                    'Seleccionar Carta',
+                    modalContentDiv,
+                    [],
+                    'select-card-modal' // Optional custom class for this modal
+                );
+
+                modalButtons.innerHTML = '';
+                modalButtons.appendChild(confirmButton);
+            });
+        }
+
 
         // Función para aplicar los efectos de las cartas
         async function applyCardEffect(card, state) {
@@ -1346,83 +1620,51 @@
                 return drawnCard;
             };
 
-            // Función auxiliar para descartar cartas (simplificado: descarta la última)
-            // NOTA: Para permitir al jugador elegir qué carta descartar, se necesitaría una interfaz de usuario interactiva (modal).
-            const discardCards = (hand, count) => {
-                console.log(`DEBUG: discardCards - Intentando descartar ${count} cartas de la mano:`, hand);
-                for (let i = 0; i < count; i++) {
-                    if (hand.length > 0) {
-                        const discardedCard = hand.pop(); // Descarta la última carta
-                        pilaDescarte.push(discardedCard);
-                        console.log("DEBUG: discardCards - Carta descartada:", discardedCard);
-                    } else {
-                        console.log("DEBUG: discardCards - No hay más cartas en la mano para descartar.");
-                        break;
-                    }
-                }
+            // Función para verificar si un efecto adverso debe ser bloqueado por Guardaespaldas
+            const isEffectBlockedByGuardaespaldas = (targetPlayerId) => {
+                return effectsActivos[targetPlayerId] && effectsActivos[targetPlayerId].guardaespaldas;
             };
-
-            // Función para mostrar un modal interactivo
-            function showModal(title, contentHtml, buttons) {
-                return new Promise(resolve => {
-                    modalTitle.textContent = title;
-                    modalBody.innerHTML = ''; // Limpiar contenido previo
-                    modalBody.appendChild(contentHtml); // Añadir el contenido HTML proporcionado
-
-                    modalButtons.innerHTML = ''; // Limpiar botones previos
-                    buttons.forEach(btn => {
-                        const buttonElement = document.createElement('button');
-                        buttonElement.textContent = btn.text;
-                        buttonElement.addEventListener('click', () => {
-                            hideModal();
-                            resolve(btn.action); // Resolver la promesa con la acción del botón
-                        });
-                        modalButtons.appendChild(buttonElement);
-                    });
-
-                    cardInteractionModal.style.display = 'flex'; // Mostrar el modal
-                });
-            }
-
-            // Función para ocultar el modal
-            function hideModal() {
-                cardInteractionModal.style.display = 'none';
-                modalTitle.textContent = '';
-                modalBody.innerHTML = '';
-                modalButtons.innerHTML = '';
-            }
-
 
             switch (card.id) {
                 case 'muerte':
                     console.log("DEBUG: Efecto Muerte activado.");
-                    const chosenOpponentIdMuerte = await choosePlayer(); // Elegir rival
-                    let opponentHandToDiscardFromMuerte = (isPlayer1 && chosenOpponentIdMuerte === currentRivalId) ? rivalHand : ownHand;
-                    const discardedCardIdMuerte = await chooseCardFromHand(opponentHandToDiscardFromMuerte); // Elegir primera carta del rival
+                    // Muerte: El jugador actual descarta 1 carta de la mano del rival
+                    if (isEffectBlockedByGuardaespaldas(currentRivalId)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Muerte es bloqueado!`;
+                        console.log("DEBUG: Muerte: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
+                    }
 
-                    if (discardedCardIdMuerte) {
-                        const index = opponentHandToDiscardFromMuerte.indexOf(discardedCardIdMuerte);
+                    const discardedCardsMuerte = await chooseCardsToDiscard(rivalHand, 1, opponentNameDisplay.textContent);
+
+                    if (discardedCardsMuerte && discardedCardsMuerte.length > 0) {
+                        const discardedCardId = discardedCardsMuerte[0];
+                        const index = rivalHand.indexOf(discardedCardId);
                         if (index > -1) {
-                            opponentHandToDiscardFromMuerte.splice(index, 1);
-                            pilaDescarte.push(discardedCardIdMuerte);
-                            const discardedCardMuerte = cardDefinitions.find(c => c.id === discardedCardIdMuerte);
-                            gameMessageDiv.textContent = `${(chosenOpponentIdMuerte === currentUserId ? ownNameDisplay.textContent : opponentNameDisplay.textContent)} ha descartado ${discardedCardMuerte.name}.`;
-                            console.log("DEBUG: Muerte: Carta descartada del rival:", discardedCardMuerte.name);
+                            rivalHand.splice(index, 1);
+                            pilaDescarte.push(discardedCardId);
+                            const discardedCardMuerteDef = cardDefinitions.find(c => c.id === discardedCardId);
+                            gameMessageDiv.textContent = `${opponentNameDisplay.textContent} ha descartado ${discardedCardMuerteDef.name}.`;
+                            console.log("DEBUG: Muerte: Carta descartada del rival:", discardedCardMuerteDef.name);
 
-                            if (discardedCardMuerte.value <= 0) {
+                            if (discardedCardMuerteDef.value <= 0) {
                                 ownPos = Math.min(13, ownPos + 1);
                                 gameMessageDiv.textContent += ' ¡Has avanzado 1 casilla!';
                                 console.log("DEBUG: Muerte: Avanza 1 casilla. Nueva posición:", ownPos);
                             }
                         }
+                    } else {
+                        gameMessageDiv.textContent = 'No se seleccionó ninguna carta para descartar.';
+                        console.log("DEBUG: Muerte: No se seleccionó ninguna carta para descartar.");
                     }
-                    if (isPlayer1 && chosenOpponentIdMuerte === currentRivalId) { rivalHand = opponentHandToDiscardFromMuerte; } else if (chosenOpponentIdMuerte === currentUserId) { ownHand = opponentHandToDiscardFromMuerte; }
                     break;
 
                 case 'avefenix':
                     console.log("DEBUG: Efecto Ave Fénix activado.");
-                    discardCards(ownHand, ownHand.length); // Discard all cards
-                    ownHand.length = 0; // Ensure hand is empty after discarding
+                    // Descarta toda la mano
+                    while(ownHand.length > 0) {
+                        pilaDescarte.push(ownHand.pop());
+                    }
                     for (let i = 0; i < 3; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) ownHand.push(newCard);
@@ -1443,21 +1685,33 @@
 
                 case 'caballodetroya':
                     console.log("DEBUG: Efecto Caballo de Troya activado.");
-                    const targetPlayerIdTroya = await choosePlayer(); // Elegir rival
-                    let targetHandTroya = (isPlayer1 && targetPlayerIdTroya === currentRivalId) ? rivalHand : ownHand;
-                    const cardToDiscardTroya = await chooseCardFromHand(targetHandTroya); // Elegir primera carta del rival
-
-                    if (cardToDiscardTroya) {
-                        const index = targetHandTroya.indexOf(cardToDiscardTroya);
-                        if (index > -1) {
-                            targetHandTroya.splice(index, 1);
-                            pilaDescarte.push(cardToDiscardTroya);
-                            const discardedCardTroya = cardDefinitions.find(c => c.id === cardToDiscardTroya);
-                            gameMessageDiv.textContent = `${(targetPlayerIdTroya === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} ha descartado ${discardedCardTroya.name}.`;
-                            console.log("DEBUG: Caballo de Troya: Carta descartada:", discardedCardTroya.name);
-                        }
+                    // Caballo de Troya: El jugador elegido (rival) descarta 1 de sus cartas
+                    // Simulación: el rival descarta la carta de menor valor.
+                    if (isEffectBlockedByGuardaespaldas(currentRivalId)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Caballo de Troya es bloqueado!`;
+                        console.log("DEBUG: Caballo de Troya: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
                     }
-                    if (isPlayer1 && targetPlayerIdTroya === currentRivalId) { rivalHand = targetHandTroya; } else if (targetPlayerIdTroya === currentUserId) { ownHand = targetHandTroya; }
+
+                    if (rivalHand.length > 0) {
+                        const lowestCardInRivalHand = rivalHand.reduce((minCardId, currentCardId) => {
+                            const minCardDef = cardDefinitions.find(c => c.id === minCardId);
+                            const currentCardDef = cardDefinitions.find(c => c.id === currentCardId);
+                            return (!minCardDef || (currentCardDef && currentCardDef.value < minCardDef.value)) ? currentCardId : minCardId;
+                        }, rivalHand[0]); // Start with the first card as initial min
+
+                        const index = rivalHand.indexOf(lowestCardInRivalHand);
+                        if (index > -1) {
+                            rivalHand.splice(index, 1);
+                            pilaDescarte.push(lowestCardInRivalHand);
+                            const discardedCardTroyaDef = cardDefinitions.find(c => c.id === lowestCardInRivalHand);
+                            gameMessageDiv.textContent = `${opponentNameDisplay.textContent} ha descartado ${discardedCardTroyaDef.name} (la de menor valor).`;
+                            console.log("DEBUG: Caballo de Troya: Rival descartó automáticamente:", discardedCardTroyaDef.name);
+                        }
+                    } else {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} no tiene cartas para descartar.`;
+                        console.log("DEBUG: Caballo de Troya: Rival sin cartas.");
+                    }
                     break;
 
                 case 'ranadelasuerte':
@@ -1472,21 +1726,32 @@
                     // En un juego de 2 jugadores, si el siguiente jugador pierde su turno,
                     // el jugador actual efectivamente repite su turno.
                     effectsActivos.nextPlayerLosesTurn = true;
-                    gameMessageDiv.textContent += ' El siguiente jugador perderá su turno.';
+                    gameMessageDiv.textContent += ` ${opponentNameDisplay.textContent} perderá su turno. ¡Repites turno!`;
                     console.log("DEBUG: Perro: Efecto 'nextPlayerLosesTurn' activado. En 2 jugadores, esto significa que el jugador actual repetirá turno.");
                     break;
 
                 case 'esclavo':
                     console.log("DEBUG: Efecto Esclavo activado.");
                     // Encuentra la carta con valor > 4 en la mano del jugador
-                    const cardToRevealEsclavo = ownHand.find(cId => {
+                    const cardToRevealEsclavoId = ownHand.find(cId => {
                         const cardDef = cardDefinitions.find(cd => cd.id === cId);
                         return cardDef && cardDef.value > 4;
                     });
 
-                    if (cardToRevealEsclavo) {
+                    if (cardToRevealEsclavoId) {
+                        const cardToRevealEsclavo = cardDefinitions.find(c => c.id === cardToRevealEsclavoId);
+                        // Mostrar la carta en un modal
+                        const revealedCardDiv = document.createElement('div');
+                        revealedCardDiv.classList.add('hand');
+                        revealedCardDiv.appendChild(createCardElement(cardToRevealEsclavo));
+                        await showModal(
+                            'Carta Mostrada (Esclavo)',
+                            revealedCardDiv,
+                            [{ text: 'Cerrar', action: 'close' }]
+                        );
+
                         ownPos = Math.min(13, ownPos + 1);
-                        gameMessageDiv.textContent += ` ¡Has mostrado la carta ${cardDefinitions.find(c => c.id === cardToRevealEsclavo).name} y avanzado 1 casilla!`;
+                        gameMessageDiv.textContent += ` ¡Has mostrado la carta ${cardToRevealEsclavo.name} y avanzado 1 casilla!`;
                         console.log("DEBUG: Esclavo: Avanza 1 casilla. Nueva posición:", ownPos);
                     } else {
                         gameMessageDiv.textContent += ' No tienes una carta mayor que 4 para mostrar.';
@@ -1499,6 +1764,12 @@
                     const targetPlayerIdLoco = await choosePlayer(); // Elegir rival
                     let targetHandLoco = (isPlayer1 && targetPlayerIdLoco === currentRivalId) ? rivalHand : ownHand;
 
+                    if (isEffectBlockedByGuardaespaldas(targetPlayerIdLoco)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Loco es bloqueado!`;
+                        console.log("DEBUG: Loco: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
+                    }
+
                     if (ownHand.length === 0 || targetHandLoco.length === 0) {
                         gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Loco.';
                         console.log("DEBUG: Loco: Jugador sin cartas.");
@@ -1506,13 +1777,34 @@
                     }
 
                     // Por simplicidad, se eligen las primeras cartas de cada mano
-                    const ownCardLocoId = await chooseCardFromHand(ownHand);
-                    const rivalCardLocoId = await chooseCardFromHand(targetHandLoco);
+                    const ownCardLocoId = ownHand[0];
+                    const rivalCardLocoId = targetHandLoco[0];
 
                     const ownCardLoco = cardDefinitions.find(c => c.id === ownCardLocoId);
                     const rivalCardLoco = cardDefinitions.find(c => c.id === rivalCardLocoId);
 
                     if (ownCardLoco && rivalCardLoco) {
+                        // Mostrar las cartas en un modal
+                        const comparisonCardsDivLoco = document.createElement('div');
+                        comparisonCardsDivLoco.classList.add('hand');
+                        comparisonCardsDivLoco.style.justifyContent = 'space-around';
+                        comparisonCardsDivLoco.style.width = '100%';
+                        comparisonCardsDivLoco.innerHTML = `
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                <span>Tu Carta:</span>
+                                ${createCardElement(ownCardLoco).outerHTML}
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                                <span>Carta del Rival:</span>
+                                ${createCardElement(rivalCardLoco).outerHTML}
+                            </div>
+                        `;
+                        await showModal(
+                            'Comparación de Cartas (Loco)',
+                            comparisonCardsDivLoco,
+                            [{ text: 'Cerrar', action: 'close' }]
+                        );
+
                         // Remover las cartas de las manos y moverlas a la pila de descarte
                         ownHand.splice(ownHand.indexOf(ownCardLocoId), 1);
                         pilaDescarte.push(ownCardLocoId);
@@ -1659,6 +1951,12 @@
                     const targetPlayerIdInfluencer = await choosePlayer(); // Elegir rival
                     const targetHandInfluencer = (isPlayer1 && targetPlayerIdInfluencer === currentRivalId) ? rivalHand : ownHand;
 
+                    if (isEffectBlockedByGuardaespaldas(targetPlayerIdInfluencer)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Influencer es bloqueado!`;
+                        console.log("DEBUG: Influencer: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
+                    }
+
                     if (ownHand.length === 0 || targetHandInfluencer.length === 0) {
                         gameMessageDiv.textContent = 'Uno de los jugadores no tiene cartas para el efecto Influencer.';
                         console.log("DEBUG: Influencer: Jugador sin cartas.");
@@ -1704,16 +2002,25 @@
                     if (newCardCamello) ownHand.push(newCardCamello);
                     gameMessageDiv.textContent = 'Has robado una carta. Ahora descarta una.';
                     if (ownHand.length > 0) {
-                        // Por simplicidad, descarta la primera carta
-                        const discardedCardCamelloId = ownHand.shift();
-                        pilaDescarte.push(discardedCardCamelloId);
-                        const discardedCardCamello = cardDefinitions.find(c => c.id === discardedCardCamelloId);
-                        gameMessageDiv.textContent += ` Has descartado ${discardedCardCamello.name}.`;
-                        console.log("DEBUG: Camello: Carta descartada:", discardedCardCamello.name);
-                        if (discardedCardCamello && discardedCardCamello.value <= -1) { // Check if discardedCardCamello is not null
-                            ownPos = Math.min(13, ownPos + 1);
-                            gameMessageDiv.textContent += ' ¡Y avanzas 1 casilla!';
-                            console.log("DEBUG: Camello: Avanza 1 casilla. Nueva posición:", ownPos);
+                        const discardedCardsCamello = await chooseCardsToDiscard(ownHand, 1, ownNameDisplay.textContent);
+                        if (discardedCardsCamello && discardedCardsCamello.length > 0) {
+                            const discardedCardId = discardedCardsCamello[0];
+                            const index = ownHand.indexOf(discardedCardId);
+                            if (index > -1) {
+                                ownHand.splice(index, 1);
+                                pilaDescarte.push(discardedCardId);
+                                const discardedCardCamelloDef = cardDefinitions.find(c => c.id === discardedCardId);
+                                gameMessageDiv.textContent += ` Has descartado ${discardedCardCamelloDef.name}.`;
+                                console.log("DEBUG: Camello: Carta descartada:", discardedCardCamelloDef.name);
+                                if (discardedCardCamelloDef && discardedCardCamelloDef.value <= -1) {
+                                    ownPos = Math.min(13, ownPos + 1);
+                                    gameMessageDiv.textContent += ' ¡Y avanzas 1 casilla!';
+                                    console.log("DEBUG: Camello: Avanza 1 casilla. Nueva posición:", ownPos);
+                                }
+                            }
+                        } else {
+                            gameMessageDiv.textContent += ' No se seleccionó ninguna carta para descartar.';
+                            console.log("DEBUG: Camello: No se seleccionó ninguna carta para descartar.");
                         }
                     } else {
                         gameMessageDiv.textContent += ' No tienes cartas para descartar.';
@@ -1743,6 +2050,12 @@
                 case 'policia':
                     console.log("DEBUG: Efecto Policía activado.");
                     const targetPlayerIdPolicia = await choosePlayer(); // Elegir rival
+                    if (isEffectBlockedByGuardaespaldas(targetPlayerIdPolicia)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Policía es bloqueado!`;
+                        console.log("DEBUG: Policía: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
+                    }
+
                     if (targetPlayerIdPolicia === currentUserId) {
                         ownPos = Math.max(0, ownPos - 1);
                         gameMessageDiv.textContent = 'Has retrocedido 1 casilla.';
@@ -1758,10 +2071,17 @@
                     console.log("DEBUG: Efecto Detective activado.");
                     const targetPlayerIdDetective = await choosePlayer(); // Elegir rival
                     const targetHandDetective = (isPlayer1 && targetPlayerIdDetective === currentRivalId) ? rivalHand : ownHand;
-                    const cardToFindId = 'nini'; // Placeholder: debería ser elegida por el jugador que juega Detective
-                    const cardToFind = cardDefinitions.find(c => c.id === cardToFindId);
 
-                    if (targetHandDetective.includes(cardToFindId)) {
+                    if (isEffectBlockedByGuardaespaldas(targetPlayerIdDetective)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto Detective es bloqueado!`;
+                        console.log("DEBUG: Detective: Efecto bloqueado por Guardaespaldas.");
+                        break; // Salir del efecto
+                    }
+
+                    const chosenCardIdDetective = await chooseCardFromAllDefinitions('Elige una carta para buscar en la mano del rival:');
+                    const cardToFind = cardDefinitions.find(c => c.id === chosenCardIdDetective);
+
+                    if (cardToFind && targetHandDetective.includes(cardToFind.id)) {
                         gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} tiene la carta ${cardToFind.name} y retrocede 2 casillas.`;
                         if (targetPlayerIdDetective === currentUserId) {
                             ownPos = Math.max(0, ownPos - 2);
@@ -1771,14 +2091,15 @@
                             console.log("DEBUG: Detective: Rival retrocede 2. Nueva posición:", rivalPos);
                         }
                     } else {
-                        gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} no tiene la carta ${cardToFind.name}.`;
+                        gameMessageDiv.textContent = `${(targetPlayerIdDetective === currentUserId) ? ownNameDisplay.textContent : opponentNameDisplay.textContent} no tiene la carta ${cardToFind ? cardToFind.name : 'seleccionada'}.`;
                         console.log("DEBUG: Detective: Carta no encontrada.");
                     }
                     break;
 
                 case 'guardaespaldas':
                     console.log("DEBUG: Efecto Guardaespaldas activado.");
-                    effectsActivos[currentUserId] = { guardaespaldas: true, turnosRestantes: 1 };
+                    // Activar el efecto para el jugador actual
+                    effectsActivos[currentUserId] = { guardaespaldas: true, turnosRestantes: 1 }; // Dura hasta tu próximo turno
                     gameMessageDiv.textContent = '¡Guardaespaldas activado! Estás protegido hasta tu próximo turno.';
                     console.log("DEBUG: Guardaespaldas: Efecto activado para el jugador actual.");
                     break;
@@ -1786,6 +2107,7 @@
                 case 'abogado':
                     console.log("DEBUG: Efecto Abogado activado.");
                     const targetPlayerIdAbogado = await choosePlayer(); // Elegir rival
+                    // Abogado no es bloqueado por Guardaespaldas, ya que es un intercambio, no un efecto adverso directo.
                     if (targetPlayerIdAbogado === currentUserId) {
                         gameMessageDiv.textContent = 'No puedes intercambiar cartas contigo mismo.';
                         console.log("DEBUG: Abogado: Intento de intercambio consigo mismo.");
@@ -1825,8 +2147,26 @@
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 2.';
-                    discardCards(ownHand, 2); // Discard 2 cards
-                    console.log("DEBUG: Músico: Mano actualizada:", ownHand);
+                    if (ownHand.length >= 2) {
+                        const discardedCardsMusico = await chooseCardsToDiscard(ownHand, 2, ownNameDisplay.textContent);
+                        if (discardedCardsMusico && discardedCardsMusico.length === 2) {
+                            discardedCardsMusico.forEach(cardId => {
+                                const index = ownHand.indexOf(cardId);
+                                if (index > -1) {
+                                    ownHand.splice(index, 1);
+                                    pilaDescarte.push(cardId);
+                                }
+                            });
+                            gameMessageDiv.textContent += ` Has descartado 2 cartas.`;
+                            console.log("DEBUG: Músico: Cartas descartadas.");
+                        } else {
+                            gameMessageDiv.textContent += ' No se seleccionaron 2 cartas para descartar.';
+                            console.log("DEBUG: Músico: No se seleccionaron 2 cartas para descartar.");
+                        }
+                    } else {
+                        gameMessageDiv.textContent += ' No tienes suficientes cartas para descartar.';
+                        console.log("DEBUG: Músico: No hay suficientes cartas para descartar.");
+                    }
                     break;
 
                 case 'arlequin':
@@ -1836,19 +2176,45 @@
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Has robado 2 cartas. Ahora descarta 1.';
-                    discardCards(ownHand, 1); // Discard 1 card
-                    console.log("DEBUG: Arlequín: Mano actualizada:", ownHand);
+                    if (ownHand.length >= 1) {
+                        const discardedCardsArlequin = await chooseCardsToDiscard(ownHand, 1, ownNameDisplay.textContent);
+                        if (discardedCardsArlequin && discardedCardsArlequin.length === 1) {
+                            const discardedCardId = discardedCardsArlequin[0];
+                            const index = ownHand.indexOf(discardedCardId);
+                            if (index > -1) {
+                                ownHand.splice(index, 1);
+                                pilaDescarte.push(discardedCardId);
+                            }
+                            gameMessageDiv.textContent += ` Has descartado 1 carta.`;
+                            console.log("DEBUG: Arlequín: Carta descartada.");
+                        } else {
+                            gameMessageDiv.textContent += ' No se seleccionó 1 carta para descartar.';
+                            console.log("DEBUG: Arlequín: No se seleccionó 1 carta para descartar.");
+                        }
+                    } else {
+                        gameMessageDiv.textContent += ' No tienes cartas para descartar.';
+                        console.log("DEBUG: Arlequín: No hay cartas para descartar.");
+                    }
                     break;
 
                 case 'futbolista':
                     console.log("DEBUG: Efecto Futbolista activado.");
                     if (ownHand.length > 0) {
-                        // Por simplicidad, descarta la primera carta
-                        const discardedCardFutbolista = ownHand.shift();
-                        pilaDescarte.push(discardedCardFutbolista);
-                        ownPos = Math.min(13, ownPos + 2);
-                        gameMessageDiv.textContent = 'Has descartado una carta y avanzado 2 casillas.';
-                        console.log("DEBUG: Futbolista: Avanza 2 casillas. Nueva posición:", ownPos);
+                        const discardedCardsFutbolista = await chooseCardsToDiscard(ownHand, 1, ownNameDisplay.textContent);
+                        if (discardedCardsFutbolista && discardedCardsFutbolista.length > 0) {
+                            const discardedCardId = discardedCardsFutbolista[0];
+                            const index = ownHand.indexOf(discardedCardId);
+                            if (index > -1) {
+                                ownHand.splice(index, 1);
+                                pilaDescarte.push(discardedCardId);
+                            }
+                            ownPos = Math.min(13, ownPos + 2);
+                            gameMessageDiv.textContent = 'Has descartado una carta y avanzado 2 casillas.';
+                            console.log("DEBUG: Futbolista: Avanza 2 casillas. Nueva posición:", ownPos);
+                        } else {
+                            gameMessageDiv.textContent = 'No se seleccionó ninguna carta para descartar.';
+                            console.log("DEBUG: Futbolista: No se seleccionó ninguna carta para descartar.");
+                        }
                     } else {
                         gameMessageDiv.textContent = 'No tienes cartas para descartar y usar Futbolista.';
                         console.log("DEBUG: Futbolista: No hay cartas para descartar.");
@@ -1859,6 +2225,15 @@
                     console.log("DEBUG: Efecto Capo activado.");
                     ownPos = Math.min(13, ownPos + 1);
                     const targetPlayerIdCapo = await choosePlayer(); // Elegir rival
+
+                    if (isEffectBlockedByGuardaespaldas(targetPlayerIdCapo)) {
+                        gameMessageDiv.textContent = `${opponentNameDisplay.textContent} está protegido por Guardaespaldas. ¡El efecto de retroceso de Capo es bloqueado!`;
+                        console.log("DEBUG: Capo: Efecto de retroceso bloqueado por Guardaespaldas.");
+                        // Only the retreat part is blocked, player still advances 1.
+                        gameMessageDiv.textContent = `Avanzas 1 casilla. ${opponentNameDisplay.textContent} está protegido por Guardaespaldas.`;
+                        break;
+                    }
+
                     if (targetPlayerIdCapo === currentUserId) {
                         ownPos = Math.max(0, ownPos - 1);
                         gameMessageDiv.textContent = 'Avanzas 1, pero luego retrocedes 1 (te elegiste a ti mismo).';
@@ -1899,10 +2274,13 @@
                         targetPlayerNamePolitico = opponentNameDisplay.textContent;
                     }
 
+                    // Político no es bloqueado por Guardaespaldas porque es un descarte y robo, no un efecto adverso directo de posición.
                     const numCardsToRedraw = targetHandPolitico.length;
-
-                    discardCards(targetHandPolitico, numCardsToRedraw); // Discard all cards
-                    targetHandPolitico.length = 0; // Ensure hand is empty after discarding
+                    // Discard all cards from the target hand
+                    while(targetHandPolitico.length > 0) {
+                        pilaDescarte.push(targetHandPolitico.pop());
+                    }
+                    
                     for (let i = 0; i < numCardsToRedraw; i++) {
                         const newCard = drawCardForEffect();
                         if (newCard) targetHandPolitico.push(newCard);
@@ -1989,8 +2367,26 @@
                         if (newCard) ownHand.push(newCard);
                     }
                     gameMessageDiv.textContent = 'Avanzas 1 casilla y robas 3 cartas. Ahora descarta 2.';
-                    discardCards(ownHand, 2); // Discard 2 cards
-                    console.log("DEBUG: Arcángel: Mano actualizada:", ownHand);
+                    if (ownHand.length >= 2) {
+                        const discardedCardsArcangel = await chooseCardsToDiscard(ownHand, 2, ownNameDisplay.textContent);
+                        if (discardedCardsArcangel && discardedCardsArcangel.length === 2) {
+                            discardedCardsArcangel.forEach(cardId => {
+                                const index = ownHand.indexOf(cardId);
+                                if (index > -1) {
+                                    ownHand.splice(index, 1);
+                                    pilaDescarte.push(cardId);
+                                }
+                            });
+                            gameMessageDiv.textContent += ` Has descartado 2 cartas.`;
+                            console.log("DEBUG: Arcángel: Cartas descartadas.");
+                        } else {
+                            gameMessageDiv.textContent += ' No se seleccionaron 2 cartas para descartar.';
+                            console.log("DEBUG: Arcángel: No se seleccionaron 2 cartas para descartar.");
+                        }
+                    } else {
+                        gameMessageDiv.textContent += ' No tienes suficientes cartas para descartar.';
+                        console.log("DEBUG: Arcángel: No hay suficientes cartas para descartar.");
+                    }
                     break;
 
                 case 'semidios':
