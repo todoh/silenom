@@ -631,6 +631,91 @@
                 height: 30px;
             }
         }
+
+        /* Estilos para la pantalla de fin de partida (screen2) */
+        #screen2 {
+            display: none; /* Oculto por defecto */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            gap: 25px;
+            position: relative; /* Para el botón de estado de reinicio */
+        }
+
+        #screen2 h1 {
+            font-size: 2.5em;
+            color: #FFD700; /* Dorado para el título de fin de partida */
+            margin-bottom: 10px;
+        }
+
+        #screen2 p {
+            font-size: 1.3em;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        #screen2 .player-names-display {
+            font-size: 1.1em;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+
+        #btnRematch {
+            padding: 18px 40px;
+            font-size: 1.3em;
+            background-color: #FF0000; /* Rojo inicial */
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #btnRematch.ready {
+            background-color: #28a745; /* Verde cuando está listo */
+        }
+
+        #btnRematch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        #btnRematchStatusIndicator {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%; /* Circular */
+            background-color: #dc3545; /* Rojo inactivo */
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: background-color 0.3s ease;
+        }
+
+        #btnRematchStatusIndicator.active {
+            background-color: #28a745; /* Verde activo */
+        }
+
+        @media (max-width: 768px) {
+            #screen2 h1 {
+                font-size: 1.8em;
+            }
+            #screen2 p {
+                font-size: 1em;
+            }
+            #btnRematch {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+            #btnRematchStatusIndicator {
+                width: 25px;
+                height: 25px;
+                bottom: 15px;
+                left: 15px;
+            }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -651,6 +736,23 @@
         </div>
         <p id="nameError" class="error-message"></p>
         <p id="rivalErrorScreen1" class="error-message"></p>
+    </div>
+
+    <div id="screen2" class="game-screen">
+        <h1 id="gameOverTitle">¡Partida Terminada!</h1>
+        <p id="winnerDisplay"></p>
+        <p id="playerNamesDisplay"></p>
+
+        <div class="input-group">
+            <label for="playerNameScreen2">Tu nombre:</label>
+            <input type="text" id="playerNameScreen2" readonly>
+        </div>
+        <div class="input-group">
+            <label for="rivalNameScreen2">Nombre del rival:</label>
+            <input type="text" id="rivalNameScreen2" readonly>
+        </div>
+        <button id="btnRematch">REINICIAR PARTIDA CONTRA EL MISMO JUGADOR</button>
+        <div id="btnRematchStatusIndicator"></div>
     </div>
 
     <div id="screen3" class="game-screen">
@@ -707,6 +809,7 @@
 
         // Referencias a los elementos de las pantallas
         const screen1 = document.getElementById('screen1');
+        const screen2 = document.getElementById('screen2'); // Nueva pantalla de fin de partida
         const screen3 = document.getElementById('screen3');
 
         const playerNameInput = document.getElementById('playerName');
@@ -734,6 +837,15 @@
         // Referencias a los contenedores de efectos activos
         const ownActiveEffectsDiv = document.getElementById('ownActiveEffects');
         const opponentActiveEffectsDiv = document.getElementById('opponentActiveEffects');
+
+        // Nuevos elementos de la pantalla de fin de partida (screen2)
+        const gameOverTitle = document.getElementById('gameOverTitle');
+        const winnerDisplay = document.getElementById('winnerDisplay');
+        const playerNamesDisplay = document.getElementById('playerNamesDisplay');
+        const playerNameInputScreen2 = document.getElementById('playerNameScreen2');
+        const rivalNameInputScreen2 = document.getElementById('rivalNameScreen2');
+        const btnRematch = document.getElementById('btnRematch');
+        const btnRematchStatusIndicator = document.getElementById('btnRematchStatusIndicator');
 
 
         // Variables globales para los nombres de los jugadores y el estado de la partida
@@ -787,6 +899,7 @@
         // Función para cambiar de pantalla
         function showScreen(screenToShow) {
             screen1.classList.remove('active');
+            screen2.classList.remove('active'); // Asegurarse de que screen2 también se desactive
             screen3.classList.remove('active');
             screenToShow.classList.add('active');
         }
@@ -996,7 +1109,8 @@
                         await roomRef.update({
                             jugador1Id: currentUserId,
                             'estadoJuego.gameStatus': roomData.jugador2Id ? 'inProgress' : 'waitingForPlayer',
-                            [`estadoJuego.drawStatus.${currentUserId}`]: false // Initialize draw status for player1 if rejoining
+                            [`estadoJuego.drawStatus.${currentUserId}`]: false, // Initialize draw status for player1 if rejoining
+                            [`estadoJuego.rematchStatus.${currentUserId}`]: false // Initialize rematch status for player1
                         });
                         gameMessageDiv.textContent = 'Te has reconectado como Jugador 1.';
                         currentRivalId = roomData.jugador2Id;
@@ -1006,7 +1120,8 @@
                             jugador2Id: currentUserId,
                             'estadoJuego.gameStatus': 'inProgress',
                             'estadoJuego.turnoActual': Math.random() < 0.5 ? roomData.jugador1Id : currentUserId,
-                            [`estadoJuego.drawStatus.${currentUserId}`]: false // Initialize draw status for player2
+                            [`estadoJuego.drawStatus.${currentUserId}`]: false, // Initialize draw status for player2
+                            [`estadoJuego.rematchStatus.${currentUserId}`]: false // Initialize rematch status for player2
                         });
                         gameMessageDiv.textContent = '¡Te has unido a la partida!';
                         currentRivalId = roomData.jugador1Id;
@@ -1016,18 +1131,23 @@
                         if (roomData.jugador1Id === currentUserId) {
                             currentRivalId = roomData.jugador2Id;
                         } else {
-                            currentRivalId = roomData.jugator1Id;
+                            currentRivalId = roomData.jug1Nombre; // Corrected typo
                         }
-                        // Ensure drawStatus exists for rejoining player if not already
+                        // Ensure drawStatus and rematchStatus exist for rejoining player if not already
                         if (!roomData.estadoJuego.drawStatus || roomData.estadoJuego.drawStatus[currentUserId] === undefined) {
                             await roomRef.update({
                                 [`estadoJuego.drawStatus.${currentUserId}`]: false
                             });
                         }
+                        if (!roomData.estadoJuego.rematchStatus || roomData.estadoJuego.rematchStatus[currentUserId] === undefined) {
+                            await roomRef.update({
+                                [`estadoJuego.rematchStatus.${currentUserId}`]: false
+                            });
+                        }
                     } else {
                         // La sala existe pero no es para este jugador o ya está llena
                         console.error('Error: Intentando unirse a una sala que ya está llena o no te corresponde.');
-                        rivalError.textContent = 'La sala ya está completa o no te corresponde. Intenta con otro nombre de rival.';
+                        rivalErrorScreen1.textContent = 'La sala ya está completa o no te corresponde. Intenta con otro nombre de rival.';
                         return; // Evitar mostrar screen3
                     }
 
@@ -1058,7 +1178,8 @@
                             gameStatus: "waitingForPlayer",
                             ganador: null,
                             efectosActivos: {},
-                            drawStatus: { [currentUserId]: false } // Inicializar drawStatus para el jugador 1
+                            drawStatus: { [currentUserId]: false }, // Inicializar drawStatus para el jugador 1
+                            rematchStatus: { [currentUserId]: false } // Inicializar rematchStatus para el jugador 1
                         }
                     });
                     currentRoomId = newRoomRef.id;
@@ -1093,7 +1214,7 @@
                     } else if (roomData.jugador2Id === currentUserId) {
                         currentRivalId = roomData.jugador1Id;
                         currentPlayerName = roomData.jugador2Nombre;
-                        rivalPlayerName = roomData.jug1Nombre;
+                        rivalPlayerName = roomData.jugador1Nombre; // Corrected typo
                     } else {
                         currentRivalId = null;
                         console.error("Error: currentUserId no coincide con ningún jugador en la sala. Esto no debería ocurrir si el jugador está en una sala activa.");
@@ -1118,7 +1239,9 @@
                                 'estadoJuego.gameStatus': 'inProgress',
                                 'estadoJuego.turnoActual': Math.random() < 0.5 ? roomData.jugador1Id : roomData.jugador2Id,
                                 [`estadoJuego.drawStatus.${roomData.jugador1Id}`]: false, // Reset draw status for both players on game start
-                                [`estadoJuego.drawStatus.${roomData.jugador2Id}`]: false
+                                [`estadoJuego.drawStatus.${roomData.jugador2Id}`]: false,
+                                [`estadoJuego.rematchStatus.${roomData.jugador1Id}`]: false, // Reset rematch status on game start
+                                [`estadoJuego.rematchStatus.${roomData.jugador2Id}`]: false
                             }).then(() => {
                                 console.log("Estado de juego y turno actualizados por Jugador 1.");
                                 gameMessageDiv.textContent = '¡Rival conectado! La partida ha comenzado.';
@@ -1132,8 +1255,32 @@
                     } else if (roomData.estadoJuego.gameStatus === "finished") {
                         gameMessageDiv.textContent = `¡Partida terminada! El ganador es: ${roomData.estadoJuego.ganador === currentUserId ? currentPlayerName : rivalPlayerName}`;
                         btnPassTurn.disabled = true; // Deshabilitar interacciones
-                        // Opcional: mostrar botón de nueva partida
+                        showScreen(screen2); // Mostrar la pantalla de fin de partida
+                        updateGameOverScreen(roomData); // Actualizar la pantalla de fin de partida
                     }
+
+                    // Check for rematch readiness
+                    if (roomData.estadoJuego.gameStatus === "finished" && roomData.estadoJuego.rematchStatus) {
+                        const ownRematchReady = roomData.estadoJuego.rematchStatus[currentUserId];
+                        const opponentRematchReady = roomData.estadoJuego.rematchStatus[currentRivalId];
+
+                        if (ownRematchReady) {
+                            btnRematch.classList.add('ready');
+                            btnRematchStatusIndicator.classList.add('active');
+                            btnRematch.disabled = true; // Disable once ready
+                        } else {
+                            btnRematch.classList.remove('ready');
+                            btnRematchStatusIndicator.classList.remove('active');
+                            btnRematch.disabled = false; // Enable if not ready
+                        }
+
+                        if (ownRematchReady && opponentRematchReady) {
+                            gameMessageDiv.textContent = 'Ambos jugadores listos para la revancha. Reiniciando...';
+                            console.log("DEBUG: Ambos jugadores listos para revancha. Reiniciando partida.");
+                            resetGame(roomRef, roomData);
+                        }
+                    }
+
 
                 } else {
                     console.log('La sala ya no existe.');
@@ -1201,7 +1348,7 @@
                     console.log("DEBUG: UI Turno - Detectado que el jugador actual necesita robar una carta.");
                     const currentMazo = [...gameState.mazo]; // Copia para modificar
                     const currentPilaDescarte = [...gameState.pilaDescarte]; // Copia para modificar
-                    const currentOwnHand = [...ownHand]; // Copia para modificar
+                    const currentOwnHand = roomData.jugador1Id === currentUserId ? [...gameState.manoJugador1] : [...gameState.manoJugador2]; // Asegurarse de usar la mano correcta del estado
 
                     const newCard = drawCardForTurn(currentMazo, currentPilaDescarte, gameMessageDiv);
                     if (newCard) {
@@ -1249,7 +1396,7 @@
                 // Solo actualiza el estado de la partida a "finished" si aún no lo está
                 if (gameState.gameStatus !== "finished") {
                     if (roomRef) { // Asegurarse de que roomRef esté disponible antes de actualizar
-                        roomRef.update({ 'estadoJuego.ganador': winnerId, 'estadoJuego.gameStatus': 'finished' });
+                        await roomRef.update({ 'estadoJuego.ganador': winnerId, 'estadoJuego.gameStatus': 'finished' });
                         console.log("DEBUG: Condición de victoria alcanzada. Ganador:", winnerId);
                     } else {
                         console.error("roomRef no está disponible para actualizar el estado de victoria.");
@@ -1257,6 +1404,25 @@
                 }
             }
         }
+
+        // Función para actualizar la pantalla de fin de partida
+        function updateGameOverScreen(roomData) {
+            const gameState = roomData.estadoJuego;
+            const winnerName = gameState.ganador === roomData.jugador1Id ? roomData.jugador1Nombre : roomData.jugador2Nombre;
+            const ownName = roomData.jugador1Id === currentUserId ? roomData.jugador1Nombre : roomData.jugador2Nombre;
+            const opponentName = roomData.jugador1Id === currentUserId ? roomData.jugador2Nombre : roomData.jugador1Nombre;
+
+            winnerDisplay.textContent = `Ganador: ${winnerName}`;
+            playerNamesDisplay.textContent = `Jugadores: ${roomData.jugador1Nombre} vs ${roomData.jugador2Nombre}`;
+            playerNameInputScreen2.value = ownName;
+            rivalNameInputScreen2.value = opponentName;
+
+            // Resetear el estado del botón de reinicio para el jugador actual
+            btnRematch.classList.remove('ready');
+            btnRematchStatusIndicator.classList.remove('active');
+            btnRematch.disabled = false; // Habilitar el botón para que el jugador pueda iniciar el reinicio
+        }
+
 
         // Función para generar el mazo inicial completo
         function generateInitialDeck() {
@@ -1297,7 +1463,7 @@
                     effectDiv.innerHTML = `
                         <div class="card-image-small" style="background-image: url('${cardDef.image}');"></div>
                         <span>Guardaespaldas activo</span>
-                        <span>Activada por: ${isPlayer1 ? jugador1Nombre : jugador2Nombre}</span>
+                        <span>Activada por: ${ownNameDisplay.textContent}</span>
                     `;
                     ownActiveEffectsDiv.appendChild(effectDiv);
                 }
@@ -1312,7 +1478,7 @@
                     effectDiv.innerHTML = `
                         <div class="card-image-small" style="background-image: url('${cardDef.image}');"></div>
                         <span>Guardaespaldas activo</span>
-                        <span>Activada por: ${isPlayer1 ? jugador2Nombre : jugador1Nombre}</span>
+                        <span>Activada por: ${opponentNameDisplay.textContent}</span>
                     `;
                     opponentActiveEffectsDiv.appendChild(effectDiv);
                 }
@@ -1907,8 +2073,8 @@
                         <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
                             <span>Carta del Rival:</span>
                             ${rivalCardElement.outerHTML}
-                        </div>
-                    `;
+                            </div>
+                        `;
 
                     await showModal(
                         'Comparación de Cartas (Filósofo)',
@@ -2495,6 +2661,51 @@
             await roomRef.update(updatePayload);
         }
 
+        // Función para reiniciar el estado del juego
+        async function resetGame(roomRef, roomData) {
+            console.log("DEBUG: Reiniciando el juego...");
+            const initialDeck = generateInitialDeck();
+            const shuffledDeck = shuffleArray(initialDeck);
+            const newHand1 = shuffledDeck.splice(0, 3);
+            const newHand2 = shuffledDeck.splice(0, 3);
+
+            const player1Id = roomData.jugador1Id;
+            const player2Id = roomData.jugador2Id;
+
+            const updatedGameState = {
+                mazo: shuffledDeck,
+                pilaDescarte: [],
+                manoJugador1: newHand1,
+                manoJugador2: newHand2,
+                posicionJugador1: 0,
+                posicionJugador2: 0,
+                ultimaCartaJugada: null,
+                turnoActual: Math.random() < 0.5 ? player1Id : player2Id, // Turno aleatorio
+                gameStatus: "inProgress",
+                ganador: null,
+                efectosActivos: {},
+                drawStatus: {
+                    [player1Id]: false,
+                    [player2Id]: false
+                },
+                rematchStatus: {
+                    [player1Id]: false,
+                    [player2Id]: false
+                }
+            };
+
+            try {
+                await roomRef.update({ estadoJuego: updatedGameState });
+                console.log("DEBUG: Juego reiniciado en Firestore. Transicionando a screen3.");
+                showScreen(screen3); // Volver a la pantalla de juego
+                gameMessageDiv.textContent = '¡Partida reiniciada! ¡A jugar de nuevo!';
+            } catch (error) {
+                console.error("Error al reiniciar el juego en Firestore:", error);
+                gameMessageDiv.textContent = "Error al reiniciar la partida. Inténtalo de nuevo.";
+            }
+        }
+
+
         // --- Event Listeners ---
 
         // Lógica para la Pantalla 1: Introducir Nombre de Jugador
@@ -2536,6 +2747,26 @@
 
 
         btnPassTurn.addEventListener('click', passTurn);
+
+        // Event listener para el botón de reinicio en screen2
+        btnRematch.addEventListener('click', async () => {
+            if (!currentRoomId || !currentUserId) {
+                console.error("No hay sala o usuario actual para iniciar el reinicio.");
+                return;
+            }
+
+            const roomRef = db.collection('SALAS').doc(currentRoomId);
+            try {
+                // Actualizar el estado de rematch para el jugador actual
+                await roomRef.update({
+                    [`estadoJuego.rematchStatus.${currentUserId}`]: true
+                });
+                console.log(`DEBUG: Jugador ${currentUserId} ha marcado como listo para revancha.`);
+                // La UI se actualizará vía el onSnapshot listener
+            } catch (error) {
+                console.error("Error al actualizar estado de revancha:", error);
+            }
+        });
 
         // Inicialmente, mostrar la primera pantalla
         showScreen(screen1);
