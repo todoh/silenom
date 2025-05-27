@@ -4,245 +4,263 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Juego de Cartas - CS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
         /* Estilos CSS embebidos */
-      html, body { /* Aseguramos que html y body ocupen toda la altura */
+        html, body { /* Aseguramos que html y body ocupen toda la altura */
             height: 100%;
             margin: 0;
             padding: 0;
         }
         body { 
-            font-family: 'Inter', sans-serif; /* Usamos Inter como se sugiere */
+            font-family: 'Inter', sans-serif; /* Usamos Inter */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100%;
             width: 100%;
             margin: 0;
-            background-color: #000000; /* Fondo casi negro para elegancia */
+            background-color: #111111; /* Fondo oscuro para elegancia */
             color: #ffffff; /* Texto blanco puro */
-            overflow: hidden; /* Evita el scroll si el contenido es un poco más grande */
+            overflow: hidden; /* Evita scroll si el contenido es mayor */
         }
 
+        /* Estilos para las pantallas generales */
         .game-screen {
             display: none; /* Ocultar todas las pantallas por defecto */
             flex-direction: column;
             align-items: center;
-            padding: 25px; /* Más padding para un look más espacioso */
-            border: 1px solid #FF0000; /* Borde fino rojo */
-            border-radius: 0; /* Bordes rectos */
-            background-color: #000000; /* Fondo gris muy oscuro */
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Sombra más sutil */
+            padding: 25px; /* Espacioso */
+            background-color: #111111; /* Fondo oscuro */
+            border-radius: 10px; /* Bordes redondeados */
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
             width: 90%;
-        
- 
-            max-width: 60%; /* Un poco más ancho */
+            max-width: 60%;
             box-sizing: border-box;
-            gap: 20px; /* Más espacio entre elementos */
+            gap: 20px; /* Separación interna */
         }
-
         .game-screen.active {
             display: flex; /* Mostrar solo la pantalla activa */
         }
 
         h1 {
-            color: #ffffff; /* Título rojo */
-            margin-bottom: 25px; /* Más margen */
+            color: #ffffff;
+            margin-bottom: 25px;
             text-align: center;
-            font-size: 2.4em; /* Título más grande */
-            text-transform: uppercase; /* Mayúsculas para un look más limpio */
-            letter-spacing: 2px; /* Espaciado entre letras */
+            font-size: 2.4em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .input-group {
-            margin-bottom: 20px; /* Más margen */
+            margin-bottom: 20px;
             width: 100%;
             text-align: center;
         }
-
         label {
             display: block;
-            margin-bottom: 10px; /* Más margen */
-            font-size: 1.15em; /* Texto de label más grande */
-            color: #cccccc; /* Gris suave para labels */
+            margin-bottom: 10px;
+            font-size: 1.15em;
+            color: #cccccc; /* Gris suave */
         }
-
         input[type="text"] {
-            padding: 15px; /* Más padding */
-            width: calc(100% - 30px); /* Ajuste para padding */
-            border: 1px solid #555555; /* Borde de input gris oscuro */
-            border-radius: 0; /* Bordes rectos */
-            background-color: #333333; /* Fondo de input más oscuro */
-            color: #ffffff; /* Texto blanco */
-            font-size: 1.1em; /* Fuente de input más grande */
-            margin-bottom: 15px; /* Más margen */
+            padding: 15px;
+            width: calc(100% - 30px);
+            border: 1px solid #555555;
+            border-radius: 8px; /* Bordes redondeados */
+            background-color: #333333;
+            color: #ffffff;
+            font-size: 1.1em;
+            margin-bottom: 15px;
             box-sizing: border-box;
         }
-
         button {
-            padding: 14px 30px; /* Más padding */
-            background-color: #FF0000; /* Botón rojo */
-            color: #ffffff; /* Texto blanco */
+            padding: 14px 30px;
+            background-color: #FF0000; /* Rojo */
+            color: #ffffff;
             border: none;
-            border-radius: 0; /* Bordes rectos */
+            border-radius: 5px; /* Bordes redondeados */
             cursor: pointer;
-            font-size: 1.1em; /* Fuente de botón más grande */
+            font-size: 1.1em;
             font-weight: bold;
-            text-transform: uppercase; /* Mayúsculas */
-            letter-spacing: 1px; /* Espaciado entre letras */
+            text-transform: uppercase;
+            letter-spacing: 1px;
             transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); /* Sombra sutil */
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
         }
-
         button:hover {
-            background-color: #CC0000; /* Rojo más oscuro al pasar el ratón */
-             box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
+            background-color: #CC0000; /* Rojo más oscuro */
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.5);
         }
-
         button:active {
-             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
 
+        /* Error message */
         .error-message {
-            color: #ff4d4d; /* Rojo de error ligeramente más brillante */
+            color: #ff4d4d;
             margin-top: 10px;
             font-weight: bold;
             text-align: center;
             font-size: 1em;
         }
 
-        /* Estilos para la pantalla de juego (screen3) */
-   #screen3 {
-    width: 100%;
-    max-width: 60%;
-    height: 100%;    
-    /* Las filas se ajustan a la altura de su contenido para permitir el centrado vertical del bloque */
-    grid-template-rows: auto auto auto;
-      gap: 20px; /* Más espacio entre secciones */
-    padding: 15px;
-    background-color: #1a1a1a; /* Fondo que coincide con el body */
-    border: none;
-    box-shadow: none;
-   justify-content: center; /* Centra el grid horizontalmente si es más estrecho que su contenedor */
-    align-content: center;   /* Centra el contenido del grid (las filas) verticalmente dentro de #screen3 */
-   
-}
-
-/* Estilo específico para #screen3 cuando está activa, para que use grid en lugar de flex */
-#screen3.active {
-    display: grid;
-}
-
-        .player-area {
-        
-            display: flex;
-            
+        /* Estilos para la pantalla de fin de partida (screen2) */
+        #screen2 {
+            display: none;
+            flex-direction: column;
             align-items: center;
-            padding: 15px;
-            border: 1px solid #333333; /* Borde muy sutil */
-            border-radius: 0; /* Bordes rectos */
-            background-color: #2b2b2b; /* Fondo gris oscuro */
-            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2); /* Sombra interior muy sutil */
+            justify-content: center;
+            text-align: center;
+            padding: 30px;
+            gap: 25px;
+            position: relative;
+        }
+        #screen2 h1 {
+            font-size: 2.5em;
+            color: #FFD700; /* Dorado */
+            margin-bottom: 10px;
+        }
+        #screen2 p {
+            font-size: 1.3em;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+        #screen2 .player-names-display {
+            font-size: 1.1em;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+        #btnRematch {
+            padding: 18px 40px;
+            font-size: 1.3em;
+            background-color: #FF0000;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        #btnRematch.ready {
+            background-color: #28a745; /* Verde */
+        }
+        #btnRematch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+        #btnRematchStatusIndicator {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: #dc3545;
+            border: 2px solid #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            transition: background-color 0.3s ease;
+        }
+        #btnRematchStatusIndicator.active {
+            background-color: #28a745;
         }
 
+        /* Estilos para la pantalla de juego (screen3) */
+        #screen3 {
+            width: 100%;
+            max-width: 60%;
+            height: 100%;    
+            grid-template-rows: auto auto auto;
+            gap: 20px;
+            padding: 15px;
+            background-color: #1a1a1a; /* Fondo oscuro */
+            border: none;
+            box-shadow: none;
+            justify-content: center;
+            align-content: center;
+        }
+        #screen3.active {
+            display: grid; /* Usar grid para la distribución */
+        }
+
+        .player-area {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            background-color: #2b2b2b;
+            box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+        }
         .opponent-area {
             order: 1;
             flex-direction: column;
             position: relative;
         }
-
         .own-area {
             order: 3;
             flex-direction: column;
             position: relative;
         }
 
-        /* Nuevo contenedor para la baraja, el tablero y la pila de descarte */
         .game-central-layout {
-            order: 2; /* Para que esté entre el área del oponente y la propia en el grid */
+            order: 2;
             display: flex;
-            justify-content: space-around; /* Distribuye el espacio entre los elementos */
-            align-items: center; /* Centra verticalmente los elementos */
-            width: 100%; /* Ocupa todo el ancho disponible */
-            padding: 10px; /* Pequeño padding interno */
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            padding: 10px;
             box-sizing: border-box;
- 
         }
 
-        /* Estilos para la baraja y la pila de descarte */
         .deck, .discard-pile {
-            width: 140px; /* Cartas más grandes */
-            height: 200px; /* Cartas más grandes */
-            border: 1px solid #555555; /* Borde sutil */
-            background-color: #333333; /* Fondo oscuro */
+            width: 140px;
+            height: 200px;
+            border: 1px solid #555555;
+            background-color: #333333;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.2em; /* Texto más grande */
+            font-size: 1.2em;
             color: #cccccc;
-            border-radius: 0; /* Bordes rectos */
+            border-radius: 8px;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             cursor: pointer;
-            flex-shrink: 0; /* Evita que se encojan si el espacio es limitado */
+            flex-shrink: 0;
         }
 
-        /* Estilos para el tablero lineal */
-        .board-area {
-            display: flex; /* Usar flexbox para la línea de casillas */
-            justify-content: space-between; /* Espacio entre casillas */
-            align-items: center;
-            background-color: #1a1a1a;
-            border: 1px solid #FF0000;
-            border-radius: 0;
-                      position: relative; /* Para que fluya dentro de game-central-layout */
-
-            width: 100%; /* Ocupa el ancho disponible en el contenedor flex */
-            max-width: 900px; /* Ancho máximo para el tablero lineal */
-            height: 80px; /* Altura fija para la línea */
-            margin: auto; /* Centra horizontalmente dentro de game-central-layout */
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-            padding: 0 10px; /* Pequeño padding horizontal */
-            flex-grow: 1; /* Permite que el tablero ocupe el espacio restante */
-        }
-
-        /* Estilos para las manos y los mazos/descartes (el .deck-discard-area antiguo ya no es necesario) */
         .hand {
             display: flex;
-            gap: 15px; /* Más espacio entre cartas */
-            min-height: 160px; /* Espacio para cartas más grandes */
-            border: none; /* Sin borde */
+            gap: 15px;
+            min-height: 160px;
             padding: 10px;
-            border-radius: 0;
+            border-radius: 8px;
             align-items: center;
             justify-content: center;
             flex-wrap: wrap;
-       
         }
 
-        /* Estilo para el envés de la carta del rival */
         .opponent-hand .card-back {
-            background-color: #000000; /* Negro sólido */
+            background-color: #000000;
             color: #ffffff;
-            width: 120px; /* Ligeramente más pequeña que la propia */
+            width: 120px;
             height: 160px;
-            border-radius: 0; /* Bordes rectos */
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2.5em; /* Letras CS más grandes */
+            font-size: 2.5em;
             font-weight: bold;
-            border: 1px solid #444444; /* Borde sutil */
+            border: 1px solid #444444;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
-        /* Estilos para la carta en mano del jugador */
         .card-in-hand {
-            width: 170px; /* Aumentado para hacerlas más grandes */
-            height: 270px; /* Aumentado para hacerlas más grandes */
-            background-color: #ffffff; /* Fondo blanco para las cartas */
-            border: 1px solid #333333; /* Borde sutil */
-            border-radius: 0; /* Bordes rectos */
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Sombra más pronunciada */
+            width: 170px;
+            height: 270px;
+            background-color: #ffffff;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -251,81 +269,73 @@
             position: relative;
             z-index: 1;
         }
-
         .card-in-hand:hover {
-            transform: translateY(-15px) scale(1.25); /* Zoom y elevación más pronunciados */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); /* Sombra más grande al hacer zoom */
+            transform: translateY(-15px) scale(1.25);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             z-index: 20;
         }
 
         .card-image {
             width: 100%;
-            /* Nueva altura para la imagen, asegurando que sea cuadrada en relación al ancho */
-            padding-top: 100%; /* Esto hace que la altura sea igual al ancho */
-            position: relative; /* Para posicionar el contenido dentro */
-            background-color: #f0f0f0; /* Fondo más claro para la imagen */
-            overflow: hidden; /* Asegura que la imagen no se desborde */
-            border-bottom: 1px solid #e0e0e0; /* Borde más claro */
+            padding-top: 100%;
+            position: relative;
+            background-color: #f0f0f0;
+            overflow: hidden;
+            border-bottom: 1px solid #e0e0e0;
         }
-
         .card-image img {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsión */
+            object-fit: cover;
         }
 
         .card-info {
-            padding: 8px; /* Reducido ligeramente el padding */
-            font-size: 1.1em; /* Texto más pequeño */
-            color: #333333; /* Texto oscuro */
+            padding: 8px;
+            font-size: 1.1em;
+            color: #333333;
             display: flex;
             flex-direction: column;
             flex-grow: 1;
             justify-content: space-between;
         }
-
         .card-name-value {
             font-weight: bold;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 6px; /* Reducido el margen */
-            font-size: 0.95em; /* Nombre y valor más pequeños */
+            margin-bottom: 6px;
+            font-size: 0.95em;
         }
-
         .card-effect {
-            font-size: 0.75em; /* Texto de efecto más pequeño */
-            line-height: 1.3; /* Ajustado el interlineado */
-            color: #555555; /* Gris para el efecto */
+            font-size: 0.75em;
+            line-height: 1.3;
+            color: #555555;
         }
 
-        /* Estilo para la última carta jugada */
         .last-played-card {
-            width: 170px; /* Ajustado para coincidir con .card-in-hand */
-            height: 260px; /* Ajustado para coincidir con .card-in-hand */
+            width: 170px;
+            height: 260px;
             background-color: #ffffff;
             border: 1px solid #333333;
-            border-radius: 0;
+            border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Posicionamiento de los nombres de jugador */
         #ownNameDisplay, #opponentNameDisplay {
-            font-size: 1.5em; /* Nombres más grandes */
+            font-size: 1.5em;
             font-weight: bold;
             color: #ffffff;
-            margin-bottom: 5px; /* Más margen */
+            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        /* Contenedor para efectos activos */
         .active-effects-container {
             position: absolute;
             top: 10px;
@@ -336,7 +346,6 @@
             align-items: flex-end;
             z-index: 50;
         }
-
         .active-effect-card {
             display: flex;
             align-items: center;
@@ -348,7 +357,6 @@
             font-size: 0.9em;
             gap: 10px;
         }
-
         .active-effect-card .card-image-small {
             width: 40px;
             height: 40px;
@@ -358,188 +366,189 @@
             border: 1px solid #FFD700;
         }
 
-
-        /* Botón de pasar turno */
         .game-button {
-            position: absolute;
-            right: 0%;
-            top: 0%;
-            transform:  translateY(-50%);
-            margin-top: 0px; /* Más margen */
-            align-self: center;
+            background-color: #FF0000;
+            color: #ffffff;
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+        .game-button:hover {
+            background-color: #CC0000;
         }
 
         .game-message {
             text-align: center;
-            font-size: 1.3em; /* Mensajes más grandes */
+            font-size: 1.3em;
             font-weight: bold;
             margin-top: 20px;
-            color: #FFD700; /* Amarillo dorado para mensajes de juego, contrasta bien */
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3); /* Sombra sutil para el mensaje */
+            color: #FFD700;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
         }
 
-        /* Estilos para las casillas del tablero lineal */
+        .board-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a1a1a;
+            border: 1px solid #FF0000;
+            border-radius: 8px;
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            height: 80px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            padding: 0 10px;
+            flex-grow: 1;
+        }
+
         .board-cell {
-            width: 55px; /* Ancho de cada casilla */
-            height: 55px; /* Altura de cada casilla */
+            width: 55px;
+            height: 55px;
             background-color: #333333;
             border: 1px solid #555555;
-            border-radius: 0; /* Cuadradas */
+            border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.1em; /* Texto más grande */
+            font-size: 1.1em;
             font-weight: bold;
             color: #ffffff;
             box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.3);
-            position: relative; /* Para posicionar los tokens dentro */
+            position: relative;
         }
 
-        /* Estilos para los jugadores en el tablero */
         .player-token {
             position: absolute;
             width: 35px;
             height: 35px;
-            border-radius: 0; /* Cuadrados */
+            border-radius: 8px;
             border: 2px solid #ffffff;
             box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
             z-index: 10;
-            top: 50%; /* Centrar verticalmente */
+            top: 50%;
             transform: translateY(-50%);
         }
-
         .player1-token {
-            background-color: #e74c3c; /* Rojo */
-            left: 5px; /* Pequeño offset para P1 */
+            background-color: #e74c3c;
+            left: 5px;
         }
-
         .player2-token {
-            background-color: #3498db; /* Azul */
-            right: 5px; /* Pequeño offset para P2 */
+            background-color: #3498db;
+            right: 5px;
         }
 
-        /* Opciones al clicar una carta */
         .card-options {
             position: absolute;
-            background-color: #2b2b2b; /* Fondo oscuro */
-            border: 1px solid #FF0000; /* Borde rojo */
-            border-radius: 0; /* Bordes rectos */
-            padding: 12px; /* Más padding */
+            background-color: #2b2b2b;
+            border: 1px solid #FF0000;
+            border-radius: 8px;
+            padding: 12px;
             z-index: 100;
             display: flex;
             flex-direction: column;
-            gap: 8px; /* Más espacio */
+            gap: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         }
-
         .card-options button {
             width: 100%;
-            padding: 10px 18px; /* Más padding */
-            font-size: 1em; /* Fuente más grande */
+            padding: 10px 18px;
+            font-size: 1em;
             background-color: #FF0000;
             color: #ffffff;
             text-transform: uppercase;
         }
 
-        /* Estilos para el modal y el overlay */
         .modal-overlay {
-            display: none; /* Oculto por defecto */
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
-            backdrop-filter: blur(5px); /* Efecto de desenfoque */
-            z-index: 1000; /* Por encima de todo */
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
             justify-content: center;
             align-items: center;
         }
-
         .modal-content {
-            background-color: #222222; /* Fondo gris oscuro */
-            border: 1px solid #FF0000; /* Borde rojo */
-            border-radius: 0; /* Bordes rectos */
+            background-color: #222222;
+            border: 1px solid #FF0000;
+            border-radius: 8px;
             padding: 30px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.6);
             text-align: center;
             max-width: 90%;
-            width: 600px; /* Ancho fijo para el modal */
+            width: 600px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
-
-        /* Estilo específico para el modal de descarte */
         .modal-content.discard-modal-content {
-            border: 2px solid #800080; /* Purple border */
-            outline: 2px solid white; /* White outline */
-            outline-offset: -4px; /* To make it appear as a nested border */
+            border: 2px solid #800080;
+            outline: 2px solid white;
+            outline-offset: -4px;
         }
-
         .modal-content h2 {
             color: #FF0000;
             margin-bottom: 15px;
             font-size: 1.8em;
         }
-
         .modal-body {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 15px;
             margin-bottom: 20px;
-            max-height: 400px; /* Altura máxima para el scroll */
-            overflow-y: auto; /* Scroll si el contenido es demasiado grande */
-            padding-right: 10px; /* Espacio para la barra de scroll */
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 10px;
         }
-
         .modal-body .card-in-hand {
-            /* Reutilizar estilos de carta, pero ajustarlos para el modal si es necesario */
-            width: 120px; /* Un poco más pequeñas en el modal */
+            width: 120px;
             height: 170px;
-            cursor: default; /* No clicables en el modal de visualización */
-            transform: none; /* Eliminar hover effects */
+            cursor: default;
+            transform: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
-
         .modal-body .card-in-hand.selectable {
             cursor: pointer;
             transition: border 0.2s ease, box-shadow 0.2s ease;
         }
-
         .modal-body .card-in-hand.selectable:hover {
             transform: translateY(-5px) scale(1.05);
             box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
-
         .modal-body .card-in-hand.selected {
-            border: 3px solid white; /* White border for selected */
-            box-shadow: 0 0 15px white; /* Glow for selected */
+            border: 3px solid white;
+            box-shadow: 0 0 15px white;
         }
-
         .modal-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
         }
-
         .modal-buttons button {
             padding: 12px 25px;
             font-size: 1em;
             background-color: #FF0000;
             color: #ffffff;
             border: none;
-            border-radius: 0;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
-
         .modal-buttons button:hover {
             background-color: #CC0000;
         }
-
 
         /* Media Queries para responsividad */
         @media (max-width: 768px) {
@@ -547,44 +556,36 @@
                 padding: 15px;
                 max-width: 95%;
             }
-
             h1 {
                 font-size: 1.6em;
                 margin-bottom: 15px;
             }
-
             label {
                 font-size: 1em;
             }
-
             input[type="text"], button {
                 padding: 10px;
                 font-size: 0.9em;
             }
-
             #screen3 {
                 grid-template-rows: auto 1fr auto;
-                height: auto; /* Permitir que la altura se ajuste */
-                min-height: 90vh; /* Asegurar que ocupe la mayor parte de la pantalla */
-                /* position: absolute; REMOVIDO */
+                height: auto;
+                min-height: 90vh;
                 padding: 10px;
                 gap: 10px;
             }
-
-            .player-area, .game-central-layout { /* Ajuste para game-central-layout */
+            .player-area, .game-central-layout {
                 flex-direction: column;
                 gap: 8px;
                 padding: 8px;
             }
-
             .hand {
                 min-height: 160px;
                 gap: 10px;
             }
-
             .card-in-hand, .last-played-card, .opponent-hand .card-back {
-                width: 115px; /* Aumentado para móviles */
-                height: 180px; /* Aumentado para móviles, manteniendo proporción */
+                width: 115px;
+                height: 180px;
             }
             .deck, .discard-pile {
                 width: 100px;
@@ -595,14 +596,14 @@
             }
             .card-info {
                 padding: 6px;
-                font-size: 0.7em; /* Más pequeño para móviles */
+                font-size: 0.7em;
             }
             .card-name-value {
-                font-size: 0.9em; /* Más pequeño para móviles */
+                font-size: 0.9em;
                 margin-bottom: 4px;
             }
             .card-effect {
-                font-size: 0.65em; /* Más pequeño para móviles */
+                font-size: 0.65em;
                 line-height: 1.3;
             }
             .board-cell {
@@ -619,7 +620,6 @@
                 margin-bottom: 8px;
             }
             .game-button {
-           
                 padding: 10px 20px;
             }
             .game-message {
@@ -634,7 +634,6 @@
                 padding: 8px 12px;
                 font-size: 0.85em;
             }
-            /* Media queries para el modal en pantallas pequeñas */
             .modal-content {
                 padding: 20px;
                 width: 95%;
@@ -667,90 +666,6 @@
             }
         }
 
-        /* Estilos para la pantalla de fin de partida (screen2) */
-        #screen2 {
-            display: none; /* Oculto por defecto */
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 30px;
-            gap: 25px;
-            position: relative; /* Para el botón de estado de reinicio */
-        }
-
-        #screen2 h1 {
-            font-size: 2.5em;
-            color: #FFD700; /* Dorado para el título de fin de partida */
-            margin-bottom: 10px;
-        }
-
-        #screen2 p {
-            font-size: 1.3em;
-            color: #ffffff;
-            margin-bottom: 5px;
-        }
-
-        #screen2 .player-names-display {
-            font-size: 1.1em;
-            color: #cccccc;
-            margin-bottom: 20px;
-        }
-
-        #btnRematch {
-            padding: 18px 40px;
-            font-size: 1.3em;
-            background-color: #FF0000; /* Rojo inicial */
-            border-radius: 5px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            transition: background-color 0.3s ease, transform 0.2s ease;
-        }
-
-        #btnRematch.ready {
-            background-color: #28a745; /* Verde cuando está listo */
-        }
-
-        #btnRematch:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
-        }
-
-        #btnRematchStatusIndicator {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%; /* Circular */
-            background-color: #dc3545; /* Rojo inactivo */
-            border: 2px solid #ffffff;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-            transition: background-color 0.3s ease;
-        }
-
-        #btnRematchStatusIndicator.active {
-            background-color: #28a745; /* Verde activo */
-        }
-
-        @media (max-width: 768px) {
-            #screen2 h1 {
-                font-size: 1.8em;
-            }
-            #screen2 p {
-                font-size: 1em;
-            }
-            #btnRematch {
-                padding: 12px 25px;
-                font-size: 1em;
-            }
-            #btnRematchStatusIndicator {
-                width: 25px;
-                height: 25px;
-                bottom: 15px;
-                left: 15px;
-            }
-        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
@@ -829,28 +744,26 @@
             authDomain: "enraya-51670.firebaseapp.com",
             databaseURL: "https://enraya-51670-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "enraya-51670",
-            storageBucket: "enraya-51670.firebase-storage.app",
+            storageBucket: "enraya-51670.appspot.com",
             messagingSenderId: "103343380727",
             appId: "1:103343380727:web:b2fa02aee03c9506915bf2",
             measurementId: "G-2G31LLJY1T"
         };
 
         // Inicializar Firebase
-        // Usamos firebase-app-compat y firebase-auth-compat para compatibilidad
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
         // Referencias a los elementos de las pantallas
         const screen1 = document.getElementById('screen1');
-        const screen2 = document.getElementById('screen2'); // Nueva pantalla de fin de partida
+        const screen2 = document.getElementById('screen2');
         const screen3 = document.getElementById('screen3');
 
         const playerNameInput = document.getElementById('playerName');
         const btnEnterName = document.getElementById('btnEnterName');
         const nameError = document.getElementById('nameError');
 
-        // Elementos del rival ahora en screen1
         const rivalNameInputScreen1 = document.getElementById('rivalNameScreen1');
         const rivalErrorScreen1 = document.getElementById('rivalErrorScreen1');
 
@@ -862,25 +775,24 @@
         const discardPileDiv = document.getElementById('discardPile');
         const gameMessageDiv = document.getElementById('gameMessage');
 
-        // Referencias a los elementos del modal
         const cardInteractionModal = document.getElementById('cardInteractionModal');
         const modalTitle = document.getElementById('modalTitle');
         const modalBody = document.getElementById('modalBody');
         const modalButtons = document.getElementById('modalButtons');
 
-        // Referencias a los contenedores de efectos activos
         const ownActiveEffectsDiv = document.getElementById('ownActiveEffects');
         const opponentActiveEffectsDiv = document.getElementById('opponentActiveEffects');
 
-        // Nuevos elementos de la pantalla de fin de partida (screen2)
         const gameOverTitle = document.getElementById('gameOverTitle');
         const winnerDisplay = document.getElementById('winnerDisplay');
         const playerNamesDisplay = document.getElementById('playerNamesDisplay');
         const playerNameInputScreen2 = document.getElementById('playerNameScreen2');
         const rivalNameInputScreen2 = document.getElementById('rivalNameScreen2');
-        const btnRematch = document.getElementById('btnRematch');
-        const btnRematchStatusIndicator = document.getElementById('btnRematchStatusIndicator');
 
+        const btnPassTurn = document.getElementById('btnPassTurn');
+        const btnRematch = document.getElementById('btnRematch');
+
+        // Lógica del juego (omitida para brevedad)...
 
         // Variables globales para los nombres de los jugadores y el estado de la partida
         let currentPlayerName = '';
@@ -2898,3 +2810,4 @@
     </script>
 </body>
 </html>
+
