@@ -170,8 +170,9 @@
             max-width: 60%;
             height: 100%;    
             grid-template-rows: auto auto auto;
-            gap: 20px;
-            padding: 15px;
+            gap: 10px; 
+            /* padding: 15px; */
+            padding: 10px 10px 0 10px; /* Eliminado padding inferior para que la mano quede al borde */
             background-color: #1a1a1a; /* Fondo oscuro */
             border: none;
             box-shadow: none;
@@ -180,6 +181,8 @@
         }
         #screen3.active {
             display: grid; /* Usar grid para la distribución */
+            grid-template-rows: auto min-content auto 1fr auto; /* Oponente, Central, Botón, Jugador, Mensaje */
+            align-items: stretch; /* Estirar filas para ocupar altura */
         }
 
         .player-area {
@@ -199,7 +202,10 @@
         .own-area {
             order: 3;
             flex-direction: column;
-            position: relative;
+            position: relative; 
+            display: flex; /* Añadido para control de hijos flex */
+            padding: 0; /* Eliminado padding para que la mano quede al borde */
+            height: 100%; /* Para que ocupe el espacio 1fr del grid */
         }
 
         .game-central-layout {
@@ -230,11 +236,20 @@
 
         .hand {
             display: flex;
-            gap: 15px;
-            min-height: 160px;
-            padding: 10px;
+            gap: 15px; /* Espacio entre cartas */
+            /* min-height: 160px; */ /* Se ajustará por el contenido y el área del jugador */
+            /* padding: 10px; */
+            padding: 10px 10px 0 10px; /* Padding superior y lateral, sin padding inferior */
             border-radius: 8px;
-            align-items: center;
+            /* align-items: center; */ /* Cambiado para alinear cartas abajo */
+            align-items: flex-end; /* Alinea las cartas en la parte inferior del contenedor de la mano */
+            justify-content: center; /* Centra las cartas horizontalmente */
+            flex-wrap: wrap; /* Permite que las cartas pasen a la siguiente línea si no caben */
+        }
+
+        .own-hand {
+            width: 100%;
+            min-height: calc(280px + 10px); /* Altura de la carta + padding superior de la mano */
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -255,22 +270,22 @@
         }
 
         .card-in-hand {
-            width: 170px;
-            height: 270px;
+            width: 180px;  /* Aumentado */
+            height: 280px; /* Aumentado */
             background-color: #ffffff;
             border: 1px solid #333333;
             border-radius: 8px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow: hidden; /* Mantenemos esto para el diseño de la carta */
             cursor: pointer;
             transition: transform 0.3s ease, box-shadow 0.3s ease, z-index 0s 0.3s;
             position: relative;
             z-index: 1;
         }
         .card-in-hand:hover {
-            transform: translateY(-15px) scale(1.25);
+            transform: translateY(-20px) scale(1.15); /* Ajustado para cartas más grandes */
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
             z-index: 20;
         }
@@ -380,6 +395,13 @@
         }
         .game-button:hover {
             background-color: #CC0000;
+        }
+        /* Estilo para el botón Pasar Turno en su nueva posición */
+        #screen3 > #btnPassTurn {
+            justify-self: center; /* Centrar horizontalmente en la celda del grid */
+            align-self: center;   /* Centrar verticalmente en la celda del grid */
+            margin-top: 10px;     /* Espacio desde el área del tablero */
+            margin-bottom: 10px;  /* Espacio hacia el área de la mano del jugador */
         }
 
         .game-message {
@@ -570,18 +592,15 @@
             #screen3 {
                 grid-template-rows: auto 1fr auto;
                 height: auto;
-                min-height: 90vh;
+                min-height: 90vh; /* Asegurar que ocupe la mayor parte de la pantalla */
                 padding: 10px;
                 gap: 10px;
+                padding-bottom: 0; /* Para que la mano quede al borde en móvil también */
             }
             .player-area, .game-central-layout {
                 flex-direction: column;
                 gap: 8px;
                 padding: 8px;
-            }
-            .hand {
-                min-height: 160px;
-                gap: 10px;
             }
             .card-in-hand, .last-played-card, .opponent-hand .card-back {
                 width: 115px;
@@ -590,6 +609,10 @@
             .deck, .discard-pile {
                 width: 100px;
                 height: 140px;
+            }
+            .own-hand { /* Ajustes específicos para la mano del jugador en móvil */
+                min-height: calc(180px + 10px); /* Altura de carta móvil + padding */
+                padding: 5px 5px 0 5px; /* Menos padding en móvil */
             }
             .card-image {
                 height: 50%;
@@ -720,12 +743,13 @@
         </div>
 
         <div class="player-area own-area">
-            <span id="ownNameDisplay">Tú</span>
+            <div class="own-info-bar">
+                <span id="ownNameDisplay">Tú</span>
+            </div>
             <div id="ownActiveEffects" class="active-effects-container"></div>
+            <button id="btnPassTurn" class="game-button">Pasar Turno</button>
             <div class="hand own-hand" id="ownHand">
             </div>
-            <button id="btnPassTurn" class="game-button">Pasar Turno</button>
-        </div>
         <p id="gameMessage" class="game-message"></p>
     </div>
 
@@ -2810,4 +2834,3 @@
     </script>
 </body>
 </html>
-
