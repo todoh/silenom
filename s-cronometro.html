@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cronómetro - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* --- Contenedor Principal --- */
+        .stopwatch-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            box-sizing: border-box;
+            gap: 30px;
+        }
+
+        .stopwatch-header h1 {
+            font-size: calc(2em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0;
+        }
+
+        /* --- Pantalla del Cronómetro --- */
+        #time-display {
+            font-size: calc(4em + 5vmin);
+            font-weight: 100; /* Letra ultrafina para un look minimalista */
+            letter-spacing: 2px;
+        }
+        
+        /* --- Controles --- */
+        .controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .controls button {
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            background-color: transparent;
+            border: 2px solid #ddd;
+            color: #555;
+            padding: 10px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+        
+        .controls button:hover {
+            background-color: #f0f0f0;
+            border-color: #aaa;
+        }
+        
+        .controls button#startBtn:hover {
+            border-color: #4CAF50; /* Verde para iniciar */
+            color: #4CAF50;
+        }
+        
+        .controls button#pauseBtn:hover {
+            border-color: #FFC107; /* Ámbar para pausar */
+            color: #FFC107;
+        }
+
+        .controls button#resetBtn:hover {
+            border-color: #E53935; /* Rojo OS para reiniciar */
+            color: #E53935;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="stopwatch-container">
+        <div class="stopwatch-header">
+            <h1>Cronó<span class="os-red">metro</span></h1>
+        </div>
+
+        <div id="time-display">00:00:00</div>
+
+        <div class="controls">
+            <button id="startBtn">Iniciar</button>
+            <button id="pauseBtn">Pausar</button>
+            <button id="resetBtn">Reiniciar</button>
+        </div>
+    </div>
+    
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones placeholder del OS
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const timeDisplay = document.getElementById('time-display');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resetBtn = document.getElementById('resetBtn');
+
+            let startTime = 0;
+            let elapsedTime = 0;
+            let timerInterval = null;
+            let isRunning = false;
+
+            function formatTime(ms) {
+                let totalSeconds = Math.floor(ms / 1000);
+                let hours = Math.floor(totalSeconds / 3600);
+                let minutes = Math.floor((totalSeconds % 3600) / 60);
+                let seconds = totalSeconds % 60;
+
+                // Añadir un cero a la izquierda si es necesario
+                const pad = (num) => num.toString().padStart(2, '0');
+
+                return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+            }
+
+            function updateTime() {
+                const currentTime = Date.now();
+                elapsedTime = currentTime - startTime;
+                timeDisplay.textContent = formatTime(elapsedTime);
+            }
+
+            function start() {
+                if (isRunning) return;
+                isRunning = true;
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateTime, 1000); // Actualizamos cada segundo
+            }
+
+            function pause() {
+                if (!isRunning) return;
+                isRunning = false;
+                clearInterval(timerInterval);
+            }
+
+            function reset() {
+                isRunning = false;
+                clearInterval(timerInterval);
+                elapsedTime = 0;
+                startTime = 0;
+                timeDisplay.textContent = "00:00:00";
+            }
+
+            // Event Listeners
+            startBtn.addEventListener('click', start);
+            pauseBtn.addEventListener('click', pause);
+            resetBtn.addEventListener('click', reset);
+        });
+    </script>
+</body>
+</html>

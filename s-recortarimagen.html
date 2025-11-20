@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Nueva Página</title>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>  <style>
+    
+    body { 
+    display: flex; position: fixed; width: 100%; height: 100%;
+    font-size: 16px; 
+    overflow: hidden; 
+top: 0%;
+left: 0%;right: 0%;
+left: 0%; 
+font-family: Montserrat;
+background-color: rgb(250, 250, 250);
+
+ 
+    color: #333; 
+    margin: 0;
+    padding: 0;
+    text-align: center;}
+          .title {
+position: absolute; left: 18px; top: 19px;
+
+}
+
+.menubotones {
+position: fixed;
+right: 2%;
+top: 50%;
+transform: translateY(-50%);
+z-index: 9999;
+border-radius: 8px;
+background-color: white;
+height: 55%;
+width: 60px;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+flex-direction: column;
+
+}
+
+.menubotones button {
+ font-size: 26px;
+}
+
+
+#titulo2 {
+    display: flex;
+    flex-direction:column;
+    justify-content: left;
+    gap: 2px;
+    line-height: 1;
+    font-family: 'Montserrat';
+    font-weight: 300;
+ font-size: 2em;
+    letter-spacing: 0.07em;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+    color: rgb(0, 0, 0);
+    text-transform: uppercase;
+    transition: opacity 0.5s ease-out;
+    position: absolute;
+  padding: 0.6%;
+    left: 1%; right: 1%;
+  
+    background-color: rgba(0, 0, 0, 0);
+}
+
+ 
+
+#titulo2 button {
+   
+
+      display: flex;
+        align-items: center;
+        justify-content: center;
+       text-align: center;
+        position: relative;
+         font-size: large;
+        padding: 10px 15px;
+height: 30px;
+     margin-left: 0.8%;
+          background-color: transparent;
+        color: rgb(0, 0, 0);
+  
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+        transform: translateY(-1px) translateX(-50%);
+        transition: transform 0.3s ease; z-index: 9998;
+}
+
+.os-red {
+    color: #E53935;
+    font-weight: 500;    box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+}
+
+
+#menuweb {    text-wrap: wrap;
+top: 50%;
+ right: 2%;
+position: absolute;
+ transform: translateY(-50%);
+z-index: 100000;
+  
+ 
+color: white;
+ 
+    
+display: flex;
+   flex-direction: row;
+padding: 2px;
+ 
+font-size: 30px;
+}
+#menuweb button {
+font-size: 20px;
+
+
+
+
+}
+.barra {
+
+top: 25px;
+right: 145px;
+
+
+}
+#menuweb.expandido {
+     display: flex;
+
+   
+}
+
+
+
+    </style>
+</head>
+<body  >
+    <h1>¡Bienvenido a la Nueva Página!</h1>
+    <p>Este es el contenido que querías mostrar.</p>
+    <br>
+    <a href="index.html">Volver a SILENOS</a>
+
+
+
+
+    <div id="herramientas2" >
+
+<div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+
+
+<div id="menuweb">
+ <button onclick="window.location.href='index.html'">Volver a la página principal</button>
+
+</div>
+
+
+
+</div>
+</body>
+</html>

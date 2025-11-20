@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego Tres en Raya</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="s-aplicaciones.css">
+
+    
+    <style>
+
+        /* --- ESTILOS GENERALES Y DE LA PÁGINA --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* ¡Clave para evitar barras de desplazamiento! */
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        /* --- ESTILOS DEL JUEGO --- */
+
+        /* Contenedor principal del juego: centra todo y ocupa toda la pantalla */
+        .game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            z-index: 10000;
+        }
+
+        /* Menú inicial de selección de modo */
+        .game-menu {
+            text-align: center;
+        }
+        
+        .game-menu h1 {
+            font-size: calc(2.5em + 2vmin); /* Tamaño de fuente adaptable */
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #333;
+        }
+        
+        .game-menu .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+
+        .mode-selection button {
+            font-size: calc(1em + 1vmin);
+            padding: 12px 25px;
+            margin: 10px;
+            border: 2px solid #333;
+            background-color: transparent;
+            color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s, color 0.3s;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .mode-selection button:hover {
+            background-color: #333;
+            color: #fafafa;
+        }
+        
+        /* Tablero de juego */
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+                grid-template-rows: repeat(3, 1fr); /* <-- AÑADE ESTA LÍNEA */
+
+            /* Usa 'vmin' para que el tablero sea siempre un cuadrado que se ajuste a la dimensión más pequeña de la pantalla */
+            width: 60vmin;
+            height: 60vmin;
+            max-width: 450px;
+            max-height: 450px;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+             font-size: 15vmin; /* <-- 1. REDUCIDO para que quepa mejor */
+    line-height: 1;      /* <-- 2. AÑADIDO para controlar la altura del texto */
+    overflow: hidden;    /* <-- 3. AÑADIDO como seguro anti-desbordamiento */
+
+            font-weight: bold;
+            cursor: pointer;
+            color: #444;
+            transition: background-color 0.3s;
+            user-select: none; /* Evita la selección de texto */
+        }
+
+        .cell:hover {
+            background-color: #f0f0f0;
+        }
+        
+        /* Mensajes de estado del juego */
+        .game-status {
+            font-size: calc(1.2em + 1vmin);
+            min-height: 1.5em; /* Reserva espacio para evitar saltos de diseño */
+            margin: 10px 0;
+            font-weight: 500;
+        }
+
+        /* Botón para reiniciar o volver al menú */
+        .restart-btn {
+            font-size: calc(0.9em + 1vmin);
+            padding: 10px 20px;
+            margin-top: 15px;
+            border: none;
+            background-color: #E53935;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .restart-btn:hover {
+            background-color: #c62828;
+        }
+        
+        /* Clase para ocultar elementos */
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- CSS AÑADIDO PARA LA BARRA 'HERRAMIENTAS2' --- */
+
+      
+    </style>
+</head>
+<body>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // --- 1. CREACIÓN DE LA INTERFAZ ---
+
+        // Función para crear la estructura HTML del juego y añadirla al <body>.
+        const createGameUI = () => {
+            const container = document.createElement('div');
+            container.className = 'game-container';
+            container.innerHTML = `
+                <div class="game-menu">
+                    <h1>3 EN <span class="os-red">RAYA</span></h1>
+                    <div class="mode-selection">
+                        <button data-mode="1">1 Jugador</button>
+                        <button data-mode="2">2 Jugadores</button>
+                    </div>
+                </div>
+                <div class="game-board hidden"></div>
+                <div class="game-status hidden"></div>
+                <button class="restart-btn hidden">Volver al Menú</button>
+            `;
+            document.body.appendChild(container);
+        };
+
+        // --- 2. LÓGICA DEL JUEGO ---
+
+        let gameMode = null; // '1' para 1 Jugador, '2' para 2 Jugadores
+        let currentPlayer = 'X';
+        let gameState = ["", "", "", "", "", "", "", "", ""];
+        let gameActive = false;
+        
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
+            [0, 4, 8], [2, 4, 6]             // Diagonales
+        ];
+
+        // Elementos del DOM
+        let gameContainer, gameMenu, gameBoard, gameStatus, restartBtn;
+        let cells = [];
+
+        const statusDisplay = (message) => gameStatus.innerHTML = message;
+
+        const handleCellClick = (e) => {
+            const clickedCell = e.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (gameState[clickedCellIndex] !== "" || !gameActive) {
+                return;
+            }
+
+            performMove(clickedCellIndex);
+
+            if (gameActive && gameMode === '1' && currentPlayer === 'O') {
+                // Desactiva el tablero temporalmente para que el jugador no pueda hacer clic mientras la IA "piensa".
+                gameBoard.style.pointerEvents = 'none';
+                setTimeout(() => {
+                    handleComputerMove();
+                    gameBoard.style.pointerEvents = 'auto'; // Reactiva el tablero
+                }, 600);
+            }
+        };
+
+        const performMove = (index) => {
+            gameState[index] = currentPlayer;
+            cells[index].innerHTML = currentPlayer;
+            checkResult();
+        };
+
+        const changePlayer = () => {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+            statusDisplay(`Turno del jugador ${currentPlayer}`);
+        };
+
+        const checkResult = () => {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const winCondition = winningConditions[i];
+                let a = gameState[winCondition[0]];
+                let b = gameState[winCondition[1]];
+                let c = gameState[winCondition[2]];
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusDisplay(`¡El jugador ${currentPlayer} ha ganado!`);
+                gameActive = false;
+                restartBtn.textContent = 'Jugar de Nuevo';
+                return;
+            }
+
+            let roundDraw = !gameState.includes("");
+            if (roundDraw) {
+                statusDisplay(`¡Es un empate!`);
+                gameActive = false;
+                restartBtn.textContent = 'Jugar de Nuevo';
+                return;
+            }
+
+            changePlayer();
+        };
+
+        const handleComputerMove = () => {
+            let availableCells = [];
+            gameState.forEach((cell, index) => {
+                if (cell === "") {
+                    availableCells.push(index);
+                }
+            });
+
+            // --- Lógica de IA ---
+            // 1. Si la IA puede ganar, gana.
+            for (let i = 0; i < availableCells.length; i++) {
+                let move = availableCells[i];
+                gameState[move] = 'O'; // Prueba el movimiento
+                let wins = winningConditions.some(wc => gameState[wc[0]] === 'O' && gameState[wc[1]] === 'O' && gameState[wc[2]] === 'O');
+                gameState[move] = ''; // Deshace el movimiento
+                if (wins) {
+                    performMove(move);
+                    return;
+                }
+            }
+            
+            // 2. Si el jugador puede ganar en el siguiente turno, bloquéalo.
+            for (let i = 0; i < availableCells.length; i++) {
+                let move = availableCells[i];
+                gameState[move] = 'X'; // Simula movimiento del jugador
+                let loses = winningConditions.some(wc => gameState[wc[0]] === 'X' && gameState[wc[1]] === 'X' && gameState[wc[2]] === 'X');
+                gameState[move] = ''; // Deshace
+                if (loses) {
+                    performMove(move);
+                    return;
+                }
+            }
+            
+            // 3. Si no, intenta coger el centro.
+            if (availableCells.includes(4)) {
+                performMove(4);
+                return;
+            }
+
+            // 4. Si no, elige una casilla aleatoria.
+            const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+            performMove(randomIndex);
+        };
+
+        const startGame = (mode) => {
+            gameMode = mode;
+            gameActive = true;
+            currentPlayer = 'X';
+            gameState = ["", "", "", "", "", "", "", "", ""];
+
+            // Oculta el menú y muestra el tablero
+            gameMenu.classList.add('hidden');
+            gameBoard.classList.remove('hidden');
+            gameStatus.classList.remove('hidden');
+            restartBtn.classList.remove('hidden');
+            
+            restartBtn.textContent = 'Reiniciar Partida';
+            statusDisplay(`Turno del jugador ${currentPlayer}`);
+            
+            // Limpia y crea el tablero
+            gameBoard.innerHTML = '';
+            cells = [];
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                gameBoard.appendChild(cell);
+                cells.push(cell);
+            }
+        };
+        
+        const resetToMenu = () => {
+            // Oculta el tablero y muestra el menú principal
+            gameMenu.classList.remove('hidden');
+            gameBoard.classList.add('hidden');
+            gameStatus.classList.add('hidden');
+            restartBtn.classList.add('hidden');
+        }
+
+        // --- 3. INICIALIZACIÓN ---
+        
+        // Función principal que se ejecuta al cargar el script
+        function init() {
+            createGameUI();
+
+            // Asigna las variables a los elementos del DOM recién creados
+            gameContainer = document.querySelector('.game-container');
+            gameMenu = gameContainer.querySelector('.game-menu');
+            gameBoard = gameContainer.querySelector('.game-board');
+            gameStatus = gameContainer.querySelector('.game-status');
+            restartBtn = gameContainer.querySelector('.restart-btn');
+
+            // Event Listeners para los botones de modo de juego
+            gameMenu.querySelectorAll('.mode-selection button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    startGame(e.target.getAttribute('data-mode'));
+                });
+            });
+            
+            // Event Listener para el botón de reinicio/volver al menú
+            restartBtn.addEventListener('click', () => {
+                if (gameActive) {
+                    startGame(gameMode); // Si la partida está en curso, solo reinicia
+                } else {
+                    resetToMenu(); // Si la partida ha terminado, vuelve al menú
+                }
+            });
+        }
+
+        // Inicia el juego
+        init();
+    });
+    </script>
+    
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Se añaden funciones vacías para evitar errores de JavaScript al hacer clic en el título.
+        function cerrartodo() {
+            console.log("Función 'cerrartodo' llamada.");
+        }
+        function abrirVentana(info) {
+            console.log("Función 'abrirVentana' llamada con: ", info);
+        }
+    </script>
+    </body>
+</html>

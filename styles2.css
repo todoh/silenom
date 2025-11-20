@@ -1,0 +1,315 @@
+/* styles2.css (Versión Corregida y Actualizada) */
+
+/* styles2.css */
+
+/* ▼▼▼ PASO 1: AÑADIMOS LA ANIMACIÓN DE FADE-IN ▼▼▼ */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+#principio {
+    background-color: rgba(0, 0, 0, 0);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    
+    /* Aplicamos la nueva animación de aparición */
+    opacity: 1; /* El estado final es opacidad completa */
+    animation: fadeIn 2s ease-in-out; /* Nombre, duración y suavizado */
+
+    /* La transición de salida sigue aquí para cuando se oculte */
+    transition: opacity 1s ease-out;
+}
+
+#p5-canvas-container {
+    position: absolute;
+    top: 0%;
+    left: 0;
+    width: 0%;
+    height:0%;
+    z-index: 1; display: none;
+}
+
+#titulo-esfera-container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    gap: 40px;
+}
+
+#inicio-botones {
+    display: flex;
+    flex-direction: column; 
+    gap: 20px;
+    align-items: center; 
+    
+    position: fixed;
+    top: 57%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    /* ▼▼▼ PASO 2: BAJAMOS LA ALTURA DE LOS BOTONES ▼▼▼ */
+     /* Ajustado para bajarlo más (antes era 70px) */
+}
+.title { color: black;
+position: absolute; left: 18px; top: 19px;
+
+}
+.menubotones2 {
+position: fixed;
+left: 170px;
+top: 55%;
+transform: translateY(-50%);
+z-index: 9999;
+border-radius: 8px;
+background-color: white;
+height: 70%;
+width: 280px;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+flex-direction: column;
+overflow: auto;
+}
+
+.menubotones {
+position: fixed;
+right: 0px;
+top: 50%;
+transform: translateY(-50%);
+z-index: 9999;
+border-radius: 8px;
+background-color: white;
+height: 55%;
+width: 180px;
+box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+flex-direction: column;
+
+}
+
+.menubotones button {
+    width: 90% ;
+ font-size: 20px; flex-direction: column;
+
+}
+
+
+#titulo2 {
+    display: flex;
+    flex-direction:column;
+    justify-content: left;
+    gap: 2px;
+    line-height: 1;
+    font-family: 'Montserrat';
+    font-weight: 300;
+ font-size: 2em;
+    letter-spacing: 0.07em;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+    color: rgb(0, 0, 0);
+    text-transform: uppercase;
+    transition: opacity 0.5s ease-out;
+    position: absolute;
+  padding: 0.6%;
+    left: 1%; right: 1%;
+  
+    background-color: rgba(0, 0, 0, 0);
+}
+
+ 
+
+#titulo2 button {
+   
+ 
+  
+ 
+      display: flex;
+        align-items: center;
+        justify-content: center;
+       text-align: center;
+        position: relative;
+         font-size: large;
+        padding: 10px 15px;
+height: 30px;
+     margin-left: 0.8%;
+          background-color: transparent;
+        color: rgb(0, 0, 0);
+  
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+        transform: translateY(-1px) translateX(-50%);
+        transition: transform 0.3s ease; z-index: 9998;
+}
+
+.os-red {
+    color: #E53935;
+    font-weight: 500;    box-shadow: 0 4px 12px rgba(0, 0, 0, 0);
+}
+
+.version-text {
+    font-size: 0.55em;
+    font-weight: 400;
+    text-transform: lowercase;
+    letter-spacing: 1.5px;
+    color: #ffffff;
+    text-shadow: none;
+}
+
+#esfera {
+    background-color: white;
+    border-radius: 50%;
+  /* Mantiene la proporción de aspecto */;
+   
+      /* Ancho máximo para pantallas grandes */
+ 
+    /* Centrado de los botones internos */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;
+    gap: 1%;
+ width: calc(12vh  + 12vw); /* Ancho relativo */
+    /* Propiedad clave para la animación */
+    transition: transform 1s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.5s ease-out;
+    animation: pulse-halo 4s infinite ease-in-out;
+aspect-ratio: 1 / 1; /* Mantiene la proporción de aspecto */
+ 
+}
+
+/* Clase para ocultar suavemente los elementos */
+.oculto {
+    opacity: 0 !important;
+    pointer-events: none; /* Evita interacciones mientras está oculto */
+}
+
+
+@keyframes pulse-halo {
+  0%, 100% {
+    box-shadow: 0 0 20px 7px rgba(255, 255, 255, 0.5), 0 0 8px 2px rgba(255, 255, 255, 0.1) inset;
+  }
+  50% {
+    box-shadow: 0 0 35px 22px rgba(255, 255, 255, 0.7), 0 0 12px 4px rgba(255, 255, 255, 0.3) inset;
+  }
+}
+
+/* Clase que dispara la expansión */
+#esfera.expandir {
+    transform: scale(50);   aspect-ratio: 1 / 1 !important; 
+}
+.pro3 {  
+     
+    border: none;
+    margin: 0;
+    color: rgb(0, 0, 0);
+    font-family: 'Arial', sans-serif;
+    font-size: calc(1vh + 1vw);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    cursor: pointer;
+    transition: transform 0.3s ease, letter-spacing 0.3s ease, opacity 0.3s ease-out;
+}
+
+.pro3:hover {
+    letter-spacing: 7px;
+    transform: scale(1);    color: black;
+background-color: #41414100;
+}
+
+.oculto {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+
+/* Estilos para el botón S (Asistente), movidos aquí desde el otro CSS para unificar */
+#asistente-btn {
+    transform: translateY(-50%);
+    position: fixed;
+    top: 50%;
+    right: 1%;
+    width: 60px;
+    height: 60px;
+    background-color: #2c2c2c;
+    color: white;
+    border-radius: 50%;
+    border: 1px solid #444;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 28px;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out, background-color 0.2s ease;
+}
+
+#asistente-btn.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+#asistente-btn.visible:hover {
+    background-color: #383838;
+    transform: scale(1.1);
+}
+
+.panel-seccion-desarrollo {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #444;
+}
+
+.panel-seccion-desarrollo h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.9em;
+    color: #ccc;
+    text-align: center;
+}
+
+.desarrollo-controles {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.desarrollo-controles #panel-boton-desarrollar-momento {
+    flex-grow: 1; /* El botón ocupa el espacio disponible */
+}
+
+.parrafos-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.parrafos-control input[type="number"] {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    background-color: #333;
+    color: white;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.parrafos-control label {
+    font-size: 0.85em;
+    color: #aaa;
+}

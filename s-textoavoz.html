@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Texto a Voz - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        
+        /* --- Contenedor Principal --- */
+        .tts-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 25px; /* Espacio entre elementos */
+        }
+
+        .tts-header h1 {
+            font-size: calc(2em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0;
+        }
+        
+        /* --- Área de Texto --- */
+        #text-input {
+            width: 90%;
+            max-width: 700px;
+            height: 40vh;
+            border: none;
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+            padding: 2em;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #2c3e50;
+            resize: none;
+            outline: none;
+            transition: box-shadow 0.3s ease;
+        }
+
+        #text-input:focus {
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* --- Controles --- */
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            width: 90%;
+            max-width: 900px;
+        }
+        
+        .controls button, .controls select {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: 2px solid #333;
+            color: #333;
+            transition: all 0.3s ease;
+            height: 45px;
+        }
+        
+        .controls button:hover {
+            background: #333;
+            color: #fff;
+        }
+        
+        .controls select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%208l5%205%205-5z%22%20fill%3D%22%23333%22/%3E%3C/svg%3E');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 40px; /* Espacio para la flecha */
+            flex-grow: 1; /* Ocupa el espacio disponible */
+        }
+        
+        .controls select:hover {
+            border-color: #E53935;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tts-container">
+        <div class="tts-header">
+            <h1>Texto a <span class="os-red">Voz</span></h1>
+        </div>
+
+        <textarea id="text-input" placeholder="Escribe el texto que quieres convertir a voz..."></textarea>
+
+        <div class="controls">
+            <button id="play-pause-btn">Reproducir</button>
+            <select id="voice-select">
+                <option value="">Cargando voces...</option>
+            </select>
+            <button id="export-mp3-btn">Exportar como MP3</button>
+        </div>
+    </div>
+
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones placeholder del OS
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const textInput = document.getElementById('text-input');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            const voiceSelect = document.getElementById('voice-select');
+            const exportMp3Btn = document.getElementById('export-mp3-btn');
+            
+            const synth = window.speechSynthesis;
+            let voices = [];
+            let utterance = new SpeechSynthesisUtterance();
+
+            function populateVoiceList() {
+                voices = synth.getVoices().filter(voice => voice.lang.startsWith('es'));
+                voiceSelect.innerHTML = '';
+
+                if (voices.length > 0) {
+                    voices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.textContent = `${voice.name} (${voice.lang})`;
+                        option.setAttribute('data-lang', voice.lang);
+                        option.setAttribute('data-name', voice.name);
+                        voiceSelect.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.textContent = 'No hay voces en español';
+                    voiceSelect.appendChild(option);
+                }
+            }
+            
+            // La lista de voces se carga de forma asíncrona
+            populateVoiceList();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = populateVoiceList;
+            }
+
+            function speak() {
+                if (synth.speaking) {
+                    console.error('Ya se está reproduciendo algo.');
+                    return;
+                }
+                if (textInput.value !== '') {
+                    utterance.text = textInput.value;
+                    
+                    const selectedVoiceName = voiceSelect.selectedOptions[0].getAttribute('data-name');
+                    const selectedVoice = voices.find(voice => voice.name === selectedVoiceName);
+                    utterance.voice = selectedVoice;
+                    
+                    utterance.onstart = () => {
+                        playPauseBtn.textContent = 'Pausar';
+                    };
+
+                    utterance.onpause = () => {
+                        playPauseBtn.textContent = 'Reanudar';
+                    };
+                    
+                    utterance.onresume = () => {
+                        playPauseBtn.textContent = 'Pausar';
+                    };
+
+                    utterance.onend = () => {
+                        playPauseBtn.textContent = 'Reproducir';
+                    };
+
+                    synth.speak(utterance);
+                }
+            }
+
+            playPauseBtn.addEventListener('click', () => {
+                if (textInput.value.trim().length === 0) {
+                    alert("Por favor, introduce algún texto.");
+                    return;
+                }
+
+                if (synth.speaking && !synth.paused) { // Si está hablando, pausar
+                    synth.pause();
+                } else if (synth.paused) { // Si está pausado, reanudar
+                    synth.resume();
+                } else { // Si no está haciendo nada, empezar a hablar
+                    speak();
+                }
+            });
+
+            exportMp3Btn.addEventListener('click', () => {
+                alert("Nota del desarrollador:\n\nLa exportación directa a MP3 no es una función nativa de la API de Texto a Voz del navegador. Implementar esta característica requeriría herramientas más complejas para capturar y codificar el audio.\n\nEsta función es un marcador de posición para una posible mejora futura.");
+            });
+
+            // Cancelar la síntesis de voz si se cierra la página para evitar que siga sonando
+            window.addEventListener('beforeunload', () => {
+                synth.cancel();
+            });
+        });
+    </script>
+</body>
+</html>

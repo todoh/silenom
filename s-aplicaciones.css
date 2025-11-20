@@ -1,0 +1,32 @@
+  .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+        
+   
+
+        #menuweb {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+        }
+
+        #menuweb button {
+            font-size: 14px;
+            font-family: 'Montserrat', sans-serif;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap; /* Evita que el texto del botón se rompa */
+        }
+        
+        #menuweb button:hover {
+            background-color: #f0f0f0;
+            border-color: #aaa;
+        }

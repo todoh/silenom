@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orígenes de la Península Ibérica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Earthy Neutrals -->
+    <!-- Application Structure Plan: A single-page, vertical scrolling narrative divided into chronological sections (Geology, Hominids, Pre-Roman, Roman). The core is an interactive timeline in the 'Hominids' section and an interactive map in the 'Pre-Roman' section. This structure guides the user chronologically, making the vast history digestible. Clicking on elements updates a central content area, allowing focused exploration without leaving the main view. This is more engaging than a static report. -->
+    <!-- Visualization & Content Choices: 1. Hominid presence: Goal is to compare durations. Using a Chart.js horizontal bar chart for clear visual comparison of time spans. Interaction: Tooltips on hover provide exact dates. Justification: Better than a simple list of dates. 2. Pre-Roman Peoples: Goal is to show geographical distribution. Using a clickable map made of HTML/CSS divs. Interaction: Clicking a region displays an info card. Justification: More intuitive and spatial than a text description. 3. Cultural Influence: Goal is to show composition. Using a conceptual Chart.js donut chart. Interaction: Hover effects. Justification: Quick visual summary of the main cultural groups before Rome. All visualizations use Canvas, no SVG/Mermaid. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #4B4B4B;
+        }
+        .active-nav {
+            color: #D97706;
+            font-weight: 600;
+        }
+        .nav-link {
+            transition: color 0.3s;
+        }
+        .nav-link:hover {
+            color: #D97706;
+        }
+        .timeline-item {
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid #D1D5DB;
+        }
+        .timeline-item:hover, .timeline-item.active {
+            background-color: #FEF3C7;
+            border-left-color: #D97706;
+            transform: translateX(5px);
+        }
+        .map-area {
+            position: absolute;
+            background-color: rgba(217, 119, 6, 0.4);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            filter: blur(8px);
+        }
+        .map-area:hover, .map-area.active {
+            background-color: rgba(217, 119, 6, 0.7);
+            transform: scale(1.1);
+            filter: blur(4px);
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-amber-700">Península Ibérica: Los Orígenes</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#geologia" class="nav-link">Geología</a>
+                <a href="#hominidos" class="nav-link">Homínidos</a>
+                <a href="#pueblos" class="nav-link">Pueblos</a>
+                <a href="#roma" class="nav-link">Roma</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-12">
+        <section id="introduccion" class="text-center mb-24">
+            <h2 class="text-4xl font-bold mb-4 text-amber-800">Un Viaje a los Inicios de la Historia</h2>
+            <p class="max-w-3xl mx-auto text-lg text-gray-600">
+                Esta es la historia de la tierra que hoy conocemos como la Península Ibérica, un relato que se extiende por millones de años. Desde la violenta danza de las placas tectónicas hasta la llegada de los primeros humanos y el establecimiento de las primeras civilizaciones, te invitamos a explorar las raíces profundas de este rincón del mundo hasta la llegada del año cero.
+            </p>
+        </section>
+
+        <section id="geologia" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-amber-800">La Cuna Geológica</h2>
+             <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">La Península Ibérica no siempre fue como la conocemos. Su forma actual es el resultado de millones de años de colisiones continentales y cambios geológicos. Esta sección explora visualmente las fases clave de su formación, el escenario donde se desarrollaría la vida.</p>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                    <div class="text-4xl mb-4">🌍</div>
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Era Paleozoica</h3>
+                    <p class="text-gray-600">Hace unos 300 millones de años, la futura península formaba parte del supercontinente Pangea. El Macizo Ibérico, el esqueleto rocoso más antiguo, se eleva por la colisión de las placas de Laurasia y Gondwana.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                     <div class="text-4xl mb-4">⛰️</div>
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Era Mesozoica</h3>
+                    <p class="text-gray-600">Pangea se fragmenta. La placa Ibérica se separa y gira, abriendo el Golfo de Vizcaya. La península se convierte en una isla rodeada por el Océano de Tetis, el precursor del Mediterráneo. Es la era de los dinosaurios.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100">
+                     <div class="text-4xl mb-4">🌊</div>
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Era Cenozoica</h3>
+                    <p class="text-gray-600">Hace unos 65 millones de años, la Placa Africana empuja a la Placa Ibérica contra la Europea. Esta colisión pliega el terreno y forma los Pirineos y las Cordilleras Béticas, definiendo el contorno de la península que conocemos hoy.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="hominidos" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-amber-800">La Llegada de los Humanos</h2>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">La península fue uno de los primeros lugares de Europa en ser habitado por homínidos. Utiliza la línea de tiempo interactiva para descubrir las diferentes especies que dejaron su huella, sus herramientas y su arte, marcando el comienzo de la historia humana en este territorio.</p>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div id="timeline-nav" class="md:w-1/3">
+                </div>
+                <div id="hominido-content" class="md:w-2/3 bg-white p-8 rounded-lg shadow-lg border border-gray-100 min-h-[300px]">
+                </div>
+            </div>
+             <div class="mt-16">
+                <h3 class="text-2xl font-bold text-center mb-4 text-amber-800">Convivencia de Homínidos en Iberia</h3>
+                <div class="chart-container">
+                    <canvas id="hominidosChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="pueblos" class="mb-24 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-amber-800">Pueblos Prerromanos y Colonizadores</h2>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">Antes de la llegada de Roma, la península era un mosaico de culturas. Pueblos autóctonos como los íberos y celtas convivían con colonizadores del Mediterráneo. Explora el mapa para conocer la distribución y características de estas fascinantes civilizaciones.</p>
+            <div class="flex flex-col lg:flex-row gap-8 items-center">
+                <div class="w-full lg:w-1/2">
+                    <div id="map-container" class="relative w-full max-w-lg mx-auto aspect-square">
+                        <img src="https://placehold.co/600x600/FDFBF8/FDFBF8?text=." alt="Mapa de la Península Ibérica" class="w-full h-full object-contain opacity-0" />
+                        <div id="peninsula-shape" class="absolute top-0 left-0 w-full h-full bg-amber-200" style="clip-path: polygon(25% 0%, 100% 0%, 100% 70%, 85% 100%, 0% 100%, 0% 25%);"></div>
+                        <div id="map-areas"></div>
+                    </div>
+                </div>
+                <div class="w-full lg:w-1/2">
+                    <div id="pueblo-content" class="bg-white p-8 rounded-lg shadow-lg border border-gray-100 min-h-[350px]">
+                    </div>
+                </div>
+            </div>
+             <div class="mt-16">
+                <h3 class="text-2xl font-bold text-center mb-4 text-amber-800">Mosaico Cultural Prerromano</h3>
+                <div class="chart-container h-[350px] max-h-[40vh]">
+                    <canvas id="pueblosChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section id="roma" class="scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-amber-800">La Conquista de Hispania</h2>
+            <p class="text-center text-gray-600 mb-12 max-w-2xl mx-auto">La llegada de Roma en el 218 a.C. transformó la península para siempre. Durante 200 años de conquistas, se impuso una nueva lengua, nuevas leyes y una nueva forma de vida. Explora los pilares de la "Romanización", el proceso que sentó las bases de la futura Hispania.</p>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 transform hover:scale-105 transition-transform">
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Guerras Púnicas</h3>
+                    <p class="text-gray-600">Roma y Cartago luchan por el control del Mediterráneo. La península se convierte en un campo de batalla clave, marcando el inicio de la presencia romana.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 transform hover:scale-105 transition-transform">
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Resistencia Indígena</h3>
+                    <p class="text-gray-600">Pueblos como los celtíberos en Numancia o los lusitanos de Viriato ofrecieron una feroz resistencia, retrasando la conquista durante décadas.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 transform hover:scale-105 transition-transform">
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Guerras Cántabras</h3>
+                    <p class="text-gray-600">La última gran contienda. El emperador Augusto somete a los pueblos del norte (cántabros y astures), completando la conquista de toda la península en el 19 a.C.</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-100 transform hover:scale-105 transition-transform">
+                    <h3 class="text-xl font-semibold mb-2 text-amber-700">Romanización</h3>
+                    <p class="text-gray-600">Roma impone su cultura: el latín, el derecho romano, una red de calzadas, ciudades, acueductos y templos. Nace una nueva provincia: Hispania.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white mt-24">
+        <div class="container mx-auto px-6 py-4 text-center">
+            <p>Una visualización interactiva de los orígenes de la Península Ibérica.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hominidosData = {
+                'antecessor': {
+                    title: 'Homo antecessor',
+                    periodo: 'Hace 1.2M - 800.000 años',
+                    texto: 'Considerado el primer homínido que habitó Europa. Sus restos, encontrados en Atapuerca (Burgos), muestran evidencias de canibalismo. Eran altos, fuertes y fabricaban herramientas de piedra sencillas (Modo 1).',
+                    icono: '🔨',
+                    items: ['Pionero europeo', 'Herramientas líticas simples', 'Yacimiento clave: Atapuerca']
+                },
+                'heidelbergensis': {
+                    title: 'Homo heidelbergensis',
+                    periodo: 'Hace 600.000 - 200.000 años',
+                    texto: 'Ancestro directo de los neandertales. Eran robustos, con una gran capacidad craneal. Desarrollaron herramientas más avanzadas (Modo 2, bifaces) y practicaban la caza mayor. En la Sima de los Huesos (Atapuerca) se encontró una acumulación de sus restos, posible evidencia de un comportamiento funerario primitivo.',
+                    icono: '🔥',
+                    items: ['Cazadores organizados', 'Industria Achelense (bifaces)', 'Posibles ritos funerarios']
+                },
+                'neanderthalensis': {
+                    title: 'Homo neanderthalensis',
+                    periodo: 'Hace 230.000 - 28.000 años',
+                    texto: 'Adaptados al clima frío de la última glaciación. Eran muy robustos, con una cultura compleja (Musteriense, Modo 3). Cuidaban de sus enfermos y ancianos, realizaban enterramientos y es posible que tuvieran un pensamiento simbólico. Coexistieron con los Homo sapiens.',
+                    icono: '🎨',
+                    items: ['Cultura Musteriense', 'Adaptación al frío', 'Pensamiento simbólico']
+                },
+                'sapiens': {
+                    title: 'Homo sapiens',
+                    periodo: 'Desde hace 40.000 años',
+                    texto: 'Nuestra especie. Llegó a la península y convivió con los neandertales antes de su extinción. Trajeron una tecnología lítica muy avanzada (Modo 4) y una explosión de arte rupestre, como las cuevas de Altamira. Su llegada marca el inicio del Paleolítico Superior.',
+                    icono: '🧠',
+                    items: ['Arte rupestre (Altamira)', 'Tecnología lítica avanzada', 'Dominio del territorio']
+                },
+                'neolitico': {
+                    title: 'Neolítico y Edad de los Metales',
+                    periodo: 'Desde ~5.500 a.C.',
+                    texto: 'Una revolución cultural: aparecen la agricultura y la ganadería. Los humanos se vuelven sedentarios, crean poblados y desarrollan la cerámica. Posteriormente, el dominio de los metales (cobre, bronce y hierro) trae consigo una mayor complejidad social, comercio y la construcción de grandes monumentos megalíticos como los dólmenes.',
+                    icono: '🏺',
+                    items: ['Agricultura y sedentarismo', 'Megalitismo (dólmenes)', 'Metalurgia (cobre, bronce, hierro)']
+                }
+            };
+            
+            const pueblosData = {
+                'iberos': {
+                    title: 'Íberos',
+                    area: 'Sur y Este (Levante)',
+                    texto: 'Conjunto de pueblos con una cultura común. Desarrollaron la escritura, el urbanismo con murallas y tenían una sociedad jerarquizada. Su arte, como la Dama de Elche, muestra una gran refinamiento. Tuvieron un intenso contacto comercial con griegos y fenicios.',
+                    icono: '📜',
+                    items: ['Escritura propia', 'Arte refinado (Dama de Elche)', 'Comercio con el Mediterráneo'],
+                    position: { top: '55%', left: '60%', size: '35%' }
+                },
+                'celtas': {
+                    title: 'Celtas y Celtíberos',
+                    area: 'Centro, Oeste y Norte',
+                    texto: 'Pueblos de origen indoeuropeo que se asentaron en la Meseta y el norte. Eran expertos en la metalurgia del hierro y vivían en poblados fortificados llamados castros. Los celtíberos, una mezcla de celtas e íberos, destacaron por su espíritu guerrero y su resistencia a Roma.',
+                    icono: '🛡️',
+                    items: ['Cultura de los Castros', 'Expertos en metalurgia del hierro', 'Sociedad guerrera'],
+                    position: { top: '30%', left: '25%', size: '40%' }
+                },
+                'tartessos': {
+                    title: 'Tartessos',
+                    area: 'Suroeste (Valle del Guadalquivir)',
+                    texto: 'Una civilización legendaria y rica, mencionada en fuentes griegas. Su riqueza provenía de la minería (plata, oro, estaño). Desarrollaron una cultura muy avanzada con influencias orientales gracias a los fenicios. Su desaparición sigue siendo un misterio.',
+                    icono: '💎',
+                    items: ['Riqueza minera', 'Influencia fenicia', 'Cultura legendaria'],
+                    position: { top: '75%', left: '20%', size: '25%' }
+                },
+                'colonizadores': {
+                    title: 'Colonizadores',
+                    area: 'Costas del Mediterráneo',
+                    texto: 'Fenicios, griegos y cartagineses establecieron colonias comerciales en las costas. Fundaron ciudades como Gadir (Cádiz), Emporion (Ampurias) y Cartago Nova (Cartagena). Introdujeron la moneda, el alfabeto, nuevos cultivos como la vid y el olivo, y el torno de alfarero.',
+                    icono: '⚓',
+                    items: ['Fundación de ciudades', 'Introducción de la moneda y el alfabeto', 'Nuevos cultivos'],
+                    position: { top: '80%', left: '50%', size: '30%' }
+                }
+            };
+
+            const timelineNav = document.getElementById('timeline-nav');
+            const hominidoContent = document.getElementById('hominido-content');
+
+            function updateHominidoContent(key) {
+                const data = hominidosData[key];
+                hominidoContent.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">${data.icono}</div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-amber-800">${data.title}</h3>
+                            <p class="text-sm font-semibold text-gray-500 mb-4">${data.periodo}</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4">${data.texto}</p>
+                    <ul class="space-y-2">
+                        ${data.items.map(item => `<li class="flex items-center"><span class="text-amber-600 mr-2">✔</span>${item}</li>`).join('')}
+                    </ul>
+                `;
+                document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+                document.querySelector(`.timeline-item[data-key="${key}"]`).classList.add('active');
+            }
+            
+            Object.keys(hominidosData).forEach(key => {
+                const data = hominidosData[key];
+                const item = document.createElement('div');
+                item.className = 'timeline-item p-4 mb-2';
+                item.dataset.key = key;
+                item.innerHTML = `<h4 class="font-semibold">${data.title}</h4><p class="text-sm text-gray-500">${data.periodo}</p>`;
+                item.addEventListener('click', () => updateHominidoContent(key));
+                timelineNav.appendChild(item);
+            });
+            
+            updateHominidoContent('antecessor');
+            
+            const mapAreasContainer = document.getElementById('map-areas');
+            const puebloContent = document.getElementById('pueblo-content');
+
+            function updatePuebloContent(key) {
+                const data = pueblosData[key];
+                puebloContent.innerHTML = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">${data.icono}</div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-amber-800">${data.title}</h3>
+                            <p class="text-sm font-semibold text-gray-500 mb-4">${data.area}</p>
+                        </div>
+                    </div>
+                    <p class="text-gray-700 mb-4">${data.texto}</p>
+                    <ul class="space-y-2">
+                        ${data.items.map(item => `<li class="flex items-center"><span class="text-amber-600 mr-2">✔</span>${item}</li>`).join('')}
+                    </ul>
+                `;
+                 document.querySelectorAll('.map-area').forEach(el => el.classList.remove('active'));
+                 document.querySelector(`.map-area[data-key="${key}"]`).classList.add('active');
+            }
+            
+            Object.keys(pueblosData).forEach(key => {
+                const data = pueblosData[key];
+                const area = document.createElement('div');
+                area.className = 'map-area';
+                area.dataset.key = key;
+                area.style.top = data.position.top;
+                area.style.left = data.position.left;
+                area.style.width = data.position.size;
+                area.style.height = data.position.size;
+                area.addEventListener('click', () => updatePuebloContent(key));
+                mapAreasContainer.appendChild(area);
+            });
+            
+            updatePuebloContent('iberos');
+
+
+            const hominidosCtx = document.getElementById('hominidosChart').getContext('2d');
+            new Chart(hominidosCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['H. antecessor', 'H. heidelbergensis', 'H. neanderthalensis', 'H. sapiens'],
+                    datasets: [{
+                        label: 'Años antes del presente',
+                        data: [
+                            [1200000, 800000],
+                            [600000, 200000],
+                            [230000, 28000],
+                            [40000, 0] 
+                        ],
+                        backgroundColor: ['#F59E0B', '#F97316', '#EA580C', '#D97706'],
+                        borderRadius: 5,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    return `De ${value[0].toLocaleString()} a ${value[1].toLocaleString()} años atrás`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Años antes del presente (escala logarítmica)'
+                            },
+                             min: 20000,
+                             type: 'logarithmic'
+                        },
+                        y: {
+                           grid: { display: false }
+                        }
+                    }
+                }
+            });
+
+            const pueblosCtx = document.getElementById('pueblosChart').getContext('2d');
+            new Chart(pueblosCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Cultura Ibérica', 'Cultura Celta y Celtíbera', 'Influencia Fenicia/Cartaginesa', 'Influencia Griega', 'Cultura Tartésica'],
+                    datasets: [{
+                        label: 'Influencia cultural',
+                        data: [35, 30, 15, 10, 10],
+                        backgroundColor: [
+                            '#D97706',
+                            '#F59E0B',
+                            '#F97316',
+                            '#FBBE24',
+                            '#EA580C'
+                        ],
+                        borderColor: '#FDFBF8',
+                        borderWidth: 4,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Distribución conceptual de culturas prerromanas',
+                            padding: {
+                                bottom: 20
+                            },
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('.nav-link');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active-nav');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active-nav');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: "-50% 0px -50% 0px" });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+</body>
+</html>

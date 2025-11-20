@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Texto - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="s-aplicaciones.css">
+        <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5; /* Un gris muy claro para el fondo */
+            color: #333;
+        }
+
+        .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+        
+        /* --- Contenedor Principal del Editor --- */
+        .editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 25px; /* Espacio entre título, editor y botones */
+        }
+
+        .editor-header h1 {
+            font-size: calc(2em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0;
+        }
+        
+        /* --- Área de Texto (El Corazón del Editor) --- */
+        #text-editor {
+            width: 90%;
+            max-width: 800px;
+            height: 60vh;
+            border: none; /* Sin bordes para un look limpio */
+            border-radius: 8px;
+            background-color: #ffffff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* Sombra sutil */
+            padding: 2.5em; /* Padding generoso */
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            line-height: 1.7; /* Altura de línea para legibilidad */
+            color: #2c3e50;
+            resize: none; /* Deshabilitar el redimensionado */
+            outline: none; /* Sin borde al hacer foco */
+            transition: box-shadow 0.3s ease;
+        }
+
+        #text-editor:focus {
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+        }
+        
+        /* --- Botones de Acción --- */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .action-buttons button {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            border: 2px solid #333;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .action-buttons button:hover {
+            background: #333;
+            color: #fff;
+        }
+
+     
+    </style>
+</head>
+<body>
+
+    <div class="editor-container">
+        <div class="editor-header">
+            <h1>Editor de <span class="os-red">Texto</span></h1>
+        </div>
+
+        <textarea id="text-editor" placeholder="Escribe aquí..."></textarea>
+
+        <div class="action-buttons">
+            <button id="export-txt">Exportar como TXT</button>
+            <button id="export-html">Exportar como HTML</button>
+        </div>
+    </div>
+
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones placeholder
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const textEditor = document.getElementById('text-editor');
+            const exportTxtBtn = document.getElementById('export-txt');
+            const exportHtmlBtn = document.getElementById('export-html');
+
+            // Función genérica para descargar archivos
+            const downloadFile = (filename, content, mimeType) => {
+                const blob = new Blob([content], { type: mimeType });
+                const link = document.createElement('a');
+                
+                link.href = URL.createObjectURL(blob);
+                link.download = filename;
+                
+                document.body.appendChild(link);
+                link.click();
+                
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+            };
+
+            // Exportar como .txt
+            exportTxtBtn.addEventListener('click', () => {
+                const content = textEditor.value;
+                if (!content) {
+                    alert("El editor está vacío.");
+                    return;
+                }
+                downloadFile('documento.txt', content, 'text/plain;charset=utf-8');
+            });
+
+            // Exportar como .html
+            exportHtmlBtn.addEventListener('click', () => {
+                const textContent = textEditor.value;
+                 if (!textContent) {
+                    alert("El editor está vacío.");
+                    return;
+                }
+
+                // Convertir el texto a HTML básico
+                // Párrafos con doble salto de línea, y saltos de línea simples dentro de párrafos
+                const paragraphs = textContent
+                    .split(/\n\s*\n/) // Separa por una o más líneas en blanco
+                    .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+                    .join('\n');
+
+                // Crear una plantilla HTML completa
+                const htmlContent = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documento</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 800px; margin: 2em auto; padding: 0 1em; }
+        p { margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+${paragraphs}
+</body>
+</html>`;
+                
+                downloadFile('documento.html', htmlContent, 'text/html;charset=utf-8');
+            });
+        });
+    </script>
+</body>
+</html>

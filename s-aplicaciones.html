@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suite de Aplicaciones</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        /* --- Estilos Generales --- */
+        body {
+            margin: 0;
+            padding: 2rem;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Alineado arriba para ver desde el inicio */
+            min-height: 100vh;
+            box-sizing: border-box; 
+            overflow-x: hidden; 
+        }
+
+        /* --- Contenedor Principal --- */
+        .app-suite-container {
+            width: 100%;
+            max-width: 1200px;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: clamp(2rem, 5vw, 3rem); 
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 2.5rem;
+        }
+        
+        /* --- Título de Categoría (NUEVO) --- */
+        .category-title {
+            font-size: 1.8rem;
+            font-weight: 300;
+            text-align: left;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Evita margen extra en el primer título */
+        .category-title:first-of-type {
+            margin-top: 0;
+        }
+
+        /* --- Cuadrícula de Aplicaciones --- */
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        /* --- Tarjeta de Aplicación --- */
+        .app-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.75rem;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 0.5rem;
+        }
+
+        .app-card h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        .app-card button {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            background-color: #E53935;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+        }
+
+        .app-card button:hover {
+            background-color: #c62828;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-suite-container">
+        <h1 class="main-title">Suite de <span class="os-red">Aplicaciones</span></h1>
+
+        <h2 class="category-title">Imagen</h2>
+        <div class="app-grid">
+            <div class="app-card" style="display: none;">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.13 1L6 16a2 2 0 0 0 2 2h15'/%3E%3Cpath d='M1 6.13L16 6a2 2 0 0 1 2 2v15'/%3E%3C/svg%3E" alt="Icono de Recortar" class="app-icon">
+                <h2>Recortar Imagen</h2>
+                <button onclick="window.location.href='s-recortarimagen.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                 <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpolyline points='17 8 12 3 7 8'/%3E%3Cline x1='12' y1='3' x2='12' y2='15'/%3E%3C/svg%3E" alt="Icono de Dimensionar Imagen" class="app-icon">
+                <h2>Dimensionar Imagen</h2>
+                <button onclick="window.location.href='s-dimensionarimagen.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 14h6v6M20 10h-6V4M14 10l7-7M10 14l-7 7'/%3E%3C/svg%3E" alt="Icono de Comprimir Imagen" class="app-icon">
+                <h2>Comprimir Imagen</h2>
+                <button onclick="window.location.href='s-compresorimagen.html'">Abrir</button>
+            </div>
+             <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E" alt="Icono de Generador QR" class="app-icon">
+                <h2>Generador QR</h2>
+                <button onclick="window.location.href='s-generadorqr.html'">Abrir</button>
+            </div>
+        </div>
+
+        <h2 class="category-title">Texto</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E" alt="Icono de Editor de Texto" class="app-icon">
+                <h2>Editor Texto</h2>
+                <button onclick="window.location.href='s-editortexto.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E" alt="Icono de Emoticonos" class="app-icon">
+                <h2>Lista Emoticonos</h2>
+                <button onclick="window.location.href='s-emoticonos.html'">Abrir</button>
+            </div>
+        </div>
+        
+        <h2 class="category-title">Sonido</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='11 5 6 9 2 9 2 15 6 15 11 19 11 5'/%3E%3Cpath d='M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07'/%3E%3C/svg%3E" alt="Icono de Texto a Voz" class="app-icon">
+                <h2>Texto a Voz</h2>
+                <button onclick="window.location.href='s-textoavoz.html'">Abrir</button>
+            </div>
+        </div>
+
+        <h2 class="category-title">Matemáticas</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2L2 22h20L12 2z'/%3E%3C/svg%3E" alt="Icono de Calculadora Triángulo" class="app-icon">
+                <h2>Calculadora Triángulos</h2>
+                <button onclick="window.location.href='s-calculadoratriangulo.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 12l-8-8-8 8'/%3E%3Cpath d='M20 20l-8-8-8 8'/%3E%3Cline x1='12' y1='4' x2='12' y2='20'/%3E%3C/svg%3E" alt="Icono de Conversor de Unidades" class="app-icon">
+                <h2>Conversor Unidades</h2>
+                <button onclick="window.location.href='s-conversorunidades.html'">Abrir</button>
+            </div>
+        </div>
+        
+        <h2 class="category-title">Economía</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='1' x2='12' y2='23'/%3E%3Cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'/%3E%3C/svg%3E" alt="Icono de Conversor de Monedas" class="app-icon">
+                <h2>Conversor Monedas</h2>
+                <button onclick="window.location.href='s-conversormonedas.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.218 10.371L15 12.59l-2.218-2.22a1.5 1.5 0 00-2.122 0L8.5 12.59 6.782 10.37a1.5 1.5 0 00-2.122 0L3 11.992V18h18v-6.008l-1.66-1.662a1.5 1.5 0 00-2.122 0z'/%3E%3Cpath d='M21 6.5l-1.554 1.554a1.5 1.5 0 01-2.122 0L15 5.732 12.782 8a1.5 1.5 0 01-2.122 0L8.5 5.732 6.782 8a1.5 1.5 0 01-2.122 0L3 6.5'/%3E%3C/svg%3E" alt="Icono de Valor Divisas" class="app-icon">
+                <h2>Valor Divisas</h2>
+                <button onclick="window.location.href='s-valordivisas.html'">Abrir</button>
+            </div>
+        </div>
+
+        <h2 class="category-title">Tiempo</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='13' r='8'/%3E%3Cpolyline points='12 9 12 13 15 15'/%3E%3Cline x1='12' y1='5' x2='12' y2='3'/%3E%3Cline x1='19' y1='8' x2='20' y2='7'/%3E%3Cline x1='5' y1='8' x2='4' y2='7'/%3E%3C/svg%3E" alt="Icono de Cronómetro" class="app-icon">
+                <h2>Cronómetro</h2>
+                <button onclick="window.location.href='s-cronometro.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpolyline points='12 6 12 12 16 14'/%3E%3Cline x1='4.22' y1='4.22' x2='5.64' y2='5.64'/%3E%3Cline x1='18.36' y1='18.36' x2='19.78' y2='19.78'/%3E%3Cline x1='4.22' y1='19.78' x2='5.64' y2='18.36'/%3E%3Cline x1='18.36' y1='5.64' x2='19.78' y2='4.22'/%3E%3C/svg%3E" alt="Icono de Alarma" class="app-icon">
+                <h2>Alarma</h2>
+                <button onclick="window.location.href='s-alarma.html'">Abrir</button>
+            </div>
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E" alt="Icono de Clima" class="app-icon">
+                <h2>Clima</h2>
+                <button onclick="window.location.href='s-clima.html'">Abrir</button>
+            </div>
+        </div>
+        
+        <h2 class="category-title">Juegos</h2>
+        <div class="app-grid">
+            <div class="app-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' y1='9' x2='21' y2='9'/%3E%3Cline x1='3' y1='15' x2='21' y2='15'/%3E%3Cline x1='9' y1='3' x2='9' y2='21'/%3E%3Cline x1='15' y1='3' x2='15' y2='21'/%3E%3C/svg%3E" alt="Icono de Tres en Raya" class="app-icon">
+                <h2>3 en Raya</h2>
+                <button onclick="window.location.href='s-3enraya.html'">Abrir</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='index.html'">Volver a la página principal</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones vacías para evitar errores de consola.
+        function cerrartodo() {
+            console.log("Función 'cerrartodo' llamada.");
+        }
+        function abrirVentana(info) {
+            console.log("Función 'abrirVentana' llamada con: ", info);
+        }
+    </script>
+
+</body>
+</html>

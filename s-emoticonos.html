@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Emoticonos - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="s-aplicaciones.css">
+        <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+        
+        /* --- Contenedor Principal de la Galería --- */
+        .gallery-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px;
+            padding-bottom: 5%;
+        }
+
+        .gallery-header h1 {
+            font-size: calc(2em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0;
+        }
+
+        /* --- Barra de Búsqueda --- */
+        #search-input {
+            width: 90%;
+            max-width: 600px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-family: 'Montserrat', sans-serif;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        #search-input:focus {
+            border-color: #E53935;
+        }
+        
+        /* --- Contenedor de la Cuadrícula de Emojis (con scroll) --- */
+        .emoji-grid-container {
+            width: 90%;
+            max-width: 1000px;
+            flex: 1; /* Ocupa el espacio restante */
+            overflow-y: auto; /* Habilita el scroll vertical */
+            padding-right: 10px; /* Espacio para la barra de scroll */
+        }
+        
+        .emoji-category h2 {
+            font-size: 1.1em;
+            font-weight: 500;
+            color: #555;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+        }
+
+        .emoji-item {
+            font-size: 2.2rem;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 5px;
+            background: none;
+            border: none;
+            transition: background-color 0.2s ease;
+        }
+        .emoji-item:hover {
+            background-color: #e9ecef;
+        }
+        
+        /* --- Notificación de Copiado --- */
+        #copy-notification {
+            position: fixed;
+            bottom: 80px; /* Justo encima del menú inferior */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10002;
+        }
+        #copy-notification.show {
+            opacity: 1;
+        }
+
+  
+    </style>
+</head>
+<body>
+
+    <div class="gallery-container">
+        <div class="gallery-header">
+            <h1>Lista de <span class="os-red">Emoticonos</span></h1>
+        </div>
+
+        <input type="search" id="search-input" placeholder="Buscar emoticono (ej: corazón, reír, coche...)">
+
+        <div class="emoji-grid-container" id="emoji-container">
+            </div>
+    </div>
+    
+    <div id="copy-notification">¡Copiado!</div>
+
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones placeholder
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const emojiContainer = document.getElementById('emoji-container');
+            const searchInput = document.getElementById('search-input');
+            const copyNotification = document.getElementById('copy-notification');
+
+            // --- Base de Datos de Emoticonos ---
+            // Una selección curada para mantener la aplicación ligera.
+            const emojiData = [
+  {
+    category: 'Caritas y Emociones',
+    emojis: [
+      { e: '😀', k: ['feliz', 'cara', 'sonrisa', 'alegre'] },
+      { e: '😁', k: ['sonrisa', 'ojos', 'feliz'] },
+      { e: '😂', k: ['reír', 'lágrimas', 'feliz', 'jaja'] },
+      { e: '🤣', k: ['rodando', 'suelo', 'risa', 'lol'] },
+      { e: '😃', k: ['feliz', 'cara', 'sonrisa', 'grande'] },
+      { e: '😄', k: ['feliz', 'sonrisa', 'ojos', 'contento'] },
+      { e: '😅', k: ['sonrisa', 'sudor', 'nervios'] },
+      { e: '😆', k: ['risa', 'feliz', 'ojos cerrados'] },
+      { e: '😉', k: ['guiño', 'ojo'] },
+      { e: '😊', k: ['sonrojar', 'feliz', 'mejillas'] },
+      { e: '😋', k: ['delicioso', 'lengua', 'comida'] },
+      { e: '😎', k: ['gafas', 'sol', 'cool', 'guay'] },
+      { e: '😍', k: ['amor', 'corazón', 'ojos', 'enamorado'] },
+      { e: '😘', k: ['beso', 'amor', 'corazón'] },
+      { e: '🥰', k: ['amor', 'corazones', 'adorable'] },
+      { e: '😗', k: ['beso', 'cara'] },
+      { e: '😙', k: ['beso', 'sonrisa'] },
+      { e: '😚', k: ['beso', 'ojos cerrados'] },
+      { e: '🙂', k: ['sonrisa', 'ligera'] },
+      { e: '🤗', k: ['abrazo', 'manos'] },
+      { e: '🤩', k: ['estrellas', 'ojos', 'asombrado'] },
+      { e: '🤔', k: ['pensar', 'duda', 'idea'] },
+      { e: '🤨', k: ['ceja', 'duda', 'sospecha'] },
+      { e: '😐', k: ['neutral', 'sin expresión'] },
+      { e: '😑', k: ['sin expresión', 'serio'] },
+      { e: '😶', k: ['sin boca', 'silencio'] },
+      { e: '🙄', k: ['ojos en blanco', 'aburrimiento'] },
+      { e: '😏', k: ['sonrisa', 'pícara', 'coqueto'] },
+      { e: '😣', k: ['sufrimiento', 'dolor'] },
+      { e: '😥', k: ['triste', 'sudor', 'alivio'] },
+      { e: '😮', k: ['sorpresa', 'boca abierta'] },
+      { e: '🤐', k: ['boca', 'cremallera', 'secreto'] },
+      { e: '😯', k: ['sorprendido', 'silencio'] },
+      { e: '😪', k: ['sueño', 'cansado'] },
+      { e: '😫', k: ['cansado', 'sufrimiento'] },
+      { e: '😴', k: ['dormir', 'sueño', 'zzz'] },
+      { e: '😌', k: ['alivio', 'relajado'] },
+      { e: '😛', k: ['lengua', 'broma'] },
+      { e: '😜', k: ['lengua', 'guiño', 'broma'] },
+      { e: '😝', k: ['lengua', 'ojos cerrados', 'broma'] },
+      { e: '🤤', k: ['babeando', 'delicioso'] },
+      { e: '😒', k: ['descontento', 'molesto'] },
+      { e: '😓', k: ['sudor', 'triste'] },
+      { e: '😔', k: ['pensativo', 'triste'] },
+      { e: '😕', k: ['confundido'] },
+      { e: '🙃', k: ['del revés', 'ironía'] },
+      { e: '🤑', k: ['dinero', 'rico'] },
+      { e: '😲', k: ['asombrado', 'shock'] },
+      { e: '☹️', k: ['triste', 'ceño fruncido'] },
+      { e: '🙁', k: ['triste', 'ligero'] },
+      { e: '😖', k: ['confundido', 'dolor'] },
+      { e: '😞', k: ['decepcionado', 'triste'] },
+      { e: '😟', k: ['preocupado'] },
+      { e: '😤', k: ['triunfo', 'enfado', 'vapor'] },
+      { e: '😢', k: ['llorar', 'triste', 'lágrima'] },
+      { e: '😭', k: ['llorar', 'tristeza', 'sollozo'] },
+      { e: '😦', k: ['ceño fruncido', 'boca abierta'] },
+      { e: '😧', k: ['angustia', 'dolor'] },
+      { e: '😨', k: ['miedo', 'terror'] },
+      { e: '😩', k: ['agotado', 'cansado'] },
+      { e: '🤯', k: ['cabeza', 'explosión', 'shock'] },
+      { e: '😬', k: ['mueca', 'nervios'] },
+      { e: '😰', k: ['ansiedad', 'sudor', 'miedo'] },
+      { e: '😱', k: ['grito', 'miedo', 'susto'] },
+      { e: '🥵', k: ['calor', 'sofocado'] },
+      { e: '🥶', k: ['frío', 'helado'] },
+      { e: '😳', k: ['sonrojado', 'vergüenza'] },
+      { e: '🤪', k: ['loco', 'tonto'] },
+      { e: '😵', k: ['mareado', 'muerto'] },
+      { e: '😡', k: ['enfado', 'rojo', 'enojado'] },
+      { e: '😠', k: ['enfado', 'enojado'] },
+      { e: '🤬', k: ['insultos', 'enfado'] },
+      { e: '😷', k: ['mascarilla', 'enfermo'] },
+      { e: '🤒', k: ['termómetro', 'enfermo'] },
+      { e: '🤕', k: ['vendaje', 'herido'] },
+      { e: '🤢', k: ['náuseas', 'vómito'] },
+      { e: '🤮', k: ['vomitando'] },
+      { e: '🤧', k: ['estornudo', 'alergia'] },
+      { e: '😇', k: ['ángel', 'inocente'] },
+      { e: '🤠', k: ['vaquero', 'sombrero'] },
+      { e: '🤡', k: ['payaso'] },
+      { e: '🥳', k: ['fiesta', 'celebración'] },
+      { e: '🥴', k: ['borracho', 'mareado'] },
+      { e: '🥺', k: ['suplicando', 'ojos tiernos'] },
+      { e: '🤥', k: ['mentiroso', 'nariz larga'] },
+      { e: '🤫', k: ['silencio', 'secreto'] },
+      { e: '🤭', k: ['risa', 'mano en la boca'] },
+      { e: '🧐', k: ['monóculo', 'investigación'] },
+      { e: '🤓', k: ['gafas', 'nerd'] },
+      { e: '😈', k: ['demonio', 'sonrisa', 'malo'] },
+      { e: '👿', k: ['demonio', 'enfadado'] },
+      { e: '👹', k: ['ogro', 'japonés'] },
+      { e: '👺', k: ['goblin', 'japonés'] },
+      { e: '💀', k: ['calavera', 'muerte'] },
+      { e: '👻', k: ['fantasma'] },
+      { e: '👽', k: ['alien', 'extraterrestre'] },
+      { e: '🤖', k: ['robot'] },
+      { e: '💩', k: ['caca', 'sonrisa'] }
+    ]
+  },
+  {
+    category: 'Personas y Gestos',
+    emojis: [
+      { e: '👋', k: ['hola', 'adiós', 'mano', 'saludo'] },
+      { e: '🤚', k: ['mano', 'levantada', 'parar'] },
+      { e: '🖐️', k: ['mano', 'cinco', 'abierta'] },
+      { e: '✋', k: ['mano', 'parar'] },
+      { e: '🖖', k: ['vulcano', 'saludo', 'spock'] },
+      { e: '👌', k: ['ok', 'bien', 'perfecto'] },
+      { e: '🤌', k: ['gesto', 'italiano', 'mano'] },
+      { e: '🤏', k: ['pequeño', 'pizca'] },
+      { e: '✌️', k: ['victoria', 'paz', 'dos'] },
+      { e: '🤞', k: ['dedos', 'cruzados', 'suerte'] },
+      { e: '🤟', k: ['te quiero', 'rock'] },
+      { e: '🤘', k: ['cuernos', 'rock'] },
+      { e: '🤙', k: ['llámame', 'surf'] },
+      { e: '👈', k: ['izquierda', 'dedo'] },
+      { e: '👉', k: ['derecha', 'dedo'] },
+      { e: '👆', k: ['arriba', 'dedo'] },
+      { e: '🖕', k: ['dedo', 'corazón', 'insulto'] },
+      { e: '👇', k: ['abajo', 'dedo'] },
+      { e: '☝️', k: ['uno', 'dedo', 'idea'] },
+      { e: '👍', k: ['ok', 'bien', 'pulgar', 'like'] },
+      { e: '👎', k: ['mal', 'no', 'dislike'] },
+      { e: '✊', k: ['puño', 'levantado', 'poder'] },
+      { e: '👊', k: ['puño', 'choque', 'pelea'] },
+      { e: '🤛', k: ['puño', 'izquierda'] },
+      { e: '🤜', k: ['puño', 'derecha'] },
+      { e: '👏', k: ['aplauso', 'bravo'] },
+      { e: '🙌', k: ['manos', 'arriba', 'celebración'] },
+      { e: '👐', k: ['manos', 'abiertas'] },
+      { e: '🤲', k: ['manos', 'juntas', 'rezar'] },
+      { e: '🤝', k: ['apretón', 'manos', 'acuerdo'] },
+      { e: '🙏', k: ['rezar', 'gracias', 'por favor'] },
+      { e: '✍️', k: ['escribir', 'mano'] },
+      { e: '💅', k: ['uñas', 'pintar', 'manicura'] },
+      { e: '🤳', k: ['selfie', 'móvil'] },
+      { e: '💪', k: ['fuerza', 'músculo', 'bíceps'] },
+      { e: '🦾', k: ['brazo', 'mecánico', 'robot'] },
+      { e: '🦿', k: ['pierna', 'mecánica', 'robot'] },
+      { e: '🦵', k: ['pierna'] },
+      { e: '🦶', k: ['pie'] },
+      { e: '👂', k: ['oreja', 'oír'] },
+      { e: '🦻', k: ['audífono', 'sordera'] },
+      { e: '👃', k: ['nariz', 'oler'] },
+      { e: '🧠', k: ['cerebro', 'inteligencia', 'mente'] },
+      { e: '🦷', k: ['diente', 'dentista'] },
+      { e: '🦴', k: ['hueso'] },
+      { e: '👀', k: ['ojos', 'mirar', 'ver'] },
+      { e: '👁️', k: ['ojo'] },
+      { e: '👅', k: ['lengua'] },
+      { e: '👄', k: ['boca', 'labios'] },
+      { e: '👶', k: ['bebé'] },
+      { e: '👧', k: ['niña'] },
+      { e: '🧒', k: ['niño', 'género neutro'] },
+      { e: '👦', k: ['niño'] },
+      { e: '👩', k: ['mujer'] },
+      { e: '🧑', k: ['adulto', 'género neutro'] },
+      { e: '👨', k: ['hombre'] },
+      { e: '👱‍♀️', k: ['mujer', 'rubia'] },
+      { e: '👱', k: ['persona', 'rubia'] },
+      { e: '👱‍♂️', k: ['hombre', 'rubio'] },
+      { e: '👩‍🦰', k: ['mujer', 'pelirroja'] },
+      { e: '👨‍🦰', k: ['hombre', 'pelirrojo'] },
+      { e: '👩‍🦳', k: ['mujer', 'pelo blanco'] },
+      { e: '👨‍🦳', k: ['hombre', 'pelo blanco'] },
+      { e: '👩‍🦲', k: ['mujer', 'calva'] },
+      { e: '👨‍🦲', k: ['hombre', 'calvo'] },
+      { e: '🧔', k: ['barba', 'hombre'] },
+      { e: '👵', k: ['anciana', 'abuela'] },
+      { e: '🧓', k: ['anciano', 'género neutro'] },
+      { e: '👴', k: ['anciano', 'abuelo'] },
+      { e: '👮‍♀️', k: ['policía', 'mujer'] },
+      { e: '👮', k: ['policía'] },
+      { e: '👮‍♂️', k: ['policía', 'hombre'] },
+      { e: '👷‍♀️', k: ['constructora', 'mujer'] },
+      { e: '👷', k: ['constructor'] },
+      { e: '👷‍♂️', k: ['constructor', 'hombre'] },
+      { e: '🕵️‍♀️', k: ['detective', 'mujer'] },
+      { e: '🕵️', k: ['detective'] },
+      { e: '🕵️‍♂️', k: ['detective', 'hombre'] },
+      { e: '👩‍⚕️', k: ['doctora', 'médico'] },
+      { e: '👨‍⚕️', k: ['doctor', 'médico'] },
+      { e: '👩‍🌾', k: ['granjera'] },
+      { e: '👨‍🌾', k: ['granjero'] },
+      { e: '👩‍🍳', k: ['cocinera'] },
+      { e: '👨‍🍳', k: ['cocinero'] },
+      { e: '👩‍🎓', k: ['estudiante', 'mujer'] },
+      { e: '👨‍🎓', k: ['estudiante', 'hombre'] },
+      { e: '👩‍🎤', k: ['cantante', 'mujer'] },
+      { e: '👨‍🎤', k: ['cantante', 'hombre'] },
+      { e: '👩‍🏫', k: ['profesora'] },
+      { e: '👨‍🏫', k: ['profesor'] },
+      { e: '👩‍🏭', k: ['trabajadora', 'fábrica'] },
+      { e: '👨‍🏭', k: ['trabajador', 'fábrica'] },
+      { e: '👩‍💻', k: ['programadora', 'tecnología'] },
+      { e: '👨‍💻', k: ['programador', 'tecnología'] },
+      { e: '👩‍💼', k: ['oficinista', 'mujer'] },
+      { e: '👨‍💼', k: ['oficinista', 'hombre'] },
+      { e: '👩‍🔧', k: ['mecánica'] },
+      { e: '👨‍🔧', k: ['mecánico'] },
+      { e: '👩‍🔬', k: ['científica'] },
+      { e: '👨‍🔬', k: ['científico'] },
+      { e: '👩‍🎨', k: ['artista', 'mujer'] },
+      { e: '👨‍🎨', k: ['artista', 'hombre'] },
+      { e: '👩‍🚒', k: ['bombera'] },
+      { e: '👨‍🚒', k: ['bombero'] },
+      { e: '👩‍✈️', k: ['piloto', 'mujer'] },
+      { e: '👨‍✈️', k: ['piloto', 'hombre'] },
+      { e: '👩‍🚀', k: ['astronauta', 'mujer'] },
+      { e: '👨‍🚀', k: ['astronauta', 'hombre'] },
+      { e: '👩‍⚖️', k: ['jueza'] },
+      { e: '👨‍⚖️', k: ['juez'] },
+      { e: '🦸‍♀️', k: ['superheroína'] },
+      { e: '🦸‍♂️', k: ['superhéroe'] },
+      { e: '🦹‍♀️', k: ['supervillana'] },
+      { e: '🦹‍♂️', k: ['supervillano'] },
+      { e: '🤶', k: ['mamá noel'] },
+      { e: '🎅', k: ['papá noel', 'navidad'] },
+      { e: '🧙‍♀️', k: ['bruja'] },
+      { e: '🧙‍♂️', k: ['mago'] },
+      { e: '🧝‍♀️', k: ['elfa'] },
+      { e: '🧝‍♂️', k: ['elfo'] },
+      { e: '🧛‍♀️', k: ['vampiresa'] },
+      { e: '🧛‍♂️', k: ['vampiro'] },
+      { e: '🧟‍♀️', k: ['zombie', 'mujer'] },
+      { e: '🧟‍♂️', k: ['zombie', 'hombre'] },
+      { e: '🧞‍♀️', k: ['genio', 'mujer'] },
+      { e: '🧞‍♂️', k: ['genio', 'hombre'] },
+      { e: '🧜‍♀️', k: ['sirena'] },
+      { e: '🧜‍♂️', k: ['tritón'] },
+      { e: '🧚‍♀️', k: ['hada', 'mujer'] },
+      { e: '🧚‍♂️', k: ['hada', 'hombre'] },
+      { e: '🚶‍♀️', k: ['caminando', 'mujer'] },
+      { e: '🚶', k: ['caminando'] },
+      { e: '🚶‍♂️', k: ['caminando', 'hombre'] },
+      { e: '🏃‍♀️', k: ['corriendo', 'mujer'] },
+      { e: '🏃', k: ['corriendo'] },
+      { e: '🏃‍♂️', k: ['corriendo', 'hombre'] },
+      { e: '💃', k: ['bailando', 'mujer', 'flamenco'] },
+      { e: '🕺', k: ['bailando', 'hombre', 'disco'] },
+      { e: '👯‍♀️', k: ['bailarinas'] },
+      { e: '👯‍♂️', k: ['bailarines'] },
+      { e: '🧖‍♀️', k: ['sauna', 'mujer'] },
+      { e: '🧖‍♂️', k: ['sauna', 'hombre'] },
+      { e: '🧗‍♀️', k: ['escalando', 'mujer'] },
+      { e: '🧗‍♂️', k: ['escalando', 'hombre'] },
+      { e: '🤺', k: ['esgrima'] },
+      { e: '🏇', k: ['caballo', 'carrera'] },
+      { e: '⛷️', k: ['esquí'] },
+      { e: '🏂', k: ['snowboard'] },
+      { e: '🏌️‍♀️', k: ['golf', 'mujer'] },
+      { e: '🏌️‍♂️', k: ['golf', 'hombre'] },
+      { e: '🏄‍♀️', k: ['surf', 'mujer'] },
+      { e: '🏄‍♂️', k: ['surf', 'hombre'] },
+      { e: '🚣‍♀️', k: ['remo', 'mujer'] },
+      { e: '🚣‍♂️', k: ['remo', 'hombre'] },
+      { e: '🏊‍♀️', k: ['natación', 'mujer'] },
+      { e: '🏊‍♂️', k: ['natación', 'hombre'] },
+      { e: '⛹️‍♀️', k: ['baloncesto', 'mujer'] },
+      { e: '⛹️‍♂️', k: ['baloncesto', 'hombre'] },
+      { e: '🏋️‍♀️', k: ['pesas', 'mujer'] },
+      { e: '🏋️‍♂️', k: ['pesas', 'hombre'] },
+      { e: '🚴‍♀️', k: ['ciclismo', 'mujer'] },
+      { e: '🚴‍♂️', k: ['ciclismo', 'hombre'] },
+      { e: '🚵‍♀️', k: ['ciclismo de montaña', 'mujer'] },
+      { e: '🚵‍♂️', k: ['ciclismo de montaña', 'hombre'] },
+      { e: '🤸‍♀️', k: ['gimnasia', 'mujer'] },
+      { e: '🤸‍♂️', k: ['gimnasia', 'hombre'] },
+      { e: '🤼‍♀️', k: ['lucha', 'mujeres'] },
+      { e: '🤼‍♂️', k: ['lucha', 'hombres'] },
+      { e: '🤽‍♀️', k: ['waterpolo', 'mujer'] },
+      { e: '🤽‍♂️', k: ['waterpolo', 'hombre'] },
+      { e: '🤾‍♀️', k: ['balonmano', 'mujer'] },
+      { e: '🤾‍♂️', k: ['balonmano', 'hombre'] },
+      { e: '🤹‍♀️', k: ['malabares', 'mujer'] },
+      { e: '🤹‍♂️', k: ['malabares', 'hombre'] },
+      { e: '🧘‍♀️', k: ['yoga', 'mujer'] },
+      { e: '🧘‍♂️', k: ['yoga', 'hombre'] },
+      { e: '🛀', k: ['baño', 'bañera'] },
+      { e: '🛌', k: ['durmiendo', 'cama'] },
+      { e: '🗣️', k: ['hablando', 'cabeza'] },
+      { e: '👤', k: ['silueta', 'busto'] },
+      { e: '👥', k: ['siluetas', 'bustos'] },
+      { e: '🫂', k: ['abrazo', 'personas'] }
+    ]
+  },
+  {
+    category: 'Animales y Naturaleza',
+    emojis: [
+      { e: '🙈', k: ['mono', 'ojos', 'ver'] },
+      { e: '🙉', k: ['mono', 'oídos', 'oír'] },
+      { e: '🙊', k: ['mono', 'boca', 'hablar'] },
+      { e: '🐵', k: ['mono', 'cara'] },
+      { e: '🐒', k: ['mono'] },
+      { e: '🦍', k: ['gorila'] },
+      { e: '🦧', k: ['orangután'] },
+      { e: '🐶', k: ['perro', 'cara', 'mascota'] },
+      { e: '🐕', k: ['perro'] },
+      { e: '🦮', k: ['perro', 'guía'] },
+      { e: '🐩', k: ['caniche'] },
+      { e: '🐺', k: ['lobo'] },
+      { e: '🦊', k: ['zorro'] },
+      { e: '🦝', k: ['mapache'] },
+      { e: '🐱', k: ['gato', 'cara', 'mascota'] },
+      { e: '🐈', k: ['gato'] },
+      { e: '🦁', k: ['león'] },
+      { e: '🐯', k: ['tigre', 'cara'] },
+      { e: '🐅', k: ['tigre'] },
+      { e: '🐆', k: ['leopardo'] },
+      { e: '🐴', k: ['caballo', 'cara'] },
+      { e: '🐎', k: ['caballo'] },
+      { e: '🦄', k: ['unicornio'] },
+      { e: '🦓', k: ['cebra'] },
+      { e: '🦌', k: ['ciervo'] },
+      { e: '🐮', k: ['vaca', 'cara'] },
+      { e: '🐂', k: ['buey'] },
+      { e: '🐃', k: ['búfalo', 'agua'] },
+      { e: '🐄', k: ['vaca'] },
+      { e: '🐷', k: ['cerdo', 'cara'] },
+      { e: '🐖', k: ['cerdo'] },
+      { e: '🐗', k: ['jabalí'] },
+      { e: '🐽', k: ['nariz', 'cerdo'] },
+      { e: '🐏', k: ['carnero'] },
+      { e: '🐑', k: ['oveja'] },
+      { e: '🐐', k: ['cabra'] },
+      { e: '🐪', k: ['dromedario'] },
+      { e: '🐫', k: ['camello'] },
+      { e: '🦙', k: ['llama'] },
+      { e: '🦒', k: ['jirafa'] },
+      { e: '🐘', k: ['elefante'] },
+      { e: '🦏', k: ['rinoceronte'] },
+      { e: '🦛', k: ['hipopótamo'] },
+      { e: '🐭', k: ['ratón', 'cara'] },
+      { e: '🐁', k: ['ratón'] },
+      { e: '🐀', k: ['rata'] },
+      { e: '🐹', k: ['hámster'] },
+      { e: '🐰', k: ['conejo', 'cara'] },
+      { e: '🐇', k: ['conejo'] },
+      { e: '🐿️', k: ['ardilla'] },
+      { e: '🦔', k: ['erizo'] },
+      { e: '🦇', k: ['murciélago'] },
+      { e: '🐻', k: ['oso'] },
+      { e: '🐨', k: ['koala'] },
+      { e: '🐼', k: ['panda'] },
+      { e: '🦥', k: ['perezoso'] },
+      { e: '🦦', k: ['nutria'] },
+      { e: '🦨', k: ['mofeta'] },
+      { e: '🦘', k: ['canguro'] },
+      { e: ' Badger', k: ['tejón'] },
+      { e: '🐾', k: ['huellas', 'patas'] },
+      { e: '🦃', k: ['pavo'] },
+      { e: '🐔', k: ['gallina'] },
+      { e: '🐓', k: ['gallo'] },
+      { e: '🐣', k: ['pollito', 'saliendo del cascarón'] },
+      { e: '🐤', k: ['pollito'] },
+      { e: '🐥', k: ['pollito', 'de frente'] },
+      { e: '🐦', k: ['pájaro'] },
+      { e: '🐧', k: ['pingüino'] },
+      { e: '🕊️', k: ['paloma'] },
+      { e: '🦅', k: ['águila'] },
+      { e: '🦆', k: ['pato'] },
+      { e: '🦢', k: ['cisne'] },
+      { e: '🦉', k: ['búho'] },
+      { e: '🦩', k: ['flamenco'] },
+      { e: '🦚', k: ['pavo real'] },
+      { e: '🦜', k: ['loro'] },
+      { e: '🐸', k: ['rana'] },
+      { e: '🐊', k: ['cocodrilo'] },
+      { e: '🐢', k: ['tortuga'] },
+      { e: '🦎', k: ['lagarto'] },
+      { e: '🐍', k: ['serpiente'] },
+      { e: '🐲', k: ['dragón', 'cara'] },
+      { e: '🐉', k: ['dragón'] },
+      { e: '🦕', k: ['saurópodo', 'dinosaurio'] },
+      { e: '🦖', k: ['t-rex', 'dinosaurio'] },
+      { e: '🐳', k: ['ballena', 'chorro'] },
+      { e: '🐋', k: ['ballena'] },
+      { e: '🐬', k: ['delfín'] },
+      { e: '🐟', k: ['pez'] },
+      { e: '🐠', k: ['pez', 'tropical'] },
+      { e: '🐡', k: ['pez globo'] },
+      { e: '🦈', k: ['tiburón'] },
+      { e: '🐙', k: ['pulpo'] },
+      { e: '🐚', k: ['concha', 'caracola'] },
+      { e: '🐌', k: ['caracol'] },
+      { e: '🦋', k: ['mariposa'] },
+      { e: '🐛', k: ['oruga', 'bicho'] },
+      { e: '🐜', k: ['hormiga'] },
+      { e: '🐝', k: ['abeja'] },
+      { e: '🐞', k: ['mariquita'] },
+      { e: '🦗', k: ['grillo'] },
+      { e: '🕷️', k: ['araña'] },
+      { e: '🕸️', k: ['telaraña'] },
+      { e: '🦂', k: ['escorpión'] },
+      { e: '🦟', k: ['mosquito'] },
+      { e: '🦠', k: ['microbio', 'bacteria'] },
+      { e: '💐', k: ['ramo', 'flores'] },
+      { e: '🌸', k: ['flor', 'cerezo'] },
+      { e: '💮', k: ['flor', 'blanca'] },
+      { e: '🏵️', k: ['roseta'] },
+      { e: '🌹', k: ['rosa', 'flor'] },
+      { e: '🥀', k: ['flor', 'marchita'] },
+      { e: '🌺', k: ['hibisco'] },
+      { e: '🌻', k: ['girasol'] },
+      { e: '🌼', k: ['margarita'] },
+      { e: '🌷', k: ['tulipán'] },
+      { e: '🌱', k: ['brote', 'planta'] },
+      { e: '🌲', k: ['árbol', 'perenne'] },
+      { e: '🌳', k: ['árbol', 'hojas'] },
+      { e: '🌴', k: ['palmera'] },
+      { e: '🌵', k: ['cactus'] },
+      { e: '🌾', k: ['arroz'] },
+      { e: '🌿', k: ['hierba'] },
+      { e: '☘️', k: ['trébol'] },
+      { e: '🍀', k: ['trébol', 'cuatro hojas', 'suerte'] },
+      { e: '🍁', k: ['hoja', 'arce'] },
+      { e: '🍂', k: ['hoja', 'caída', 'otoño'] },
+      { e: '🍃', k: ['hoja', 'viento'] },
+      { e: '🍄', k: ['champiñón', 'seta'] },
+      { e: '🌰', k: ['castaña'] },
+      { e: '🌍', k: ['mundo', 'tierra', 'europa', 'áfrica'] },
+      { e: '🌎', k: ['mundo', 'tierra', 'américa'] },
+      { e: '🌏', k: ['mundo', 'tierra', 'asia', 'australia'] },
+      { e: '🌕', k: ['luna', 'llena'] },
+      { e: '🌖', k: ['luna', 'menguante'] },
+      { e: '🌗', k: ['luna', 'cuarto menguante'] },
+      { e: '🌘', k: ['luna', 'nueva menguante'] },
+      { e: '🌑', k: ['luna', 'nueva'] },
+      { e: '🌒', k: ['luna', 'creciente'] },
+      { e: '🌓', k: ['luna', 'cuarto creciente'] },
+      { e: '🌔', k: ['luna', 'gibbosa creciente'] },
+      { e: '🌙', k: ['luna', 'creciente'] },
+      { e: '⭐', k: ['estrella'] },
+      { e: '🌟', k: ['estrella', 'brillante'] },
+      { e: '💫', k: ['estrella', 'fugas', 'mareo'] },
+      { e: '✨', k: ['brillo', 'magia', 'chispas'] },
+      { e: '☄️', k: ['cometa'] },
+      { e: '☀️', k: ['sol'] },
+      { e: '🔥', k: ['fuego', 'caliente', 'llama'] },
+      { e: '💧', k: ['gota', 'agua'] },
+      { e: '🌊', k: ['ola', 'mar'] },
+    ]
+  },
+  {
+    category: 'Comida y Bebida',
+    emojis: [
+      { e: '🍇', k: ['uvas'] },
+      { e: '🍈', k: ['melón'] },
+      { e: '🍉', k: ['sandía'] },
+      { e: '🍊', k: ['naranja', 'mandarina'] },
+      { e: '🍋', k: ['limón'] },
+      { e: '🍌', k: ['banana', 'plátano'] },
+      { e: '🍍', k: ['piña'] },
+      { e: '🥭', k: ['mango'] },
+      { e: '🍎', k: ['manzana', 'roja'] },
+      { e: '🍏', k: ['manzana', 'verde'] },
+      { e: '🍐', k: ['pera'] },
+      { e: '🍑', k: ['melocotón'] },
+      { e: '🍒', k: ['cerezas'] },
+      { e: '🍓', k: ['fresa'] },
+      { e: '🥝', k: ['kiwi'] },
+      { e: '🍅', k: ['tomate'] },
+      { e: '🥥', k: ['coco'] },
+      { e: '🥑', k: ['aguacate'] },
+      { e: '🍆', k: ['berenjena'] },
+      { e: '🥔', k: ['patata'] },
+      { e: '🥕', k: ['zanahoria'] },
+      { e: '🌽', k: ['maíz'] },
+      { e: '🌶️', k: ['pimiento', 'picante'] },
+      { e: '🥒', k: ['pepino'] },
+      { e: '🥬', k: ['lechuga'] },
+      { e: '🥦', k: ['brócoli'] },
+      { e: '🧄', k: ['ajo'] },
+      { e: '🧅', k: ['cebolla'] },
+      { e: '🥜', k: ['cacahuetes'] },
+      { e: '🍞', k: ['pan'] },
+      { e: '🥐', k: ['croissant'] },
+      { e: '🥖', k: ['baguette'] },
+      { e: '🥨', k: ['pretzel'] },
+      { e: '🥯', k: ['bagel'] },
+      { e: '🥞', k: ['tortitas', 'panqueques'] },
+      { e: '🧇', k: ['gofre'] },
+      { e: '🧀', k: ['queso'] },
+      { e: '🍖', k: ['carne', 'hueso'] },
+      { e: '🍗', k: ['pollo', 'muslo'] },
+      { e: '🥩', k: ['filete', 'carne'] },
+      { e: '🥓', k: ['bacon'] },
+      { e: '🍔', k: ['hamburguesa'] },
+      { e: '🍟', k: ['patatas', 'fritas'] },
+      { e: '🍕', k: ['pizza'] },
+      { e: '🌭', k: ['perrito', 'caliente'] },
+      { e: '🥪', k: ['sándwich'] },
+      { e: '🌮', k: ['taco'] },
+      { e: '🌯', k: ['burrito'] },
+      { e: '🥙', k: ['kebab'] },
+      { e: '🧆', k: ['falafel'] },
+      { e: '🥚', k: ['huevo'] },
+      { e: '🍳', k: ['huevo', 'frito', 'cocinar'] },
+      { e: '🥘', k: ['paella', 'guiso'] },
+      { e: '🍲', k: ['olla', 'sopa'] },
+      { e: '🥣', k: ['bol', 'cereales'] },
+      { e: '🥗', k: ['ensalada'] },
+      { e: '🍿', k: ['palomitas'] },
+      { e: '🧈', k: ['mantequilla'] },
+      { e: '🧂', k: ['sal'] },
+      { e: '🥫', k: ['lata', 'conserva'] },
+      { e: '🍱', k: ['bento'] },
+      { e: '🍘', k: ['galleta', 'arroz'] },
+      { e: '🍙', k: ['onigiri'] },
+      { e: '🍚', k: ['arroz', 'cocido'] },
+      { e: '🍛', k: ['curry'] },
+      { e: '🍜', k: ['ramen', 'fideos'] },
+      { e: '🍝', k: ['espaguetis'] },
+      { e: '🍠', k: ['boniato'] },
+      { e: '🍢', k: ['oden'] },
+      { e: '🍣', k: ['sushi'] },
+      { e: '🍤', k: ['gamba', 'frita'] },
+      { e: '🍥', k: ['naruto', 'pastel de pescado'] },
+      { e: '🥮', k: ['pastel', 'luna'] },
+      { e: '🍡', k: ['dango'] },
+      { e: '🥟', k: ['dumpling', 'empanadilla'] },
+      { e: '🥠', k: ['galleta', 'fortuna'] },
+      { e: '🥡', k: ['caja', 'comida para llevar'] },
+      { e: '🦀', k: ['cangrejo'] },
+      { e: '🦞', k: ['langosta'] },
+      { e: '🦐', k: ['gamba'] },
+      { e: '🦑', k: ['calamar'] },
+      { e: '🦪', k: ['ostra'] },
+      { e: '🍦', k: ['helado', 'cucurucho'] },
+      { e: '🍧', k: ['granizado'] },
+      { e: '🍨', k: ['helado', 'copa'] },
+      { e: '🍩', k: ['donut'] },
+      { e: '🍪', k: ['galleta', 'cookie'] },
+      { e: '🎂', k: ['tarta', 'pastel', 'cumpleaños'] },
+      { e: '🍰', k: ['pastel', 'porción'] },
+      { e: '🧁', k: ['cupcake'] },
+      { e: '🥧', k: ['pastel'] },
+      { e: '🍫', k: ['chocolate'] },
+      { e: '🍬', k: ['caramelo'] },
+      { e: '🍭', k: ['piruleta'] },
+      { e: '🍮', k: ['flan'] },
+      { e: '🍯', k: ['miel'] },
+      { e: '🍼', k: ['biberón'] },
+      { e: '🥛', k: ['leche', 'vaso'] },
+      { e: '☕', k: ['café', 'taza', 'caliente'] },
+      { e: '🍵', k: ['té'] },
+      { e: '🍶', k: ['sake'] },
+      { e: '🍾', k: ['champán', 'botella', 'corcho'] },
+      { e: '🍷', k: ['vino', 'copa'] },
+      { e: '🍸', k: ['cóctel'] },
+      { e: '🍹', k: ['zumo', 'tropical'] },
+      { e: '🍺', k: ['cerveza', 'jarra'] },
+      { e: '🍻', k: ['cervezas', 'brindis'] },
+      { e: '🥂', k: ['brindis', 'copas'] },
+      { e: '🥃', k: ['whisky', 'vaso'] },
+      { e: '🥤', k: ['refresco', 'vaso', 'pajita'] },
+      { e: '🧋', k: ['té', 'burbujas'] },
+      { e: '🧃', k: ['zumo', 'caja'] },
+      { e: '🧉', k: ['mate'] },
+      { e: '🧊', k: ['hielo', 'cubo'] },
+      { e: '🥢', k: ['palillos'] },
+      { e: '🍽️', k: ['plato', 'cubiertos'] },
+      { e: '🍴', k: ['tenedor', 'cuchillo'] },
+      { e: '🥄', k: ['cuchara'] }
+    ]
+  },
+  {
+    category: 'Actividades y Objetos',
+    emojis: [
+      { e: '⚽', k: ['fútbol', 'pelota', 'balón'] },
+      { e: '🏀', k: ['baloncesto', 'pelota'] },
+      { e: '🏈', k: ['fútbol americano', 'pelota'] },
+      { e: '⚾', k: ['béisbol', 'pelota'] },
+      { e: '🥎', k: ['sóftbol', 'pelota'] },
+      { e: '🎾', k: ['tenis', 'pelota'] },
+      { e: '🏐', k: ['voleibol', 'pelota'] },
+      { e: '🏉', k: ['rugby', 'pelota'] },
+      { e: '🎱', k: ['billar', 'bola 8'] },
+      { e: '🪀', k: ['yoyó'] },
+      { e: '🏓', k: ['ping pong'] },
+      { e: '🏸', k: ['bádminton'] },
+      { e: '🏒', k: ['hockey', 'hielo'] },
+      { e: '🏑', k: ['hockey', 'hierba'] },
+      { e: '🥍', k: ['lacrosse'] },
+      { e: '🏏', k: ['críquet'] },
+      { e: '🥅', k: ['portería'] },
+      { e: '⛳', k: ['golf', 'hoyo'] },
+      { e: '🪁', k: ['cometa'] },
+      { e: '🏹', k: ['arco', 'flecha'] },
+      { e: '🎣', k: ['pesca', 'caña'] },
+      { e: '🤿', k: ['buceo', 'gafas'] },
+      { e: '🥊', k: ['boxeo', 'guante'] },
+      { e: '🥋', k: ['karate', 'artes marciales'] },
+      { e: '🎽', k: ['camiseta', 'correr'] },
+      { e: '🛹', k: ['monopatín', 'skate'] },
+      { e: '🛷', k: ['trineo'] },
+      { e: '⛸️', k: ['patinaje', 'hielo'] },
+      { e: '🥌', k: ['curling'] },
+      { e: '🎿', k: ['esquís'] },
+      { e: '🏆', k: ['trofeo', 'copa', 'premio'] },
+      { e: '🏅', k: ['medalla', 'deportes'] },
+      { e: '🥇', k: ['medalla', 'oro', 'primero'] },
+      { e: '🥈', k: ['medalla', 'plata', 'segundo'] },
+      { e: '🥉', k: ['medalla', 'bronce', 'tercero'] },
+      { e: '🎫', k: ['ticket', 'entrada'] },
+      { e: '🎟️', k: ['ticket', 'admisión'] },
+      { e: '🎪', k: ['circo', 'carpa'] },
+      { e: '🤹', k: ['malabares'] },
+      { e: '🎭', k: ['teatro', 'máscaras'] },
+      { e: '🎨', k: ['arte', 'paleta'] },
+      { e: '🎬', k: ['cine', 'claqueta'] },
+      { e: '🎤', k: ['micrófono', 'cantar'] },
+      { e: '🎧', k: ['auriculares', 'música'] },
+      { e: '🎼', k: ['partitura', 'música'] },
+      { e: '🎹', k: ['teclado', 'piano'] },
+      { e: '🥁', k: ['batería'] },
+      { e: '🎷', k: ['saxofón'] },
+      { e: '🎺', k: ['trompeta'] },
+      { e: '🎸', k: ['guitarra'] },
+      { e: '🪕', k: ['banjo'] },
+      { e: '🎻', k: ['violín'] },
+      { e: '🎲', k: ['dado', 'juego'] },
+      { e: '♟️', k: ['ajedrez', 'peón'] },
+      { e: '🎯', k: ['dardo', 'diana'] },
+      { e: '🎳', k: ['bolos'] },
+      { e: '🎮', k: ['juego', 'consola', 'videojuego'] },
+      { e: '🎰', k: ['tragaperras'] },
+      { e: '🧩', k: ['puzzle', 'pieza'] },
+      { e: '🧸', k: ['oso', 'peluche'] },
+      { e: '♠️', k: ['picas'] },
+      { e: '♥️', k: ['corazones'] },
+      { e: '♦️', k: ['diamantes'] },
+      { e: '♣️', k: ['tréboles'] },
+      { e: '🃏', k: ['joker', 'comodín'] },
+      { e: '🀄', k: ['mahjong'] },
+      { e: '🎴', k: ['cartas', 'flores'] },
+      { e: 'Gafas', k: ['gafas'] },
+      { e: '🕶️', k: ['gafas', 'sol'] },
+      { e: '🥽', k: ['gafas', 'protección'] },
+      { e: '🥼', k: ['bata', 'laboratorio'] },
+      { e: '🦺', k: ['chaleco', 'seguridad'] },
+      { e: '👔', k: ['corbata'] },
+      { e: '👕', k: ['camiseta'] },
+      { e: '👖', k: ['pantalones', 'jeans'] },
+      { e: '🧣', k: ['bufanda'] },
+      { e: '🧤', k: ['guantes'] },
+      { e: '🧥', k: ['abrigo'] },
+      { e: '🧦', k: ['calcetines'] },
+      { e: '👗', k: ['vestido'] },
+      { e: '👘', k: ['kimono'] },
+      { e: '🥻', k: ['sari'] },
+      { e: '🩱', k: ['bañador', 'una pieza'] },
+      { e: '🩲', k: ['calzoncillos'] },
+      { e: '🩳', k: ['bañador', 'corto'] },
+      { e: '👙', k: ['bikini'] },
+      { e: '👚', k: ['blusa'] },
+      { e: '👛', k: ['monedero'] },
+      { e: '👜', k: ['bolso'] },
+      { e: '👝', k: ['neceser'] },
+      { e: '🎒', k: ['mochila'] },
+      { e: '👞', k: ['zapato', 'hombre'] },
+      { e: '👟', k: ['zapatilla', 'deporte'] },
+      { e: '🥾', k: ['bota', 'senderismo'] },
+      { e: '🥿', k: ['zapato', 'plano'] },
+      { e: '👠', k: ['zapato', 'tacón'] },
+      { e: '👡', k: ['sandalia'] },
+      { e: '🩰', k: ['zapatilla', 'ballet'] },
+      { e: '👢', k: ['bota'] },
+      { e: '👑', k: ['corona', 'rey', 'reina'] },
+      { e: '👒', k: ['sombrero', 'mujer'] },
+      { e: '🎩', k: ['sombrero', 'copa'] },
+      { e: '🎓', k: ['birrete', 'graduación'] },
+      { e: '🧢', k: ['gorra'] },
+      { e: '⛑️', k: ['casco', 'rescate'] },
+      { e: '💄', k: ['pintalabios'] },
+      { e: '💍', k: ['anillo'] },
+      { e: '💼', k: ['maletín'] },
+      { e: '☂️', k: ['paraguas'] },
+      { e: '🌂', k: ['paraguas', 'cerrado'] },
+      { e: '🎁', k: ['regalo', 'caja', 'fiesta'] },
+      { e: '🎉', k: ['fiesta', 'celebración', 'confeti'] },
+      { e: '💻', k: ['ordenador', 'portátil', 'laptop'] },
+      { e: '📱', k: ['móvil', 'teléfono', 'celular'] },
+      { e: '⏰', k: ['reloj', 'alarma', 'despertador'] }
+    ]
+  },
+  {
+    category: 'Viajes y Lugares',
+    emojis: [
+      { e: '🚗', k: ['coche', 'auto'] },
+      { e: '🚕', k: ['taxi'] },
+      { e: '🚙', k: ['todoterreno'] },
+      { e: '🚌', k: ['autobús'] },
+      { e: '🚎', k: ['trolebús'] },
+      { e: '🏎️', k: ['coche', 'carreras'] },
+      { e: '🚓', k: ['coche', 'policía'] },
+      { e: '🚑', k: ['ambulancia'] },
+      { e: '🚒', k: ['camión', 'bomberos'] },
+      { e: '🚐', k: ['furgoneta'] },
+      { e: '🚚', k: ['camión'] },
+      { e: '🚛', k: ['camión', 'articulado'] },
+      { e: '🚜', k: ['tractor'] },
+      { e: '🚲', k: ['bicicleta'] },
+      { e: '🛴', k: ['patinete'] },
+      { e: '🛵', k: ['moto', 'scooter'] },
+      { e: '🏍️', k: ['motocicleta'] },
+      { e: '🛺', k: ['tuk-tuk', 'auto rickshaw'] },
+      { e: '🚨', k: ['luz', 'policía', 'sirena'] },
+      { e: '🚔', k: ['coche', 'policía', 'viniendo'] },
+      { e: '🚍', k: ['autobús', 'viniendo'] },
+      { e: '🚘', k: ['coche', 'viniendo'] },
+      { e: '🚖', k: ['taxi', 'viniendo'] },
+      { e: '✈️', k: ['avión'] },
+      { e: '🛩️', k: ['avioneta'] },
+      { e: '🛫', k: ['avión', 'despegue'] },
+      { e: '🛬', k: ['avión', 'aterrizaje'] },
+      { e: '🚀', k: ['cohete', 'espacio'] },
+      { e: '🛸', k: ['ovni', 'platillo volante'] },
+      { e: '🚁', k: ['helicóptero'] },
+      { e: '🛶', k: ['canoa'] },
+      { e: '⛵', k: ['barco', 'vela'] },
+      { e: '🚤', k: ['lancha'] },
+      { e: '🛳️', k: ['barco', 'pasajeros', 'crucero'] },
+      { e: '⛴️', k: ['ferry'] },
+      { e: '🚢', k: ['barco'] },
+      { e: '⚓', k: ['ancla'] },
+      { e: '⛽', k: ['gasolinera'] },
+      { e: '🚧', k: ['construcción', 'obras'] },
+      { e: '🚦', k: ['semáforo', 'vertical'] },
+      { e: '🚥', k: ['semáforo', 'horizontal'] },
+      { e: '🛑', k: ['señal', 'stop'] },
+      { e: '🗿', k: ['moai', 'estatua'] },
+      { e: '🗽', k: ['estatua de la libertad'] },
+      { e: '🗼', k: ['torre eiffel'] },
+      { e: '🏰', k: ['castillo'] },
+      { e: '🏯', k: ['castillo', 'japonés'] },
+      { e: '🏟️', k: ['estadio'] },
+      { e: '🎡', k: ['noria'] },
+      { e: '🎢', k: ['montaña rusa'] },
+      { e: '🎠', k: ['tiovivo', 'carrusel'] },
+      { e: '⛲', k: ['fuente'] },
+      { e: '⛱️', k: ['sombrilla', 'playa'] },
+      { e: '🏖️', k: ['playa', 'sombrilla'] },
+      { e: '🏝️', k: ['isla', 'desierta'] },
+      { e: '🏜️', k: ['desierto'] },
+      { e: '🌋', k: ['volcán'] },
+      { e: '⛰️', k: ['montaña'] },
+      { e: '🏔️', k: ['montaña', 'nieve'] },
+      { e: '🗻', k: ['monte fuji'] },
+      { e: '🏕️', k: ['camping', 'tienda'] },
+      { e: '⛺', k: ['tienda', 'campaña'] },
+      { e: '🏠', k: ['casa'] },
+      { e: '🏡', k: ['casa', 'jardín'] },
+      { e: '🏢', k: ['edificio', 'oficinas'] },
+      { e: '🏣', k: ['oficina', 'correos', 'japonesa'] },
+      { e: '🏤', k: ['oficina', 'correos'] },
+      { e: '🏥', k: ['hospital'] },
+      { e: '🏦', k: ['banco'] },
+      { e: '🏨', k: ['hotel'] },
+      { e: '🏪', k: ['tienda', '24 horas'] },
+      { e: '🏫', k: ['escuela', 'colegio'] },
+      { e: '🏬', k: ['grandes almacenes'] },
+      { e: '🏭', k: ['fábrica'] },
+      { e: '💒', k: ['boda', 'iglesia'] },
+      { e: '🏛️', k: ['edificio', 'clásico'] },
+      { e: '⛪', k: ['iglesia'] },
+      { e: '🕌', k: ['mezquita'] },
+      { e: '🕍', k: ['sinagoga'] },
+      { e: '🛕', k: ['templo', 'hindú'] },
+      { e: '🕋', k: ['kaaba'] },
+      { e: '⛩️', k: ['santuario', 'sintoísta'] },
+      { e: '🌃', k: ['noche', 'estrellas'] },
+      { e: '🏙️', k: ['ciudad', 'rascacielos'] },
+      { e: '🌉', k: ['puente', 'noche'] },
+      { e: '🌌', k: ['vía láctea'] },
+      { e: '🌠', k: ['estrella', 'fugas'] },
+      { e: '🎇', k: ['bengala'] },
+      { e: '🎆', k: ['fuegos artificiales'] },
+      { e: '🌇', k: ['amanecer', 'ciudad'] },
+      { e: '🌅', k: ['amanecer'] },
+      { e: '🌄', k: ['amanecer', 'montañas'] }
+    ]
+  },
+  {
+    category: 'Símbolos',
+    emojis: [
+      { e: '❤️', k: ['corazón', 'rojo', 'amor'] },
+      { e: '🧡', k: ['corazón', 'naranja'] },
+      { e: '💛', k: ['corazón', 'amarillo'] },
+      { e: '💚', k: ['corazón', 'verde'] },
+      { e: '💙', k: ['corazón', 'azul'] },
+      { e: '💜', k: ['corazón', 'morado'] },
+      { e: '🖤', k: ['corazón', 'negro'] },
+      { e: '🤍', k: ['corazón', 'blanco'] },
+      { e: '🤎', k: ['corazón', 'marrón'] },
+      { e: '💔', k: ['corazón', 'roto'] },
+      { e: '❣️', k: ['corazón', 'exclamación'] },
+      { e: '💕', k: ['dos', 'corazones'] },
+      { e: '💞', k: ['corazones', 'girando'] },
+      { e: '💓', k: ['corazón', 'latiendo'] },
+      { e: '💗', k: ['corazón', 'creciendo'] },
+      { e: '💖', k: ['corazón', 'brillante'] },
+      { e: '💘', k: ['corazón', 'flecha'] },
+      { e: '💝', k: ['corazón', 'lazo'] },
+      { e: '💟', k: ['corazón', 'decoración'] },
+      { e: '☮️', k: ['paz'] },
+      { e: '✝️', k: ['cruz', 'cristiana'] },
+      { e: '☪️', k: ['estrella', 'luna creciente', 'islam'] },
+      { e: '🕉️', k: ['om', 'hinduismo'] },
+      { e: '☸️', k: ['rueda', 'dharma', 'budismo'] },
+      { e: '✡️', k: ['estrella', 'david', 'judaísmo'] },
+      { e: '☯️', k: ['yin', 'yang'] },
+      { e: '☦️', k: ['cruz', 'ortodoxa'] },
+      { e: '🛐', k: ['lugar', 'culto'] },
+      { e: '⛎', k: ['ofiuco'] },
+      { e: '♈', k: ['aries'] },
+      { e: '♉', k: ['tauro'] },
+      { e: '♊', k: ['géminis'] },
+      { e: '♋', k: ['cáncer'] },
+      { e: '♌', k: ['leo'] },
+      { e: '♍', k: ['virgo'] },
+      { e: '♎', k: ['libra'] },
+      { e: '♏', k: ['escorpio'] },
+      { e: '♐', k: ['sagitario'] },
+      { e: '♑', k: ['capricornio'] },
+      { e: '♒', k: ['acuario'] },
+      { e: '♓', k: ['piscis'] },
+      { e: '🆔', k: ['ID'] },
+      { e: '⚛️', k: ['átomo'] },
+      { e: '☢️', k: ['radiactivo'] },
+      { e: '☣️', k: ['riesgo', 'biológico'] },
+      { e: '📴', k: ['móvil', 'apagado'] },
+      { e: '📳', k: ['móvil', 'vibración'] },
+      { e: '🈶', k: ['japonés', 'no gratis'] },
+      { e: '🈚', k: ['japonés', 'gratis'] },
+      { e: '🈸', k: ['japonés', 'solicitud'] },
+      { e: '🈺', k: ['japonés', 'abierto'] },
+      { e: '🈷️', k: ['japonés', 'cantidad mensual'] },
+      { e: '✴️', k: ['ocho', 'puntas'] },
+      { e: '🆚', k: ['vs', 'versus'] },
+      { e: '🉑', k: ['japonés', 'aceptable'] },
+      { e: '💮', k: ['flor', 'blanca'] },
+      { e: '🉐', k: ['japonés', 'chollo'] },
+      { e: '㊙️', k: ['japonés', 'secreto'] },
+      { e: '㊗️', k: ['japonés', 'felicitaciones'] },
+      { e: '🈴', k: ['japonés', 'aprobado'] },
+      { e: '🈵', k: ['japonés', 'completo'] },
+      { e: '🈹', k: ['japonés', 'descuento'] },
+      { e: '🈲', k: ['japonés', 'prohibido'] },
+      { e: '🅰️', k: ['A', 'sangre'] },
+      { e: '🅱️', k: ['B', 'sangre'] },
+      { e: '🆎', k: ['AB', 'sangre'] },
+      { e: '🆑', k: ['CL'] },
+      { e: '🅾️', k: ['O', 'sangre'] },
+      { e: '🆘', k: ['SOS', 'ayuda'] },
+      { e: '❌', k: ['cruz', 'no'] },
+      { e: '⭕', k: ['círculo', 'sí'] },
+      { e: '🛑', k: ['stop'] },
+      { e: '⛔', k: ['prohibido', 'paso'] },
+      { e: '📛', k: ['identificación'] },
+      { e: '🚫', k: ['prohibido'] },
+      { e: '💯', k: ['cien', 'puntos'] },
+      { e: '💢', k: ['enfado', 'vena'] },
+      { e: '♨️', k: ['aguas', 'termales'] },
+      { e: '🚷', k: ['prohibido', 'peatones'] },
+      { e: '🚯', k: ['no', 'tirar', 'basura'] },
+      { e: '🚳', k: ['prohibido', 'bicicletas'] },
+      { e: '🚱', k: ['agua', 'no potable'] },
+      { e: '🔞', k: ['mayores', '18'] },
+      { e: '📵', k: ['prohibido', 'móviles'] },
+      { e: '🚭', k: ['prohibido', 'fumar'] },
+      { e: '❗', k: ['exclamación'] },
+      { e: '❕', k: ['exclamación', 'blanca'] },
+      { e: '❓', k: ['interrogación'] },
+      { e: '❔', k: ['interrogación', 'blanca'] },
+      { e: '‼️', k: ['doble', 'exclamación'] },
+      { e: '⁉️', k: ['interrogación', 'exclamación'] },
+      { e: '🔅', k: ['bajo', 'brillo'] },
+      { e: '🔆', k: ['alto', 'brillo'] },
+      { e: '〽️', k: ['marca', 'canción'] },
+      { e: '⚠️', k: ['advertencia'] },
+      { e: '🚸', k: ['cuidado', 'niños'] },
+      { e: '🔱', k: ['tridente'] },
+      { e: '⚜️', k: ['flor', 'lis'] },
+      { e: '🔰', k: ['principiante', 'japonés'] },
+      { e: '♻️', k: ['reciclaje'] },
+      { e: '✅', k: ['check', 'tick', 'verde'] },
+      { e: '🈯', k: ['japonés', 'reservado'] },
+      { e: '💹', k: ['gráfico', 'aumento'] },
+      { e: '❇️', k: ['chispa'] },
+      { e: '✳️', k: ['asterisco', 'ocho'] },
+      { e: '❎', k: ['cruz', 'botón'] },
+      { e: '🌐', k: ['globo', 'meridianos'] },
+      { e: '💠', k: ['diamante', 'punta'] },
+      { e: 'Ⓜ️', k: ['M', 'círculo'] },
+      { e: '🈂️', k: ['japonés', 'servicio'] },
+      { e: '🏧', k: ['cajero', 'ATM'] },
+      { e: '🛂', k: ['control', 'pasaportes'] },
+      { e: '🚮', k: ['basura', 'papelera'] },
+      { e: '🚻', k: ['baño', 'aseo'] },
+      { e: '🚹', k: ['hombre', 'baño'] },
+      { e: '🚺', k: ['mujer', 'baño'] },
+      { e: '🚼', k: ['bebé', 'símbolo'] },
+      { e: '📶', k: ['cobertura', 'barras'] },
+      { e: '🎦', k: ['cine', 'cámara'] },
+      { e: '➡️', k: ['flecha', 'derecha'] },
+      { e: '⬅️', k: ['flecha', 'izquierda'] },
+      { e: '⬆️', k: ['flecha', 'arriba'] },
+      { e: '⬇️', k: ['flecha', 'abajo'] },
+      { e: '🔄', k: ['flechas', 'actualizar'] },
+      { e: '▶️', k: ['play', 'reproducir'] },
+      { e: '⏸️', k: ['pausa'] },
+      { e: '⏹️', k: ['stop', 'parar'] },
+      { e: '⏺️', k: ['grabar'] },
+      { e: '⏭️', k: ['siguiente', 'pista'] },
+      { e: '⏮️', k: ['anterior', 'pista'] },
+      { e: '⏩', k: ['avance', 'rápido'] },
+      { e: '⏪', k: ['retroceso', 'rápido'] },
+      { e: '🔀', k: ['aleatorio'] },
+      { e: '🔁', k: ['repetir'] },
+      { e: '🔂', k: ['repetir', 'una'] },
+      { e: '#️⃣', k: ['hashtag', 'número'] },
+      { e: '*️⃣', k: ['asterisco', 'tecla'] },
+      { e: '0️⃣', k: ['cero'] },
+      { e: '1️⃣', k: ['uno'] },
+      { e: '2️⃣', k: ['dos'] },
+      { e: '3️⃣', k: ['tres'] },
+      { e: '4️⃣', k: ['cuatro'] },
+      { e: '5️⃣', k: ['cinco'] },
+      { e: '6️⃣', k: ['seis'] },
+      { e: '7️⃣', k: ['siete'] },
+      { e: '8️⃣', k: ['ocho'] },
+      { e: '9️⃣', k: ['nueve'] },
+      { e: '🔟', k: ['diez'] },
+      { e: '🔤', k: ['letras', 'abc'] },
+      { e: '🔡', k: ['letras', 'minúsculas'] },
+      { e: '🔠', k: ['letras', 'mayúsculas'] },
+      { e: '🏳️', k: ['bandera', 'blanca'] },
+      { e: '🏴', k: ['bandera', 'negra'] },
+      { e: '🏁', k: ['bandera', 'cuadros', 'carreras'] },
+      { e: '🚩', k: ['bandera', 'triangular'] },
+      { e: '🏳️‍🌈', k: ['bandera', 'arcoíris', 'lgbt'] },
+      { e: '🏳️‍⚧️', k: ['bandera', 'trans'] }
+    ]
+  }
+];
+
+
+            // --- Función para renderizar los emoticonos ---
+            const renderEmojis = (data) => {
+                emojiContainer.innerHTML = ''; // Limpiar el contenedor
+                
+                data.forEach(category => {
+                    const categoryDiv = document.createElement('div');
+                    categoryDiv.className = 'emoji-category';
+
+                    const title = document.createElement('h2');
+                    title.textContent = category.category;
+                    
+                    const grid = document.createElement('div');
+                    grid.className = 'emoji-grid';
+
+                    category.emojis.forEach(emoji => {
+                        const button = document.createElement('button');
+                        button.className = 'emoji-item';
+                        button.textContent = emoji.e;
+                        button.setAttribute('aria-label', `Copiar emoji: ${emoji.k[0]}`);
+                        grid.appendChild(button);
+                    });
+                    
+                    categoryDiv.appendChild(title);
+                    categoryDiv.appendChild(grid);
+                    emojiContainer.appendChild(categoryDiv);
+                });
+            };
+            
+            // --- Función de Búsqueda ---
+            const handleSearch = () => {
+                const query = searchInput.value.toLowerCase().trim();
+                
+                if (!query) {
+                    renderEmojis(emojiData); // Si no hay búsqueda, mostrar todo
+                    return;
+                }
+                
+                const filteredData = emojiData.map(category => {
+                    const filteredEmojis = category.emojis.filter(emoji => 
+                        emoji.e.includes(query) || emoji.k.some(keyword => keyword.includes(query))
+                    );
+                    return { ...category, emojis: filteredEmojis };
+                }).filter(category => category.emojis.length > 0);
+
+                renderEmojis(filteredData);
+            };
+
+            // --- Función para Copiar al Portapapeles ---
+            const handleCopy = (e) => {
+                const emojiButton = e.target.closest('.emoji-item');
+                if (!emojiButton) return;
+
+                navigator.clipboard.writeText(emojiButton.textContent).then(() => {
+                    showNotification();
+                }).catch(err => {
+                    console.error('Error al copiar el emoji: ', err);
+                });
+            };
+
+            let notificationTimeout;
+            const showNotification = () => {
+                clearTimeout(notificationTimeout);
+                copyNotification.classList.add('show');
+                notificationTimeout = setTimeout(() => {
+                    copyNotification.classList.remove('show');
+                }, 1500);
+            };
+
+            // --- Event Listeners ---
+            searchInput.addEventListener('input', handleSearch);
+            emojiContainer.addEventListener('click', handleCopy);
+
+            // --- Renderizado Inicial ---
+            renderEmojis(emojiData);
+        });
+    </script>
+</body>
+</html>

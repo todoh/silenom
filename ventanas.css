@@ -1,0 +1,797 @@
+/* Estilos para las ventanas flotantes (.pantalla) */
+.pantalla2 {
+   
+
+  /* Color de fondo oscuro */
+    color: #000000; /* Color de texto claro */
+    border: 0px solid #555;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    resize: both;
+    overflow: hidden; /* Importante para que el contenido no se salga */
+    display: none; /* Ocultas por defecto */
+    flex-direction: column;
+    min-width: 250px;
+    min-height: 150px;
+}
+ 
+#info .contenido-ventana {
+padding-top: 60px;
+padding-left: 20%;  
+padding-right:20% ;
+
+}
+.presentacion {
+    font-size: 0.6em;
+    line-height: 1.8;
+    margin-top: 20px;
+    color: #555;
+}  
+
+#escritorio {display: flex;}
+
+#info {display: none;
+ 
+ 
+ position: relative;
+ width: 80%; padding-right:0% ;
+padding-left: 10%;  
+    color: #333;
+ font-size: 20px;
+ overflow-y: scroll;
+}  
+ 
+#info p {
+ 
+ padding-left: 0;
+   color: #000;
+    background: #ffffff00;
+} 
+
+#info h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+    color: #000;
+}
+.imagenes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;flex-direction: row;
+}
+.imagenes2 {left: 50%;
+   transform: translateX(-50%); position: relative;
+    width: 70%; /* Es mejor que ocupe todo el ancho para que la cuadrícula se distribuya bien */
+    display: grid;
+    /* Esto crea una cuadrícula responsiva: columnas de mínimo 150px que se ajustan automáticamente para llenar el espacio. */
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    
+    gap: 20px;
+    margin-top: 20px; 
+}
+
+
+.imagenes3 {
+    display: flex;
+   width: 100dvw;
+
+ 
+     flex-direction: row;
+}
+.imagenes2 img {
+    width: 100%; /* La imagen ocupa todo el ancho de su celda */
+    height: 100%; /* La imagen ocupa toda la altura de su celda */
+    height: auto;
+    object-fit: cover; /* Evita que la imagen se deforme al llenar la celda */
+    border-radius: 8px;
+}
+.imagenes img {
+    max-width: 10%;
+    height: auto;
+    margin: 10px 0;
+    border-radius: 8px;
+}
+.imagenes3 img {
+ scale: 0.4;
+    border-radius: 8px;
+}
+ 
+
+
+.pantalla {
+  
+  
+    
+    /* Centrado inicial en la pantalla */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  /* Color de fondo oscuro */
+    color: #000000; /* Color de texto claro */
+    border: 0px solid #555;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    border-radius: 8px;
+    resize: both;
+    overflow: hidden; /* Importante para que el contenido no se salga */
+    display: none; /* Ocultas por defecto */
+    flex-direction: column;
+    min-width: 250px;
+    min-height: 150px;
+}
+
+/* Estilo para la ventana minimizada */
+.pantalla.minimizada {
+    height: 42px; /* Solo se ve el título */
+    min-height: 42px;
+    resize: none;
+    overflow: hidden;
+}
+
+#image-preview-container { 
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    height: 12%;
+    width: 12%;
+}
+#personajes {display: flex;
+ 
+
+;}
+.titulo-ventana {
+    height: 42px; /* Altura del título */
+    background-color: rgba(31, 31, 31, 0.103); /* Semi-transparent background */
+    color: #000000;
+    padding: 8px 12px;
+    cursor: move;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    border-bottom: 0px solid #444;
+    backdrop-filter: blur(5px); /* Adjust the blur value as needed */
+    -webkit-backdrop-filter: blur(5px); /* For Safari support */
+}
+
+.titulo-ventana .titulo {
+    font-weight: bold;
+}
+
+.botones-ventana {
+    display: flex;
+    align-items: center;
+}
+     #barra2 {display: none;  
+ 
+   
+    
+    }  
+
+ #barra2 button {
+    
+    font-size: 20px;
+    
+    } 
+
+
+
+.botones-ventana button {
+    background: transparent;
+    border: none;
+    color: #000000;
+    cursor: pointer;
+    margin-left: 4px;
+    padding: 4px;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.botones-ventana button:hover {
+    background-color: #555;
+}
+
+.botones-ventana button svg {
+    width: 18px;
+    height: 18px;
+    fill: currentColor;
+}
+.procedimiento-container {
+    width: 90%;
+    max-width: 800px;
+ display: flex;
+   justify-content: center;
+   align-items: center;
+  position: relative;
+    top: 50%; 
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+    border-radius: 10px;
+    
+    flex-direction: column;
+    gap: 15px;
+}
+#prompt-procedimiento {
+    width: 100%;
+    min-height: 150px;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #444;
+   
+    font-size: 1em;
+}
+#resultado-procedimiento {
+    margin-top: 15px;
+    padding: 15px;
+  
+    border-radius: 5px;
+    min-height: 100px;
+    white-space: pre-wrap; /* Para respetar los saltos de línea y espacios */
+}
+#resultadofinal-procedimiento {
+    margin-top: 15px;
+    padding: 15px; position: fixed;
+   display: none;
+    height: 90%;
+      left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 5px;
+    min-height: 100px;
+    white-space: pre-wrap; /* Para respetar los saltos de línea y espacios */
+}
+.gifs {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px;
+    height: 200px;
+ z-index: -1;
+ display: none;  /* Oculto por defecto */
+}
+
+/* Estilo para el cuadro de selección (lasso) */
+#selection-box {
+    position: absolute;
+    background-color: rgba(46, 116, 222, 0.2); /* Fondo azul semitransparente */
+    border: 1px solid #2e74de; /* Borde azul sólido */
+    z-index: 10000; /* Asegura que esté por encima de otros elementos */
+    pointer-events: none; /* Evita que el propio cuadro interfiera con los eventos del ratón */
+}
+.contenido-ventana {
+ position: absolute;
+ top: 0%;
+    left: 0%;
+    right: 0%;
+    bottom: 0%;
+     overflow: auto; /* Añade scroll si el contenido es muy largo */
+}
+#chat22 {position: absolute;
+
+left: 170px;
+
+
+
+
+}
+/* Gestor de ventanas */
+#gestor-ventanas {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%; background-color: #ffffff25;
+       backdrop-filter: blur(5px); /* Adjust the blur value as needed */
+    -webkit-backdrop-filter: blur(5px); /* For Safari support */
+    color: #000000;
+    padding: 5px 10px;
+    box-sizing: border-box;
+    z-index: 10000;
+    border-top: 0px solid #444;
+    display: none;
+    align-items: center;
+    gap: 15px;
+}
+
+#gestor-ventanas h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+#lista-ventanas {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 8px;
+}
+
+/* --- ESTILOS PARA LA VISTA CLARA --- */
+
+/* Por defecto, el botón de cierre del modo claro está oculto */
+.clear-mode-close {
+    display: none;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background-color:transparent;
+    color: rgba(255, 255, 255, 0);
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    line-height: 32px;
+    text-align: center;
+    /* Encima     cursor: pointer;            pantalla */
+    z-index: 10001; /* Encima del contenido de la pantalla */
+    transition: background-color 0.2s;
+}
+
+.clear-mode-close:hover {
+    background-color: rgba(255, 255, 255, 0);
+}
+.modal-ia-content {
+
+    background-color: rgba(255, 255, 255, 1);
+
+
+}
+
+/* Cuando el modo claro está activo en el body... */
+body.clear-view-mode .pantalla {
+    /* Ocupar toda la pantalla menos la barra inferior */
+ 
+    top: 0px !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    /* Quitar estilos de ventana */
+    transform: none !important;
+    border-radius: 0;
+    border: none;
+    resize: none;
+    box-shadow: none;
+    z-index: 5000; /* Alto z-index para estar por encima de otros elementos */
+}
+
+/* Ocultar la barra de título original en modo claro */
+body.clear-view-mode .titulo-ventana {
+    display: none;
+}
+
+/* El contenido debe ocupar todo el espacio disponible */
+body.clear-view-mode .contenido-ventana {
+    height: 100%;
+    width: 100%;
+}
+
+/* Mostrar el nuevo botón de cierre solo en modo claro */
+body.clear-view-mode .clear-mode-close {
+    display: block;
+}
+#botonera {
+    position: fixed;
+    right: 0px;
+top: 0px;
+display: flex;
+z-index: 100000;
+
+}
+#botonera button {
+
+font-size: 20px;
+
+
+}
+
+
+#menuweb {    text-wrap: wrap;
+ 
+ right: 0px;
+ left: 0px;
+position: absolute;
+  top: 65px;
+  bottom: 0px;
+z-index: 100000;
+  
+ 
+color: white;
+ 
+    
+display: flex;
+   flex-direction: column;
+padding: 2px;
+ 
+font-size: 30px;
+}
+#menuweb button {
+font-size: 20px;
+
+
+
+
+}
+.barra {
+
+top: 42px;
+right: 138px;
+
+
+}
+#menuweb.expandido {
+     display: flex;
+
+   
+}
+.g_id_signin {  }
+.gg {   }
+/* Estilos base y de transición para la barra de herramientas */
+#herramientas {
+    /* Propiedades que no cambian */
+    position: fixed;
+    left: 15px;
+    top: 15px;
+ font-size: 20px;
+    padding: 25px; 
+    display: flex; /* Añadido para que los botones se alineen */
+    flex-direction: column;
+    gap: 15px;
+   
+    background-color: #ffffffef;  
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    z-index: 1000001 !important;
+    overflow: hidden; /* Oculta el contenido que se desborda durante la animación */
+
+    /* Propiedades que SÍ cambian (estado inicial) */
+    width: 228px;
+    height: 58px; /* Ajustado para que siempre ocupe la altura y solo cambie el ancho */
+
+    /* ¡LA MAGIA DE LA ANIMACIÓN! */
+    transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
+}
+  .quality-selector-container {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 0px solid #eee;
+    }
+    .quality-selector-container label {
+        display: block;
+        margin-bottom: 7px;
+           
+
+    }
+    /* --- ESTILOS PARA EL SLIDER (input[type="range"]) --- */
+    .quality-selector-container input[type="range"] {
+        width: 100%;  
+        -webkit-appearance: none; /* Oculta el estilo por defecto en WebKit */
+        appearance: none;
+        width: 100%;
+        background: transparent; /* Hace el fondo de la barra transparente, el color lo da el track */
+        cursor: pointer;
+        height: 18px; /* Espacio vertical para el manejador */
+    }
+
+    /* --- Track/Barra --- */
+    .quality-selector-container input[type="range"]::-webkit-slider-runnable-track {
+        width: 100%;
+        height: 6px;
+        background: #000000; /* Barra negra */
+        border-radius: 3px;
+    }
+
+    .quality-selector-container input[type="range"]::-moz-range-track {
+        width: 100%;
+        height: 6px;
+        background: #000000; /* Barra negra */
+        border-radius: 3px;
+    }
+
+    /* --- Thumb/Manejador --- */
+    .quality-selector-container input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -6px; /* Centra el manejador en la barra */
+        width: 18px;
+        height: 18px;
+        background: #555; /* Gris oscuro para el manejador */
+        border-radius: 50%;
+    }
+
+    .quality-selector-container input[type="range"]::-moz-range-thumb {
+        width: 18px;
+        height: 18px;
+        background: #555; /* Gris oscuro para el manejador */
+        border-radius: 50%;
+        border: none;
+    }
+
+/* Estilos que se APLICAN cuando la clase .expandido está presente */
+#herramientas.expandido {
+    /* Solo necesitamos definir las propiedades que cambian */
+    width: 450px;   height: 96.5%;
+}
+#herramientas2 {
+    /* Propiedades que no cambian */
+    position: fixed;
+    left: 0px;
+    bottom: 0px;
+    right: 0px;
+    top: 0px;
+ font-size: 22px;
+    padding: 25px; 
+    display: flex; /* Añadido para que los botones se alineen */
+    flex-direction: column;
+    gap: 15px;
+   
+    background-color: #ffffffef;  
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+    z-index: 1000001 !important;
+     /* Oculta el contenido que se desborda durante la animación */
+overflow-x: scroll;
+    /* Propiedades que SÍ cambian (estado inicial) */
+    width:170px;
+      /* Ajustado para que siempre ocupe la altura y solo cambie el ancho */
+
+    /* ¡LA MAGIA DE LA ANIMACIÓN! */
+    transition: width 0.4s ease-in-out, height 0.4s ease-in-out;
+}
+/* En uno de tus archivos .css */
+#bibliotecadatos-lista {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 20px;
+    height: 100%;
+    overflow-y: auto;
+}
+
+/* Reemplaza la regla que ya tienes en ventanas.css por esta */
+/* ================================================================ */
+/* === PEGA ESTE BLOQUE COMPLETO EN ventanas.css (REEMPLAZANDO EL ANTERIOR) === */
+/* ================================================================ */
+
+/* 1. Contenedor padre: establece el marco de referencia */
+.personaje {
+    position: relative;
+    /* Aseguramos que el contenido que no quepa se oculte para mantener el diseño limpio */
+    overflow: hidden; 
+}
+
+/* 2. Capa de fondo: la imagen y descripción */
+.personaje .personaje-visual {
+    position: relative; /* Lo hacemos relativo para que los z-index funcionen correctamente */
+    z-index: 1; /* Le asignamos una capa base (inferior) */
+}
+
+/* 3. Capa de botones: todos los botones de la portada */
+.personaje .change-tag-btn,
+.personaje .change-arc-btn,
+.personaje .move-btn {
+    position: absolute; /* Posición absoluta DENTRO de .personaje */
+    z-index: 2; /* ¡LA CLAVE! Una capa superior a la de la imagen */
+    
+    /* Estilos comunes para todos los botones */
+    background-color: rgba(40, 40, 40, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.personaje .change-tag-btn:hover,
+.personaje .change-arc-btn:hover,
+.personaje .move-btn:hover {
+    background-color: rgba(0, 132, 255, 0.9);
+}
+
+/* 4. Posiciones individuales para cada botón */
+.personaje .change-tag-btn {
+    bottom: 8px;
+    left: 8px;
+}
+
+.personaje .change-arc-btn {
+    bottom: 8px;
+    left: 50px; /* 8px del botón + 32px de ancho + 10px de margen */
+}
+
+.personaje .move-btn {
+    bottom: 8px;
+    left: 92px; /* 50px del anterior + 32px de ancho + 10px de margen */
+}
+
+.herramientas-btn {
+    top: 9px;
+right: 10px;
+position: absolute;
+font-size: 12px;
+}
+
+/* ================================================================ */
+/* === REEMPLAZA EL BLOQUE DE POSICIONAMIENTO POR ESTE EN editor-personajes.css === */
+/* ================================================================ */
+
+/* 1. Estilo y posición base para TODOS los botones DENTRO de un sticker */
+.personaje-sticker .change-tag-btn,
+.personaje-sticker .change-arc-btn,
+.personaje-sticker .move-btn {
+    position: absolute;
+    opacity: 0; /* Ocultos por defecto */
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    
+    /* Estilos visuales comunes */
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    line-height: 30px;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+ 
+.personaje-sticker .move-btn {
+    top: 40px;
+    left: 5px;
+}
+
+
+/* 3. Al pasar el ratón sobre el STICKER, hacemos visibles los 3 botones */
+.personaje-sticker:hover .change-tag-btn,
+.personaje-sticker:hover .change-arc-btn,
+.personaje-sticker:hover .move-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
+}
+
+/* --- Estilos para Datos en la Biblioteca --- */
+/* --- Estilos para Datos en la Biblioteca (Versión Mejorada) --- */
+
+/* --- Estilos para Datos en la Biblioteca (Versión Tarjetas Verticales) --- */
+
+/* 1. EL CONTENEDOR PRINCIPAL: Ahora es una cuadrícula flexible */
+#bibliotecadatos-lista {
+    display: grid;
+    /* Crea tantas columnas como quepan, con un mínimo de 110px cada una */
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 20px; /* Espacio entre las tarjetas */
+    padding: 20px;
+    background-color: #f0f2f5;
+}
+
+/* 2. LA TARJETA INDIVIDUAL: Ahora es vertical y de tamaño fijo */
+.personaje.archivado {
+    display: flex; /* Usamos flex para ordenar el contenido verticalmente */
+    flex-direction: column; /* Apila los elementos uno encima del otro */
+    width: 170px; /* Ancho fijo como pediste */
+    height: 230px; /* Alto fijo como pediste */
+    padding: 8px;
+    background-color: #ffffff;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box; /* Asegura que el padding no altere el tamaño */
+}
+.personaje.archivado:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* 3. LA IMAGEN: Ocupa la parte superior de la tarjeta */
+.personaje.archivado .personaje-visual {
+    width: 100%; /* Ocupa todo el ancho de la tarjeta */
+    height: 90px; /* Altura fija para la imagen */
+    flex-shrink: 0; /* Evita que la imagen se encoja */
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #e9e9e9;
+}
+.personaje.archivado .personaje-visual img {
+    max-width: 100px;
+    max-height: 100px;
+    object-fit: cover;
+}
+
+/* 4. LA INFORMACIÓN: Ocupa el espacio central y se ajusta */
+.personaje.archivado .archivado-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Hace que este bloque ocupe el espacio sobrante */
+    padding: 8px 0;
+    overflow: hidden;
+    gap: 4px;
+}
+
+/* 5. TEXTOS: Ajustados para el espacio reducido */
+.personaje.archivado .nombreh {
+    all: unset;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #1a1a1a;
+    /* Permite que el texto se divida en varias líneas si es largo */
+    white-space: normal; 
+    word-break: break-word;
+}
+
+.personaje.archivado .archivado-tags {
+    display: flex;
+    flex-wrap: wrap; /* Permite que los tags pasen a la siguiente línea */
+    gap: 4px;
+}
+.personaje.archivado .change-tag-btn,
+.personaje.archivado .change-arc-btn {
+    all: unset;
+    display: inline-flex;
+    font-size: 14px; /* Un poco más pequeño para que quepa bien */
+    padding: 1px 4px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+/* Ocultamos las descripciones y prompts que no caben en la vista de tarjeta */
+.personaje.archivado .personaje-descripcion-preview,
+.personaje.archivado .archivado-prompt-preview {
+    display: none;
+}
+
+/* 6. EL BOTÓN: Ocupa la parte inferior */
+.personaje.archivado .boton-restaurar {
+    margin-top: auto; /* Empuja el botón hacia abajo */
+    padding: 6px 0; /* Ajustamos el padding */
+    width: 100%;
+    font-size: 0.8em;
+    font-weight: 500;
+    background-color: #E6F7FF;
+    color: #1890FF;
+    border: 1px solid #91D5FF;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0; /* Evita que el botón se encoja */
+}
+.personaje.archivado .boton-restaurar:hover {
+    background-color: #d0ecff;
+    border-color: #69c0ff;
+}
+
+/* 7. Ocultamos lo que no es necesario */
+.personaje.archivado .personaje-edit-overlay,
+.personaje.archivado .move-btn {
+    display: none !important;
+}
+
+.archivado-img-preview img{
+    max-width: 150px;
+    max-height: 150px;
+    object-fit: cover;
+
+    
+}

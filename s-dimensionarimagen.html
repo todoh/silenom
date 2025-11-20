@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Imágenes - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        /* --- ESTILOS GENERALES Y DE LA PÁGINA --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+        
+        /* --- ESTILOS DEL EDITOR --- */
+        .editor-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .editor-header h1 {
+            font-size: calc(2.5em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* --- ZONA PARA ARRASTRAR ARCHIVOS --- */
+        #drop-zone {
+            width: 80%;
+            max-width: 700px;
+            min-height: 150px;
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: calc(1em + 1vmin);
+            color: #888;
+            cursor: pointer;
+            transition: border-color 0.3s, background-color 0.3s;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        #drop-zone.drag-over {
+            border-color: #E53935;
+            background-color: #fff0f0;
+        }
+        
+        #file-input {
+            display: none;
+        }
+
+        /* --- PREVISUALIZACIÓN DE IMÁGENES --- */
+        #image-preview-container {
+            width: 80%;
+            max-width: 700px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            max-height: 25vh;
+            overflow-y: auto;
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .preview-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .preview-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .preview-item .remove-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: #E53935;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            line-height: 1;
+        }
+
+        /* --- CONTROLES DE REDIMENSIONADO --- */
+        #controls-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 80%;
+            max-width: 700px;
+            box-sizing: border-box;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-group label, .control-group span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .control-group input[type="number"], .control-group input[type="text"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .radio-group label {
+            margin-right: 15px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* --- BOTÓN DE DESCARGA --- */
+        #download-btn {
+            font-size: calc(1em + 1vmin);
+            padding: 12px 25px;
+            margin-top: 25px;
+            border: none;
+            background-color: #E53935;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        #download-btn:hover {
+            background-color: #c62828;
+        }
+        
+        #download-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+      
+    </style>
+</head>
+<body>
+
+    <div class="editor-container">
+        <div class="editor-header">
+            <h1>Dimensionar <span class="os-red">Imágenes</span></h1>
+        </div>
+
+        <div id="drop-zone">
+            <span>Arrastra tus imágenes aquí o haz clic para seleccionar</span>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*">
+
+        <div id="image-preview-container" class="hidden"></div>
+        
+        <div id="controls-container" class="hidden">
+            <div class="control-group">
+                <div class="radio-group">
+                    <label><input type="radio" name="resize-mode" value="percent" checked> Porcentaje</label>
+                    <label><input type="radio" name="resize-mode" value="pixels"> Píxeles</label>
+                </div>
+            </div>
+            <div class="control-group">
+                <label for="width-input">Ancho</label>
+                <input type="number" id="width-input" value="50">
+            </div>
+            <div class="control-group">
+                 <label for="height-input">Alto</label>
+                <input type="number" id="height-input" value="">
+            </div>
+            <div class="control-group">
+                 <span id="unit-label">%</span>
+            </div>
+            <div class="control-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="aspect-ratio-check" checked>
+                    <label for="aspect-ratio-check">Mantener proporción</label>
+                </div>
+            </div>
+        </div>
+
+        <button id="download-btn" class="hidden" disabled>Selecciona alguna imagen</button>
+    </div>
+
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones vacías para evitar errores de consola
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const previewContainer = document.getElementById('image-preview-container');
+            const controlsContainer = document.getElementById('controls-container');
+            const downloadBtn = document.getElementById('download-btn');
+            const widthInput = document.getElementById('width-input');
+            const heightInput = document.getElementById('height-input');
+            const unitLabel = document.getElementById('unit-label');
+            const aspectRatioCheck = document.getElementById('aspect-ratio-check');
+            const resizeModeRadios = document.querySelectorAll('input[name="resize-mode"]');
+
+            let selectedFiles = []; // Almacenará los objetos File
+            let originalDimensions = new Map(); // Almacenará las dimensiones originales de cada imagen
+
+            // --- UI Update Function ---
+            const updateUI = () => {
+                if (selectedFiles.length > 0) {
+                    previewContainer.classList.remove('hidden');
+                    controlsContainer.classList.remove('hidden');
+                    downloadBtn.classList.remove('hidden');
+                    downloadBtn.disabled = false;
+                    downloadBtn.textContent = `Procesar y Descargar (${selectedFiles.length}) imagen(es)`;
+                } else {
+                    previewContainer.classList.add('hidden');
+                    controlsContainer.classList.add('hidden');
+                    downloadBtn.classList.add('hidden');
+                    downloadBtn.disabled = true;
+                    downloadBtn.textContent = 'Selecciona alguna imagen';
+                }
+            };
+
+            // --- Event Listeners for Drop Zone ---
+            dropZone.addEventListener('click', () => fileInput.click());
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+            dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                handleFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+            // --- File Handling and Preview ---
+            const handleFiles = (files) => {
+                for (const file of files) {
+                    if (file.type.startsWith('image/') && !selectedFiles.some(f => f.name === file.name)) {
+                        selectedFiles.push(file);
+                        createPreview(file);
+                    }
+                }
+                fileInput.value = ''; // Reset input
+                updateUI();
+            };
+
+            const createPreview = (file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                         // Guardar dimensiones originales
+                        originalDimensions.set(file.name, { width: img.width, height: img.height });
+                    };
+                    img.src = e.target.result;
+
+                    const previewWrapper = document.createElement('div');
+                    previewWrapper.className = 'preview-item';
+                    
+                    const previewImg = document.createElement('img');
+                    previewImg.src = e.target.result;
+                    
+                    const removeBtn = document.createElement('button');
+                    removeBtn.className = 'remove-btn';
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.addEventListener('click', () => {
+                        selectedFiles = selectedFiles.filter(f => f.name !== file.name);
+                        originalDimensions.delete(file.name);
+                        previewContainer.removeChild(previewWrapper);
+                        updateUI();
+                    });
+
+                    previewWrapper.appendChild(previewImg);
+                    previewWrapper.appendChild(removeBtn);
+                    previewContainer.appendChild(previewWrapper);
+                };
+                reader.readAsDataURL(file);
+            };
+
+            // --- Controls Logic ---
+            resizeModeRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'percent') {
+                        unitLabel.textContent = '%';
+                        widthInput.value = 50;
+                        heightInput.value = '';
+                        heightInput.disabled = true;
+                    } else {
+                        unitLabel.textContent = 'px';
+                        widthInput.value = 800;
+                        heightInput.value = '';
+                        heightInput.disabled = true;
+                    }
+                    if(!aspectRatioCheck.checked) heightInput.disabled = false;
+                });
+            });
+
+            aspectRatioCheck.addEventListener('change', () => {
+                 heightInput.disabled = aspectRatioCheck.checked;
+                 if(aspectRatioCheck.checked) heightInput.value = '';
+            });
+            
+            widthInput.addEventListener('input', () => {
+                if(!aspectRatioCheck.checked) return;
+                heightInput.value = ''; // En modo proporción, el alto es automático
+            });
+
+
+            // --- Image Processing and Download ---
+            const resizeImage = (file) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        img.src = e.target.result;
+                    };
+                    
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const orig = originalDimensions.get(file.name);
+                        
+                        let newWidth, newHeight;
+                        const mode = document.querySelector('input[name="resize-mode"]:checked').value;
+
+                        if (mode === 'percent') {
+                            const percent = parseFloat(widthInput.value) || 50;
+                            newWidth = orig.width * (percent / 100);
+                            newHeight = orig.height * (percent / 100);
+                        } else { // pixels
+                            newWidth = parseInt(widthInput.value) || orig.width;
+                            if (aspectRatioCheck.checked) {
+                                const ratio = orig.height / orig.width;
+                                newHeight = newWidth * ratio;
+                            } else {
+                                newHeight = parseInt(heightInput.value) || newWidth;
+                            }
+                        }
+
+                        canvas.width = newWidth;
+                        canvas.height = newHeight;
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                        canvas.toBlob((blob) => {
+                            resolve({ blob, name: file.name });
+                        }, file.type);
+                    };
+
+                    img.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            };
+
+            downloadBtn.addEventListener('click', async () => {
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = 'Procesando...';
+
+                const resizedImagePromises = selectedFiles.map(file => resizeImage(file));
+                const resizedImages = await Promise.all(resizedImagePromises);
+
+                if (resizedImages.length === 1) {
+                    // Descarga única
+                    const { blob, name } = resizedImages[0];
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = `redimensionada-${name}`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                } else if (resizedImages.length > 1) {
+                    // Descarga como ZIP
+                    const zip = new JSZip();
+                    resizedImages.forEach(({ blob, name }) => {
+                        zip.file(`redimensionada-${name}`, blob);
+                    });
+                    
+                    zip.generateAsync({ type: 'blob' }).then((content) => {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(content);
+                        link.download = 'imagenes-redimensionadas.zip';
+                        link.click();
+                        URL.revokeObjectURL(link.href);
+                    });
+                }
+                
+                // Reset UI state after processing
+                downloadBtn.disabled = false;
+                updateUI();
+            });
+
+        });
+    </script>
+</body>
+</html>

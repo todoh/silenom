@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de QR - Silen OS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="s-aplicaciones.css">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7136138379132657"
+     crossorigin="anonymous"></script>
+    <style>
+        /* --- ESTILOS GENERALES Y DE LA PÁGINA (Idénticos al original) --- */
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Montserrat', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .os-red {
+            color: #E53935;
+            font-weight: 500;
+        }
+        
+        /* --- ESTILOS DEL CONTENEDOR PRINCIPAL (Idénticos al original) --- */
+        .generator-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(250, 250, 250, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        .generator-header h1 {
+            font-size: calc(2.5em + 2vmin);
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            text-align: center;
+            margin: 0 0 20px 0;
+        }
+        
+        /* --- ZONA DE ENTRADA Y VISTA PREVIA (Adaptada para el generador) --- */
+        #main-content {
+            display: flex;
+            gap: 30px;
+            width: 90%;
+            max-width: 1200px;
+            align-items: flex-start;
+        }
+        
+        #input-controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Estilo para el área de texto */
+        #qr-text {
+            width: 100%;
+            min-height: 120px;
+            border: 3px dashed #ccc;
+            border-radius: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 16px;
+            color: #555;
+            resize: vertical;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+        #qr-text:focus {
+            outline: none;
+            border-color: #E53935;
+            background-color: #fff;
+        }
+        
+        /* --- CONTROLES DE GENERACIÓN (Adaptados desde #compression-controls) --- */
+        #qr-controls {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .control-group label {
+            font-weight: 500;
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .control-group input[type="range"], .control-group input[type="color"] {
+            cursor: pointer;
+        }
+        .control-group input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 25px;
+            background-color: transparent;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .control-group input[type="color"]::-webkit-color-swatch {
+            border-radius: 3px;
+            border: none;
+        }
+
+        #download-btn {
+            width: 100%;
+            font-size: 1.1em;
+            padding: 12px 25px;
+            margin-top: 10px;
+            border: none;
+            background-color: #E53935;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border-radius: 8px;
+            font-family: 'Montserrat', sans-serif;
+        }
+        #download-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* --- VISTA PREVIA (Adaptada para un solo QR) --- */
+        #preview-area {
+            flex: 1.5; /* Ajustado para un mejor balance visual */
+            display: flex;
+            justify-content: center; /* Centrado */
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            min-height: 350px; /* Altura mínima consistente */
+        }
+        
+        .qr-container {
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .qr-container h3 {
+            margin: 0 0 15px 0;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        #qr-code {
+            padding: 10px;
+            background: #fff;
+            border-radius: 5px;
+            border: 1px solid #eee;
+            display: flex; /* Para centrar el placeholder */
+            justify-content: center;
+            align-items: center;
+        }
+
+        #qr-code img {
+            max-width: 100%;
+        }
+        
+        .placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #aaa;
+            font-size: 1.2em;
+        }
+        
+        .hidden { display: none !important; }
+
+ 
+    </style>
+</head>
+<body>
+
+    <div class="generator-container">
+        <div class="generator-header">
+            <h1>Generador de <span class="os-red">QR</span></h1>
+        </div>
+
+        <div id="main-content">
+            <div id="input-controls">
+                
+                <textarea id="qr-text" placeholder="Escribe el texto o la URL para generar el QR..."></textarea>
+
+                <div id="qr-controls">
+                    <div class="control-group">
+                        <label for="size-slider">
+                            <span>Tamaño</span>
+                            <span id="size-value">256px</span>
+                        </label>
+                        <input type="range" id="size-slider" min="128" max="512" value="256" step="8">
+                    </div>
+                    <div class="control-group">
+                        <label for="color-fg">
+                            <span>Color</span>
+                            <input type="color" id="color-fg" value="#000000">
+                        </label>
+                    </div>
+                     <div class="control-group">
+                        <label for="color-bg">
+                            <span>Fondo</span>
+                            <input type="color" id="color-bg" value="#ffffff">
+                        </label>
+                    </div>
+                    <button id="download-btn" disabled>Descargar QR</button>
+                </div>
+            </div>
+
+            <div id="preview-area">
+                <div class="qr-container">
+                    <h3>Previsualización</h3>
+                    <div id="qr-code">
+                        <div class="placeholder" id="qr-placeholder">Esperando datos...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="herramientas2">
+        <div class="title" onclick="cerrartodo(), abrirVentana('info');">
+            <span>S I L E N</span><span class="os-red"> O S</span>
+        </div>
+        <div id="menuweb">
+             <button onclick="window.location.href='s-aplicaciones.html'">Volver a la Suite de Aplicaciones</button>
+        </div>
+    </div>
+    
+    <script>
+        // Funciones placeholder del diseño original
+        function cerrartodo() { console.log("Función 'cerrartodo' llamada."); }
+        function abrirVentana(info) { console.log(`Función 'abrirVentana' llamada con: ${info}`); }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const qrTextInput = document.getElementById('qr-text');
+            const sizeSlider = document.getElementById('size-slider');
+            const sizeValue = document.getElementById('size-value');
+            const fgColorPicker = document.getElementById('color-fg');
+            const bgColorPicker = document.getElementById('color-bg');
+            const downloadBtn = document.getElementById('download-btn');
+            const qrCodeContainer = document.getElementById('qr-code');
+            const qrPlaceholder = document.getElementById('qr-placeholder');
+
+            let qrCode = null;
+
+            // --- Core QR Generation Logic ---
+            const generateQR = () => {
+                const text = qrTextInput.value.trim();
+                if (!text) {
+                    qrCodeContainer.innerHTML = ''; // Limpiar
+                    qrCodeContainer.appendChild(qrPlaceholder);
+                    qrPlaceholder.classList.remove('hidden');
+                    downloadBtn.disabled = true;
+                    return;
+                }
+
+                // Ocultar placeholder y limpiar contenedor
+                qrPlaceholder.classList.add('hidden');
+                qrCodeContainer.innerHTML = ''; 
+
+                const size = parseInt(sizeSlider.value);
+                const fgColor = fgColorPicker.value;
+                const bgColor = bgColorPicker.value;
+                
+                // Actualizar valor de tamaño en la UI
+                sizeValue.textContent = `${size}px`;
+
+                try {
+                    qrCode = new QRCode(qrCodeContainer, {
+                        text: text,
+                        width: size,
+                        height: size,
+                        colorDark: fgColor,
+                        colorLight: bgColor,
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                    downloadBtn.disabled = false;
+                } catch (error) {
+                    console.error("Error al generar el QR:", error);
+                    alert("Hubo un error al generar el código QR. Inténtalo de nuevo.");
+                    downloadBtn.disabled = true;
+                }
+            };
+            
+            // --- Event Listeners ---
+            qrTextInput.addEventListener('input', generateQR);
+            sizeSlider.addEventListener('input', generateQR);
+            fgColorPicker.addEventListener('input', generateQR);
+            bgColorPicker.addEventListener('input', generateQR);
+            
+            downloadBtn.addEventListener('click', () => {
+                const canvas = qrCodeContainer.querySelector('canvas');
+                if (!canvas) return;
+                
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/png');
+                link.download = 'codigo-qr.png';
+                link.click();
+            });
+            
+            // Generar un QR de ejemplo al cargar la página si el campo tiene texto (opcional)
+            // generateQR(); 
+        });
+    </script>
+</body>
+</html>
