@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Librojuegos</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --editor-bg: #2d2d2d;
+            --text-color: #d4d4d4;
+            --border-color: #4a4a4a;
+            --accent-color: #007acc;
+            --danger-color: #f44747;
+            --success-color: #4caf50;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--editor-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        button, input[type="file"] {
+            font-family: var(--font-family);
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-add { background-color: var(--accent-color); color: white; }
+        .btn-add:hover { background-color: #005a9e; }
+        .btn-save { background-color: var(--success-color); color: white; }
+        .btn-save:hover { background-color: #388e3c; }
+        .btn-export { background-color: #ff9800; color: white; }
+        .btn-export:hover { background-color: #e68900; }
+        #file-loader { display: none; }
+        .btn-load { background-color: #607d8b; color: white; }
+        .btn-load:hover { background-color: #455a64; }
+        
+        .passage-editor {
+            background-color: var(--editor-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            padding: 15px;
+            transition: box-shadow 0.3s;
+        }
+        .passage-editor:focus-within {
+            box-shadow: 0 0 10px rgba(0, 122, 204, 0.5);
+            border-color: var(--accent-color);
+        }
+
+        .passage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .passage-header .number-input {
+            font-size: 1.2em;
+            font-weight: bold;
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            width: 80px;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .passage-header .passage-actions button {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.5em;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: color 0.2s;
+        }
+        .passage-header .passage-actions .btn-delete:hover { color: var(--danger-color); }
+        .passage-header .passage-actions .btn-move:hover { color: var(--accent-color); }
+        
+        .passage-content textarea, .passage-content input {
+            width: 100%;
+            box-sizing: border-box; /* Ensures padding doesn't affect width */
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        .passage-content textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .instructions {
+            background-color: #2a2d2f;
+            border-left: 4px solid var(--accent-color);
+            padding: 10px 15px;
+            margin: 20px 0;
+            font-size: 0.9em;
+            border-radius: 4px;
+        }
+        .instructions code {
+            background-color: #444;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📖 Editor de Librojuegos</h1>
+
+        <div class="instructions">
+            <strong>Instrucciones:</strong>
+            <p>Usa <code>[[Texto del enlace->Número del pasaje]]</code> para crear enlaces entre pasajes. Por ejemplo: <code>[[Ir a la cueva->15]]</code>.</p>
+        </div>
+
+        <div class="controls">
+            <button id="add-passage" class="btn-add">➕ Añadir Pasaje</button>
+            <button id="save-file" class="btn-save">💾 Guardar Proyecto</button>
+            <button class="btn-load" onclick="document.getElementById('file-loader').click();">📂 Cargar Proyecto</button>
+            <input type="file" id="file-loader" accept=".json">
+            <button id="export-html" class="btn-export">🚀 Exportar a HTML Jugable</button>
+        </div>
+
+        <div id="passages-container">
+            </div>
+    </div>
+
+    <script>
+        // --- DATA MODEL ---
+        let passages = [
+            {
+                id: Date.now(),
+                number: "1",
+                content: "Te encuentras en una bifurcación en el camino.\n\nA la izquierda, ves un sendero oscuro que se adentra en el bosque. [[Tomar el sendero de la izquierda->2]]\n\nA la derecha, el camino parece más seguro y conduce a un pueblo cercano. [[Seguir hacia el pueblo->3]]",
+                imageUrl: "https://images.pexels.com/photos/1528640/pexels-photo-1528640.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+            }
+        ];
+
+        // --- DOM ELEMENTS ---
+        const container = document.getElementById('passages-container');
+        const addBtn = document.getElementById('add-passage');
+        const saveBtn = document.getElementById('save-file');
+        const exportBtn = document.getElementById('export-html');
+        const fileLoader = document.getElementById('file-loader');
+
+        // --- CORE FUNCTIONS ---
+        const findPassageIndex = (id) => passages.findIndex(p => p.id === id);
+
+        const updatePassageData = (id, field, value) => {
+            const index = findPassageIndex(id);
+            if (index > -1) {
+                passages[index][field] = value;
+            }
+        };
+        
+        const addPassage = () => {
+            const newId = Date.now();
+            const newNumber = (passages.length > 0) ? String(Math.max(...passages.map(p => parseInt(p.number) || 0)) + 1) : "1";
+            passages.push({
+                id: newId,
+                number: newNumber,
+                content: "Nuevo pasaje...",
+                imageUrl: ""
+            });
+            render();
+        };
+
+        const deletePassage = (id) => {
+            if (confirm('¿Estás seguro de que quieres eliminar este pasaje?')) {
+                passages = passages.filter(p => p.id !== id);
+                render();
+            }
+        };
+        
+        const movePassage = (id, direction) => {
+            const index = findPassageIndex(id);
+            if (index === -1) return;
+
+            const newIndex = index + direction;
+            if (newIndex < 0 || newIndex >= passages.length) return;
+
+            // Simple array swap
+            [passages[index], passages[newIndex]] = [passages[newIndex], passages[index]];
+            render();
+        };
+
+        const saveProject = () => {
+            const dataStr = JSON.stringify(passages, null, 2);
+            const blob = new Blob([dataStr], {type: "application/json"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'librojuego.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        const loadProject = (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const loadedPassages = JSON.parse(e.target.result);
+                    if (Array.isArray(loadedPassages) && loadedPassages.every(p => 'id' in p && 'number' in p && 'content' in p)) {
+                        passages = loadedPassages;
+                        render();
+                    } else {
+                        alert('El archivo no tiene el formato correcto.');
+                    }
+                } catch (error) {
+                    alert('Error al leer el archivo. ¿Estás seguro de que es un archivo de proyecto válido?');
+                }
+            };
+            reader.readAsText(file);
+            // Reset file input to allow loading the same file again
+            event.target.value = null;
+        };
+
+        const exportToHTML = () => {
+            const title = prompt("Introduce el título de tu librojuego:", "Mi Aventura");
+            if (!title) return;
+
+            const passagesHTML = passages.map(passage => `
+                <div class="passage" id="passage-${passage.number}">
+                    ${passage.imageUrl ? `<img src="${passage.imageUrl}" alt="Imagen para el pasaje ${passage.number}">` : ''}
+                    <div class="content">${parseContent(passage.content)}</div>
+                </div>
+            `).join('');
+
+            const template = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        body { font-family: Georgia, serif; line-height: 1.6; max-width: 800px; margin: 40px auto; padding: 0 20px; background-color: #fdf6e3; color: #657b83; }
+        .passage { display: none; border-top: 2px solid #93a1a1; padding-top: 20px; }
+        .passage.active { display: block; }
+        img { max-width: 100%; height: auto; border-radius: 8px; margin-bottom: 20px; }
+        h1 { text-align: center; color: #268bd2; }
+        .content { white-space: pre-wrap; }
+        a { color: #2aa198; text-decoration: none; font-weight: bold; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>${title}</h1>
+    <div id="game-container">
+        ${passagesHTML}
+    </div>
+    <script>
+        function showPassage(number) {
+            document.querySelectorAll('.passage').forEach(p => p.classList.remove('active'));
+            const targetPassage = document.getElementById('passage-' + number);
+            if (targetPassage) {
+                targetPassage.classList.add('active');
+                window.scrollTo(0, 0);
+            } else {
+                console.error('No se encontró el pasaje con número: ' + number);
+            }
+        }
+        // Mostrar el primer pasaje al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstPassageNumber = "${passages.length > 0 ? passages[0].number : ''}";
+            if(firstPassageNumber) {
+                showPassage(firstPassageNumber);
+            }
+        });
+    <\/script>
+</body>
+</html>`;
+            const blob = new Blob([template], {type: "text/html"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title.replace(/\s/g, '_')}.html`;
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+        
+        const parseContent = (text) => {
+            // Reemplaza [[Texto->Numero]] con enlaces HTML
+            return text.replace(/\[\[([^\]]+)->([^\]]+)\]\]/g, '<a href="#" onclick="showPassage(\'$2\'); return false;">$1</a>');
+        };
+        
+        // --- RENDER FUNCTION ---
+        const render = () => {
+            container.innerHTML = '';
+            passages.forEach((passage, index) => {
+                const passageEl = document.createElement('div');
+                passageEl.className = 'passage-editor';
+                passageEl.innerHTML = `
+                    <div class="passage-header">
+                        <label>Pasaje # <input type="text" class="number-input" value="${passage.number}" oninput="updatePassageData(${passage.id}, 'number', this.value)"></label>
+                        <div class="passage-actions">
+                            <button class="btn-move" onclick="movePassage(${passage.id}, -1)" title="Mover arriba">▲</button>
+                            <button class="btn-move" onclick="movePassage(${passage.id}, 1)" title="Mover abajo">▼</button>
+                            <button class="btn-delete" onclick="deletePassage(${passage.id})" title="Eliminar pasaje">✖</button>
+                        </div>
+                    </div>
+                    <div class="passage-content">
+                        <label>URL de la Imagen (opcional):</label>
+                        <input type="text" placeholder="https://ejemplo.com/imagen.jpg" value="${passage.imageUrl}" oninput="updatePassageData(${passage.id}, 'imageUrl', this.value)">
+                        <label>Contenido del pasaje:</label>
+                        <textarea oninput="updatePassageData(${passage.id}, 'content', this.value)">${passage.content}</textarea>
+                    </div>
+                `;
+                container.appendChild(passageEl);
+            });
+        };
+        
+        // --- EVENT LISTENERS ---
+        addBtn.addEventListener('click', addPassage);
+        saveBtn.addEventListener('click', saveProject);
+        exportBtn.addEventListener('click', exportToHTML);
+        fileLoader.addEventListener('change', loadProject);
+
+        // --- INITIAL RENDER ---
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+
+</body>
+</html>

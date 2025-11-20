@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juegos Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a;
+        }
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 25%;
+            background-color: #000000;
+            color: #ffffff;
+            padding: 2rem;
+            border-right: 2px solid #ff0000;
+            flex-shrink: 0; /* Evita que la barra lateral se encoja */
+        }
+        .sidebar h2 {
+            color: #ff0000;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .game-list li {
+            cursor: pointer;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s, color 0.2s;
+            font-weight: 500;
+        }
+        .game-list li:hover {
+            background-color: #333333;
+        }
+        .game-list li.active {
+            background-color: #ff0000;
+            color: #000000;
+        }
+        .main-content {
+            flex-grow: 1; /* Permite que este contenedor use el espacio restante */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 2rem;
+            min-width: 0; /* Permite que el iframe dentro se encoja */
+        }
+        iframe {
+            border: 2px solid #ff0000;
+            border-radius: 0.5rem;
+            width: 100%; /* El iframe ahora toma el 100% de su contenedor */
+            max-width: 900px; /* Ancho máximo para pantallas grandes */
+            height: 470px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+    <div class="container">
+        <!-- Sidebar con la lista de juegos -->
+        <div class="sidebar">
+            <h2>Lista de Juegos</h2>
+            <ul class="game-list" id="game-list">
+                <li data-url="https://itch.io/embed-upload/14882799?color=333333">Juego Prueba</li>
+                <li data-url="https://itch.io/embed-upload/9895319?color=333333">Otro Juego</li>
+            </ul>
+        </div>
+
+        <!-- Contenido principal con el iframe -->
+        <div class="main-content">
+            <iframe id="game-iframe" frameborder="0" src="" allowfullscreen="" width="100%" height="470">
+                <p>Tu navegador no soporta iframes.</p>
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        // Definimos los datos de los juegos para no repetir el código
+        const games = [
+            { id: 'juego-prueba', title: 'Juego Prueba', url: 'https://itch.io/embed-upload/14882799?color=333333' },
+            { id: 'otro-juego', title: 'Otro Juego', url: 'https://itch.io/embed-upload/9895319?color=333333' }
+        ];
+
+        // Obtenemos los elementos del DOM
+        const gameListElement = document.getElementById('game-list');
+        const iframeElement = document.getElementById('game-iframe');
+
+        // Generamos dinámicamente la lista de juegos
+        games.forEach(game => {
+            const li = document.createElement('li');
+            li.textContent = game.title;
+            li.setAttribute('data-url', game.url);
+            li.classList.add('px-4', 'py-2', 'rounded-lg', 'cursor-pointer', 'transition', 'duration-200');
+            gameListElement.appendChild(li);
+        });
+
+        // Función para cambiar el juego en el iframe
+        function loadGame(url) {
+            iframeElement.src = url;
+        }
+
+        // Listener para los clics en la lista de juegos
+        gameListElement.addEventListener('click', (event) => {
+            const target = event.target;
+            // Verificamos que el clic fue en un elemento de la lista
+            if (target.tagName === 'LI') {
+                // Removemos la clase 'active' de todos los elementos
+                document.querySelectorAll('#game-list li').forEach(li => {
+                    li.classList.remove('active');
+                });
+                // Añadimos la clase 'active' al elemento clicado
+                target.classList.add('active');
+                
+                // Cargamos el juego en el iframe
+                const gameUrl = target.getAttribute('data-url');
+                loadGame(gameUrl);
+            }
+        });
+
+        // Cargamos el primer juego al iniciar la página
+        if (games.length > 0) {
+            loadGame(games[0].url);
+            document.querySelector('#game-list li').classList.add('active');
+        }
+    </script>
+
+</body>
+</html>

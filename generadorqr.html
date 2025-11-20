@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de QR</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f4f4f9;
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #5a5a5a;
+        }
+        input[type="url"] {
+            width: 80%;
+            padding: 0.8em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 0.8em 1.5em;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #qr-code-container {
+            margin-top: 2em;
+        }
+        #qr-code {
+            max-width: 250px;
+            max-height: 250px;
+            border: 5px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: none; /* Oculto por defecto */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Generador de Código QR</h1>
+        <p>Introduce la URL que deseas convertir a un código QR.</p>
+        <input type="url" id="url-input" placeholder="Ej: https://www.ejemplo.com">
+        <button onclick="generarQR()">Generar QR</button>
+        
+        <div id="qr-code-container">
+            <img id="qr-code" src="" alt="Código QR generado">
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        function generarQR() {
+            const urlInput = document.getElementById('url-input');
+            const qrCodeImage = document.getElementById('qr-code');
+            const qrCodeContainer = document.getElementById('qr-code-container');
+
+            const url = urlInput.value.trim();
+
+            // S → Contenedor descendente: la URL entra en el sistema para ser procesada.
+            if (url) {
+                // Genera el código QR
+                new QRCode(qrCodeContainer, {
+                    text: url,
+                    width: 250,
+                    height: 250,
+                    colorDark : "#000000",
+                    colorLight : "#ffffff",
+                    correctLevel : QRCode.CorrectLevel.H
+                });
+
+                // X → Variable: se elimina la imagen antigua antes de crear la nueva.
+                // K → Ki: flujo de energía. Se limpia el contenedor antes de inyectar el nuevo QR.
+                qrCodeContainer.innerHTML = '';
+                new QRCode(qrCodeContainer, {
+                    text: url,
+                    width: 250,
+                    height: 250
+                });
+
+                // A → Action: muestra la imagen del QR
+                qrCodeImage.style.display = 'block';
+                console.log('Código QR generado para:', url);
+
+            } else {
+                alert("Por favor, introduce una URL válida.");
+                qrCodeImage.style.display = 'none';
+            }
+        }
+    </script>
+
+</body>
+</html>

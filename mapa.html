@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creador de Mapas de Fantasía</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .title-font {
+            font-family: 'MedievalSharp', cursive;
+        }
+        #canvas-container {
+            position: relative;
+            display: grid;
+            place-items: center;
+            overflow: auto;
+        }
+        #canvas-wrapper {
+            position: relative;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            touch-action: none;
+        }
+        #poi-canvas {
+            z-index: 10;
+        }
+        #poi-canvas.drawing {
+            cursor: crosshair;
+        }
+        #poi-canvas.placing {
+            cursor: grab;
+        }
+        #poi-canvas.grabbing {
+            cursor: grabbing;
+        }
+        #poi-canvas.panning {
+            cursor: move;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-white flex flex-col lg:flex-row h-screen overflow-hidden">
+
+    <!-- Panel de Controles -->
+    <div class="w-full lg:w-96 bg-gray-900 p-6 shadow-lg overflow-y-auto flex-shrink-0">
+        <h1 class="text-3xl title-font text-amber-300 mb-6">Creador de Mapas</h1>
+        
+        <div class="space-y-6">
+            <!-- Cargar/Guardar -->
+            <div>
+                <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700 pb-2">Proyecto</h2>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="save-json" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300">Guardar Mapa</button>
+                    <label class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300 text-center cursor-pointer">
+                        Cargar Mapa
+                        <input type="file" id="load-json" class="hidden" accept=".json">
+                    </label>
+                    <button id="export-pois-json" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300">Exportar POIs</button>
+                    <button id="copy-pois-json" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300">Copiar POIs</button>
+                </div>
+            </div>
+
+            <!-- Tamaño del Lienzo -->
+            <div>
+                <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700 pb-2">Tamaño del Lienzo</h2>
+                <div class="grid grid-cols-2 gap-4 mb-3">
+                    <div>
+                        <label for="canvas-width" class="block text-sm font-medium text-gray-300">Ancho (px)</label>
+                        <input type="number" id="canvas-width" value="1200" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 mt-1">
+                    </div>
+                    <div>
+                        <label for="canvas-height" class="block text-sm font-medium text-gray-300">Alto (px)</label>
+                        <input type="number" id="canvas-height" value="800" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 mt-1">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-2 mb-3">
+                    <button id="preset-square" class="text-xs bg-gray-600 hover:bg-gray-500 p-2 rounded-md">Cuadrado</button>
+                    <button id="preset-horizontal" class="text-xs bg-gray-600 hover:bg-gray-500 p-2 rounded-md">Horizontal</button>
+                    <button id="preset-vertical" class="text-xs bg-gray-600 hover:bg-gray-500 p-2 rounded-md">Vertical</button>
+                </div>
+                <button id="apply-size" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-md transition duration-300">Aplicar Tamaño</button>
+            </div>
+
+            <!-- Controles del Fondo -->
+            <div>
+                <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700 pb-2">Fondo y Dibujo</h2>
+                 <label for="bg-upload" class="block text-sm font-medium text-gray-300 mb-2">Cargar Imagen</label>
+                <input type="file" id="bg-upload" accept="image/*" class="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-amber-300 hover:file:bg-gray-500 cursor-pointer mb-4">
+
+                <div class="flex items-center justify-between mb-3">
+                    <label for="draw-color" class="text-sm font-medium text-gray-300">Color Pincel</label>
+                    <input type="color" id="draw-color" value="#FFFFFF" class="w-10 h-10 bg-gray-700 border-gray-600 rounded-md cursor-pointer">
+                </div>
+                <div class="mb-4">
+                    <label for="brush-size" class="block text-sm font-medium text-gray-300 mb-1">Grosor: <span id="brush-size-label">5</span>px</label>
+                    <input type="range" id="brush-size" min="1" max="50" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <button id="mode-toggle" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300">Modo: Colocar</button>
+                    <button id="reset-bg" class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-2 rounded-md text-sm transition duration-300">Resetear Fondo</button>
+                </div>
+            </div>
+            
+            <!-- Añadir Punto de Interés -->
+            <div>
+                 <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700 pb-2">Puntos de Interés</h2>
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="emoji-input" placeholder="🏰" value="🏰" class="w-16 text-2xl text-center bg-gray-700 border border-gray-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500">
+                    <input type="text" id="text-input" placeholder="Nombre del lugar..." class="flex-grow bg-gray-700 border border-gray-600 rounded-md p-2 focus:ring-amber-500 focus:border-amber-500">
+                </div>
+                <div class="mt-3">
+                    <div id="emoji-picker" class="flex flex-wrap gap-2 mt-2"></div>
+                </div>
+                <button id="add-poi" class="mt-4 w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded-md transition duration-300">Añadir Punto</button>
+            </div>
+            
+            <!-- Exportar -->
+            <div>
+                 <h2 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700 pb-2">Exportar</h2>
+                 <div class="grid grid-cols-2 gap-3">
+                    <button id="export-html" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-md transition duration-300">HTML</button>
+                    <button id="export-image" class="w-full bg-teal-600 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded-md transition duration-300">Imagen</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lienzo del Mapa -->
+<div class="flex-grow flex items-center justify-center p-4 bg-gray-800 min-w-0">
+        <div id="canvas-container" class="w-full h-full bg-gray-700 rounded-lg shadow-inner overflow-auto border-4 border-gray-600 flex items-center justify-left">
+            
+<div id="canvas-wrapper" class="relative shadow-lg">
+                    <canvas id="bg-canvas"></canvas>
+                <canvas id="poi-canvas"></canvas>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal para Editar Texto -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-70 items-center justify-center hidden" style="z-index: 20;">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl w-96 border border-gray-700">
+            <h3 class="text-lg font-bold mb-4 text-amber-300">Editar Nombre</h3>
+            <input type="text" id="modal-text-input" class="w-full bg-gray-700 border border-gray-600 rounded-md p-2 mb-4 focus:ring-amber-500 focus:border-amber-500">
+            <div class="flex justify-end space-x-3">
+                <button id="modal-cancel" class="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-md">Cancelar</button>
+                <button id="modal-save" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-md">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const bgCanvas = document.getElementById('bg-canvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        const poiCanvas = document.getElementById('poi-canvas');
+        const poiCtx = poiCanvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        const canvasContainer = document.getElementById('canvas-container');
+
+        // Controles UI
+        const bgUpload = document.getElementById('bg-upload');
+        const addPoiBtn = document.getElementById('add-poi');
+        const emojiInput = document.getElementById('emoji-input');
+        const textInput = document.getElementById('text-input');
+        const exportBtn = document.getElementById('export-html');
+        const exportPoisJsonBtn = document.getElementById('export-pois-json');
+        const exportImageBtn = document.getElementById('export-image');
+                const copyPoisJsonBtn = document.getElementById('copy-pois-json');
+
+        const emojiPicker = document.getElementById('emoji-picker');
+        const saveJsonBtn = document.getElementById('save-json');
+        const loadJsonInput = document.getElementById('load-json');
+        const resetBgBtn = document.getElementById('reset-bg');
+        const modeToggleBtn = document.getElementById('mode-toggle');
+        const drawColorInput = document.getElementById('draw-color');
+        const brushSizeInput = document.getElementById('brush-size');
+        const brushSizeLabel = document.getElementById('brush-size-label');
+
+        // Controles de tamaño
+        const canvasWidthInput = document.getElementById('canvas-width');
+        const canvasHeightInput = document.getElementById('canvas-height');
+        const applySizeBtn = document.getElementById('apply-size');
+        const presetSquareBtn = document.getElementById('preset-square');
+        const presetHorizontalBtn = document.getElementById('preset-horizontal');
+        const presetVerticalBtn = document.getElementById('preset-vertical');
+
+        // Modal elements
+        const editModal = document.getElementById('edit-modal');
+        const modalTextInput = document.getElementById('modal-text-input');
+        const modalSaveBtn = document.getElementById('modal-save');
+        const modalCancelBtn = document.getElementById('modal-cancel');
+
+        
+    const fantasyEmojis = [
+    "🧙",
+    "🧙‍♀️",
+    "🧝",
+    "🧝‍♀️",
+    "🧛",
+    "🧛‍♀️",
+    "🧚",
+    "🧚‍♂️",
+    "🧜",
+    "🧜‍♀️",
+    "🧜‍♂️",
+    "🧞",
+    "🧞‍♀️",
+    "🧟",
+    "🧟‍♂️",
+    "👻",
+    "👹",
+    "👺",
+    "👽",
+    "👾",
+    "🤖",
+    "👼",
+    "🤴",
+    "👸",
+    "🦸",
+    "🦸‍♀️",
+    "🦹",
+    "🦹‍♀️",
+    "🥷",
+    "💂"
+  ,
+
+    "🐉",
+    "🐲",
+    "🦄",
+    "🦁",
+    "🐺",
+    "🦅",
+    "🦉",
+    "🦇",
+    "🐍",
+    "🐎",
+    "🦌",
+    "🦂",
+    "🕷️",
+    "🕸️"
+  ,
+  
+    "✨",
+    "🪄",
+    "🔮",
+    "🔥",
+    "⚡",
+    "💥",
+    "💫",
+    "💨",
+    "🌊",
+    "🌀",
+    "☀️",
+    "🌙",
+    "🌕",
+    "⭐",
+    "☄️"
+,
+    "⚔️",
+    "🛡️",
+    "🏹",
+    "🗡️",
+    "🪓",
+    "🔨",
+    "👑",
+    "💍",
+    "💎",
+    "📜",
+    "📖",
+    "⚗️",
+    "🧪",
+    "🔑",
+    "🗝️",
+    "🕯️",
+    "🧭",
+    "🪙",
+    "💰",
+    "⚰️",
+    "⚱️",
+    "⛓️"
+  ,
+    "🏰",
+    "🏘️",
+    "⛺",
+    "🌲",
+    "🌳",
+    "⛰️",
+    "🌋",
+    "🏞️",
+    "🏜️",
+    "🏝️",
+    "🌉",
+    "🏛️",
+    "🗿",
+    "🌌",
+    "☠️"
+  ]
+
+
+
+        let pois = [];
+        let backgroundImage = null;
+        let selectedPoi = null;
+        let dragging = false;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let editingPoiIndex = -1;
+
+        let currentMode = 'place'; // 'place' or 'draw'
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+
+        let isPanning = false;
+        let panStartX = 0, panStartY = 0;
+        let scrollLeftStart = 0, scrollTopStart = 0;
+
+        function populateEmojiPicker() {
+            fantasyEmojis.forEach(emoji => {
+                const emojiBtn = document.createElement('button');
+                emojiBtn.type = 'button';
+                emojiBtn.textContent = emoji;
+                emojiBtn.className = 'text-2xl p-1 rounded-md hover:bg-gray-700 transition-colors';
+                emojiBtn.addEventListener('click', () => emojiInput.value = emoji);
+                emojiPicker.appendChild(emojiBtn);
+            });
+        }
+
+        function applyCanvasSize(width, height) {
+            const tempBgCanvas = document.createElement('canvas');
+            const tempBgCtx = tempBgCanvas.getContext('2d');
+            tempBgCanvas.width = bgCanvas.width;
+            tempBgCanvas.height = bgCanvas.height;
+            if (bgCanvas.width > 0) {
+                 tempBgCtx.drawImage(bgCanvas, 0, 0);
+            }
+           
+            canvasWrapper.style.width = `${width}px`;
+            canvasWrapper.style.height = `${height}px`;
+
+            bgCanvas.width = poiCanvas.width = width;
+            bgCanvas.height = poiCanvas.height = height;
+
+            if (tempBgCanvas.width > 0) {
+                bgCtx.drawImage(tempBgCanvas, 0, 0, width, height);
+            } else {
+                drawBg();
+            }
+
+            drawPois();
+        }
+
+        function drawBg() {
+            if (backgroundImage) {
+                bgCtx.drawImage(backgroundImage, 0, 0, bgCanvas.width, bgCanvas.height);
+            } else {
+                bgCtx.fillStyle = '#4a5568';
+                bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+                bgCtx.fillStyle = 'white';
+                bgCtx.textAlign = 'center';
+                bgCtx.font = '20px Inter';
+                bgCtx.fillText("Sube una imagen o empieza a dibujar", bgCanvas.width / 2, bgCanvas.height / 2);
+            }
+        }
+        
+        function drawPois() {
+            poiCtx.clearRect(0, 0, poiCanvas.width, poiCanvas.height);
+            pois.forEach((poi) => {
+                poiCtx.textAlign = 'center';
+                poiCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
+                poiCtx.shadowBlur = 10;
+                poiCtx.font = '48px sans-serif';
+                poiCtx.fillText(poi.emoji, poi.x, poi.y);
+                poiCtx.font = 'bold 14px Inter';
+                const textMetrics = poiCtx.measureText(poi.text);
+                const textWidth = textMetrics.width;
+                const textHeight = 18;
+                const textY = poi.y + 28;
+                poiCtx.shadowBlur = 0;
+                poiCtx.globalAlpha = 0.7;
+                poiCtx.fillStyle = 'black';
+                poiCtx.fillRect(poi.x - textWidth / 2 - 5, textY - textHeight + 4, textWidth + 10, textHeight);
+                poiCtx.globalAlpha = 1.0;
+                poiCtx.fillStyle = 'white';
+                poiCtx.fillText(poi.text, poi.x, textY);
+                if (selectedPoi === poi) {
+                    poiCtx.strokeStyle = '#f59e0b';
+                    poiCtx.lineWidth = 2;
+                    poiCtx.strokeRect(poi.x - 30, poi.y - 45, 60, 85);
+                }
+            });
+        }
+        
+        // --- Event Listeners UI ---
+
+        applySizeBtn.addEventListener('click', () => {
+            const width = parseInt(canvasWidthInput.value, 10) || 800;
+            const height = parseInt(canvasHeightInput.value, 10) || 600;
+            applyCanvasSize(width, height);
+        });
+
+        presetSquareBtn.addEventListener('click', () => {
+            canvasWidthInput.value = 1000;
+            canvasHeightInput.value = 1000;
+            applyCanvasSize(1000, 1000);
+        });
+        presetHorizontalBtn.addEventListener('click', () => {
+            canvasWidthInput.value = 1200;
+            canvasHeightInput.value = 800;
+            applyCanvasSize(1200, 800);
+        });
+        presetVerticalBtn.addEventListener('click', () => {
+            canvasWidthInput.value = 800;
+            canvasHeightInput.value = 1200;
+            applyCanvasSize(800, 1200);
+        });
+
+        bgUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                backgroundImage = new Image();
+                backgroundImage.onload = () => {
+                    bgCtx.drawImage(backgroundImage, 0, 0, bgCanvas.width, bgCanvas.height);
+                };
+                backgroundImage.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        addPoiBtn.addEventListener('click', () => {
+            const emoji = emojiInput.value || '📍';
+            const text = textInput.value || 'Nuevo Lugar';
+            pois.push({ emoji, text, x: poiCanvas.width / 2, y: poiCanvas.height / 2 });
+            textInput.value = '';
+            drawPois();
+        });
+
+        resetBgBtn.addEventListener('click', () => {
+            backgroundImage = null;
+            bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+            drawBg();
+        });
+
+        brushSizeInput.addEventListener('input', (e) => {
+            brushSizeLabel.textContent = e.target.value;
+        });
+
+        modeToggleBtn.addEventListener('click', () => {
+            if (currentMode === 'place') {
+                currentMode = 'draw';
+                modeToggleBtn.textContent = 'Modo: Dibujar';
+                modeToggleBtn.classList.replace('bg-purple-600', 'bg-cyan-600');
+                modeToggleBtn.classList.replace('hover:bg-purple-500', 'hover:bg-cyan-500');
+                poiCanvas.classList.remove('placing');
+                poiCanvas.classList.add('drawing');
+            } else {
+                currentMode = 'place';
+                modeToggleBtn.textContent = 'Modo: Colocar';
+                modeToggleBtn.classList.replace('bg-cyan-600', 'bg-purple-600');
+                modeToggleBtn.classList.replace('hover:bg-cyan-500', 'hover:bg-purple-500');
+                poiCanvas.classList.remove('drawing');
+                poiCanvas.classList.add('placing');
+            }
+        });
+        
+        function getMousePos(e) {
+            const rect = poiCanvas.getBoundingClientRect();
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function getPoiAtPos(x, y) {
+            for (let i = pois.length - 1; i >= 0; i--) {
+                const poi = pois[i];
+                if (x >= poi.x - 30 && x <= poi.x + 30 && y >= poi.y - 45 && y <= poi.y + 40) return poi;
+            }
+            return null;
+        }
+
+        function handleStart(e) {
+            // Panning with Right Click (or middle click)
+            if (e.button === 2 || e.button === 1) {
+                isPanning = true;
+                panStartX = e.clientX;
+                panStartY = e.clientY;
+                scrollLeftStart = canvasContainer.scrollLeft;
+                scrollTopStart = canvasContainer.scrollTop;
+                poiCanvas.classList.add('panning');
+                e.preventDefault();
+                return;
+            }
+
+            // Normal left-click logic
+            if (e.button === 0) {
+                e.preventDefault();
+                const { x, y } = getMousePos(e);
+                
+                if (currentMode === 'draw') {
+                    isDrawing = true;
+                    [lastX, lastY] = [x, y];
+                } else { // place mode
+                    const poi = getPoiAtPos(x, y);
+                    if (poi) {
+                        selectedPoi = poi;
+                        dragging = true;
+                        dragOffsetX = x - poi.x;
+                        dragOffsetY = y - poi.y;
+                        poiCanvas.classList.add('grabbing');
+                    } else {
+                        selectedPoi = null;
+                    }
+                    drawPois();
+                }
+            }
+        }
+
+        function handleMove(e) {
+            e.preventDefault();
+
+            // Panning logic
+            if (isPanning) {
+                const dx = e.clientX - panStartX;
+                const dy = e.clientY - panStartY;
+                // LÍNEA AÑADIDA: Aplica el desplazamiento horizontal
+                canvasContainer.scrollLeft = scrollLeftStart - dx;
+                canvasContainer.scrollTop = scrollTopStart - dy;
+                return;
+            }
+            
+            // Existing move logic
+            const { x, y } = getMousePos(e);
+            
+            if (currentMode === 'draw' && isDrawing) {
+                bgCtx.beginPath();
+                bgCtx.moveTo(lastX, lastY);
+                bgCtx.lineTo(x, y);
+                bgCtx.strokeStyle = drawColorInput.value;
+                bgCtx.lineWidth = brushSizeInput.value;
+                bgCtx.lineCap = 'round';
+                bgCtx.lineJoin = 'round';
+                bgCtx.stroke();
+                [lastX, lastY] = [x, y];
+            } else if (currentMode === 'place' && dragging && selectedPoi) {
+                selectedPoi.x = x - dragOffsetX;
+                selectedPoi.y = y - dragOffsetY;
+                drawPois();
+            }
+        }
+
+        function handleEnd(e) {
+            e.preventDefault();
+            // Panning logic
+            if (isPanning) {
+                isPanning = false;
+                poiCanvas.classList.remove('panning');
+                return;
+            }
+
+            // Existing end logic
+            if (currentMode === 'draw') {
+                isDrawing = false;
+            } else {
+                dragging = false;
+                poiCanvas.classList.remove('grabbing');
+            }
+        }
+        
+        poiCanvas.addEventListener('mousedown', handleStart);
+        poiCanvas.addEventListener('mousemove', handleMove);
+        poiCanvas.addEventListener('mouseup', handleEnd);
+        poiCanvas.addEventListener('mouseleave', handleEnd);
+        poiCanvas.addEventListener('touchstart', handleStart, { passive: false });
+        poiCanvas.addEventListener('touchmove', handleMove, { passive: false });
+        poiCanvas.addEventListener('touchend', handleEnd);
+
+        // Prevent context menu on right click
+        poiCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+        poiCanvas.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (currentMode !== 'place') return;
+            const { x, y } = getMousePos(e);
+            const poi = getPoiAtPos(x, y);
+            if (poi) {
+                editingPoiIndex = pois.indexOf(poi);
+                modalTextInput.value = poi.text;
+                editModal.style.display = 'flex';
+                modalTextInput.focus();
+            }
+        });
+
+        modalSaveBtn.addEventListener('click', () => {
+            if (editingPoiIndex > -1) {
+                pois[editingPoiIndex].text = modalTextInput.value;
+                editModal.style.display = 'none';
+                editingPoiIndex = -1;
+                drawPois();
+            }
+        });
+        modalTextInput.addEventListener('keydown', (e) => e.key === 'Enter' && modalSaveBtn.click());
+        modalCancelBtn.addEventListener('click', () => {
+            editModal.style.display = 'none';
+            editingPoiIndex = -1;
+        });
+
+      window.addEventListener('keydown', (e) => {
+    // Se obtiene la etiqueta del elemento que tiene el foco (donde se está escribiendo).
+    const activeElementTag = document.activeElement.tagName;
+
+    // Si el elemento activo es un INPUT, no se hace nada.
+    if (activeElementTag === 'INPUT') {
+        return; 
+    }
+
+    // Si no se está escribiendo en un input, se ejecuta la lógica de borrado.
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPoi) {
+        pois.splice(pois.indexOf(selectedPoi), 1);
+        selectedPoi = null;
+        drawPois();
+    }
+});
+
+        // --- Save/Load/Export ---
+
+       saveJsonBtn.addEventListener('click', () => {
+            const mapData = {
+                // NUEVAS LÍNEAS: Guardamos las dimensiones del lienzo
+                width: bgCanvas.width,
+                height: bgCanvas.height,
+                pois: pois,
+                background: backgroundImage ? bgCanvas.toDataURL() : null
+            };
+            const blob = new Blob([JSON.stringify(mapData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mi_mapa.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+       loadJsonInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const mapData = JSON.parse(event.target.result);
+                    if (mapData.pois) {
+                        pois = mapData.pois;
+
+                        // Prioridad 1: Usar las dimensiones del JSON si existen.
+                        const mapWidth = mapData.width || 1200; // Si no existe, usa 1200 por defecto
+                        const mapHeight = mapData.height || 800; // Si no existe, usa 800 por defecto
+
+                        // Actualizamos la UI y el lienzo con las dimensiones correctas
+                        canvasWidthInput.value = mapWidth;
+                        canvasHeightInput.value = mapHeight;
+                        applyCanvasSize(mapWidth, mapHeight);
+
+                        // Ahora, manejamos el fondo
+                        if (mapData.background) {
+                            backgroundImage = new Image();
+                            backgroundImage.onload = () => {
+                                bgCtx.drawImage(backgroundImage, 0, 0, bgCanvas.width, bgCanvas.height);
+                                drawPois();
+                            };
+                            backgroundImage.src = mapData.background;
+                        } else {
+                            // Si no hay fondo, dibujamos el fondo por defecto y los POIs
+                            backgroundImage = null;
+                            drawBg();
+                            drawPois();
+                        }
+                    } else {
+                        console.error('El archivo JSON no contiene la propiedad "pois" requerida.');
+                    }
+                } catch (err) {
+                    console.error("Error cargando JSON:", err);
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        exportBtn.addEventListener('click', () => {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = bgCanvas.width;
+            exportCanvas.height = bgCanvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+            exportCtx.drawImage(bgCanvas, 0, 0);
+            exportCtx.drawImage(poiCanvas, 0, 0);
+            
+            const bgData = `'${exportCanvas.toDataURL()}'`;
+            const htmlContent = `
+<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Mapa Exportado</title><style>body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #2d3748; } img { display: block; width: 100%; height: 100%; object-fit: contain; }</style></head><body><img src=${bgData} alt="Mapa Exportado"></body></html>`;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mi_mapa.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        exportImageBtn.addEventListener('click', () => {
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = bgCanvas.width;
+            exportCanvas.height = bgCanvas.height;
+            const exportCtx = exportCanvas.getContext('2d');
+            exportCtx.drawImage(bgCanvas, 0, 0);
+            exportCtx.drawImage(poiCanvas, 0, 0);
+
+            const url = exportCanvas.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'mi_mapa.png';
+            a.click();
+        });
+exportPoisJsonBtn.addEventListener('click', () => {
+            // Crea un objeto que solo contiene la lista de pois
+            const poisData = {
+                pois: pois
+            };
+            // Convierte el objeto a un string JSON formateado
+            const blob = new Blob([JSON.stringify(poisData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            // Asigna un nombre de archivo diferente para no confundir con el guardado completo
+            a.download = 'puntos_de_interes.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+copyPoisJsonBtn.addEventListener('click', () => {
+    if (pois.length === 0) {
+        copyPoisJsonBtn.textContent = '¡Nada que copiar!';
+        setTimeout(() => {
+            copyPoisJsonBtn.textContent = 'Copiar POIs';
+        }, 2000);
+        return;
+    }
+
+    // ⭐ NUEVA LÓGICA: Convierte los POIs a un formato de lista simple.
+    const formattedPoisString = pois.map(poi => 
+        `- ${poi.emoji} ${poi.text} (x: ${poi.x}, y: ${poi.y})`
+    ).join('\n');
+
+    // Usamos la API del portapapeles del navegador con el nuevo formato.
+    navigator.clipboard.writeText(formattedPoisString).then(() => {
+        const originalText = copyPoisJsonBtn.textContent;
+        copyPoisJsonBtn.textContent = '¡Copiado!';
+        setTimeout(() => {
+            copyPoisJsonBtn.textContent = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Error al copiar al portapapeles:', err);
+        alert('No se pudo copiar. Revisa la consola para más detalles.');
+    });
+});
+
+        // Inicializar
+        populateEmojiPicker();
+        applyCanvasSize(parseInt(canvasWidthInput.value), parseInt(canvasHeightInput.value));
+        poiCanvas.classList.add('placing');
+
+    </script>
+</body>
+</html>
+

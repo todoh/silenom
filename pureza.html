@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat con Gemini 3 Pro Preview</title>
+    <style>
+        /* Estilos Generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Contenedor Principal */
+        #chat-container {
+            width: 100%;
+            max-width: 500px;
+            height: 90vh;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Cabecera */
+        header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Área de Mensajes */
+        #messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Burbujas de Chat */
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: #4a90e2;
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 2px;
+        }
+
+        .error-message {
+            align-self: center;
+            background-color: #ffebee;
+            color: #c62828;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* Área de Input */
+        #input-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            background-color: white;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #4a90e2;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #357abd;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Indicador de carga */
+        .loading {
+            font-style: italic;
+            color: #888;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="chat-container">
+        <header>
+            Gemini 3 Pro Preview
+        </header>
+        
+        <div id="messages">
+            <div class="message bot-message">Hola, soy Gemini. ¿En qué puedo ayudarte hoy?</div>
+        </div>
+
+        <div id="input-area">
+            <input type="text" id="user-input" placeholder="Escribe tu mensaje..." autocomplete="off">
+            <button id="send-btn" onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURACIÓN
+        // ==========================================
+        // IMPORTANTE: Reemplaza esto con tu API KEY real de Google AI Studio
+        const API_KEY = 'AIzaSyBqnLkFmsDgUQvznC8eZoZXURSBfBKEPYw'; 
+        
+        // El modelo exacto que pediste. Si la API devuelve 404, verifica el nombre en la documentación.
+        const MODEL_NAME = 'gemini-3-pro-preview'; 
+        
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+
+        const messagesContainer = document.getElementById('messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        // Permitir enviar con la tecla Enter
+        userInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            if (API_KEY === 'TU_API_KEY_AQUI') {
+                addMessage('Error: Por favor, abre el código y pon tu API KEY en la variable API_KEY.', 'error-message');
+                return;
+            }
+
+            // 1. Mostrar mensaje del usuario
+            addMessage(text, 'user-message');
+            userInput.value = '';
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // 2. Mostrar indicador de carga temporal
+            const loadingId = 'loading-' + Date.now();
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = loadingId;
+            loadingDiv.className = 'loading';
+            loadingDiv.textContent = 'Pensando...';
+            messagesContainer.appendChild(loadingDiv);
+            scrollToBottom();
+
+            try {
+                // 3. Preparar el payload para la API
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: text
+                        }]
+                    }]
+                };
+
+                // 4. Llamada a la API (Fetch)
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                // Eliminar indicador de carga
+                document.getElementById(loadingId).remove();
+
+                if (!response.ok) {
+                    // Manejo de errores de la API
+                    console.error('Error API:', data);
+                    let errorMsg = `Error ${response.status}: ${data.error?.message || 'Algo salió mal'}`;
+                    
+                    // Check específico para modelo no encontrado
+                    if (response.status === 404) {
+                         errorMsg += ` (Probablemente el modelo '${MODEL_NAME}' no esté disponible para tu cuenta o el nombre sea incorrecto).`;
+                    }
+                    
+                    throw new Error(errorMsg);
+                }
+
+                // 5. Extraer respuesta del modelo
+                // La estructura típica es: data.candidates[0].content.parts[0].text
+                const botText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No se recibió respuesta estructurada.";
+                
+                // 6. Mostrar respuesta del bot
+                // Convertimos saltos de línea simples a <br> para HTML
+                const formattedText = botText.replace(/\n/g, '<br>');
+                addMessage(formattedText, 'bot-message', true);
+
+            } catch (error) {
+                // Eliminar indicador de carga si sigue ahí
+                if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
+                
+                addMessage(`Hubo un error: ${error.message}`, 'error-message');
+                console.error(error);
+            } finally {
+                // Habilitar controles nuevamente
+                userInput.disabled = false;
+                sendBtn.disabled = false;
+                userInput.focus();
+            }
+        }
+
+        function addMessage(text, className, isHTML = false) {
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            
+            if (isHTML) {
+                div.innerHTML = text;
+            } else {
+                div.textContent = text;
+            }
+            
+            messagesContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>

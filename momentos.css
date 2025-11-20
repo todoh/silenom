@@ -1,0 +1,420 @@
+/* =================================== */
+/* ESTILOS PARA LA SECCIÓN DE MOMENTOS */
+/* =================================== */
+
+#momentos {
+    display: none;
+    flex-direction: column;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    right: 0%;
+    bottom: 0%; padding: 0%;
+    background-color: var(--background-color, #f8f9fa);
+    overflow: hidden; /* El scroll ahora lo maneja el wrapper */
+}
+
+/* Contenedor para todos los botones flotantes */
+#momentos-controles-flotantes {
+    position: absolute;
+    right: 50%;
+    transform: translateX(50%);
+    top: 6%;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    z-index: 1001;
+    
+align-items: end;}
+
+#momentos-controles-flotantes .pro {
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.control-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
+}
+
+.control-group #preview-connections-btn {
+    flex-grow: 2;
+}
+
+.control-group #zoom-out-btn,
+.control-group #zoom-in-btn {
+    flex-grow: 1;
+    font-weight: bold;
+}
+
+#zoom-level-indicator {
+    padding: 5px;
+    background-color: var(--background-color-light-translucent, rgba(255, 255, 255, 0.8));
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.9em;
+    min-width: 50px;
+}
+
+.dark-theme #zoom-level-indicator {
+    background-color: var(--background-color-dark-translucent, rgba(40, 40, 40, 0.85));
+}
+
+#momentos-controles-flotantes #preview-connections-btn.active {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+#momentos-controles-ia {
+    display: flex; width: 100%;
+    flex-direction: column;
+    gap: 10px;
+    background-color: var(--background-color-light-translucent, rgba(255, 255, 255, 0.8));
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.dark-theme #momentos-controles-ia {
+     background-color: var(--background-color-dark-translucent, rgba(40, 40, 40, 0.85));
+}
+
+#guion-select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border-color, #ccc);
+    background-color: var(--background-color-light, #fff);
+    color: var(--text-color, #333);
+    cursor: pointer;
+}
+
+.dark-theme #guion-select {
+    background-color: var(--background-color-dark, #333);
+    color: var(--text-color-dark, #e0e0e0);
+    border-color: var(--border-color-dark, #555);
+}
+
+#momentos-lienzo-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    position: relative;
+     background-image:
+        linear-gradient(rgba(0, 0, 0, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.07) 1px, transparent 1px);
+    background-size: 40px 40px;
+}
+
+.dark-theme #momentos-lienzo-wrapper {
+    background-color: #22272e;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+#momentos-lienzo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 5000px;
+    height: 5000px;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease-out;
+}
+
+#connections-svg {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    pointer-events: none; 
+    z-index:9999999;
+    overflow: visible;
+}
+
+.momento-nodo {
+    position: absolute;
+    width: 230px;
+    height: 150px;
+    background-color: transparent;
+    border: 0px solid var(--accent-color, #007bff);
+    border-radius: 8px;
+    color: var(--text-color, #333);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px;
+    box-sizing: border-box;
+    font-size: 1em;
+    cursor: grab;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.momento-nodo .momento-titulo {
+    font-weight: bold;
+    width: 100%;
+    text-align: center;
+    padding: 5px;
+    box-sizing: border-box;
+    flex-shrink: 0; 
+    height: 15%; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: text;
+    padding-left: 30px; 
+}
+ #qr-code-container {
+            margin-top: 2em;
+        }
+        #qr-code {
+            max-width: 250px;
+            max-height: 250px;
+            border: 5px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: none; /* Oculto por defecto */
+        }
+         .container {
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+.marcador-inicio { display: none;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 1.5em;
+    cursor: pointer;
+    z-index: 3;
+    transition: transform 0.2s ease;
+    filter: grayscale(100%);
+    opacity: 0.7;
+}
+
+.marcador-inicio:hover {
+    transform: scale(1.2);
+    filter: grayscale(50%);
+    opacity: 0.9;
+}
+
+.momento-nodo.inicio .marcador-inicio {
+    filter: grayscale(0%);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.momento-nodo.inicio {
+    border-color: #28a745;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.7);
+    border-width: 3px;
+}
+
+.momento-nodo .momento-contenido {
+    width: 100%;
+    flex-grow: 1; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.momento-nodo .momento-contenido .momento-imagen {
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: grab;
+}
+
+.momento-nodo .momento-botones {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    padding: 5px 0;
+    flex-shrink: 0;
+}
+
+.momento-nodo .momento-btn {
+    padding: 3px 8px;
+    font-size: 0.8em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.momento-nodo.con-imagen {
+    justify-content: flex-start; 
+    padding: 0;
+    overflow: hidden;
+}
+
+.momento-nodo.con-imagen .momento-titulo {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border-radius: 4px;
+    z-index: 2;
+    height: auto;
+    padding-left: 35px;
+}
+
+.momento-nodo.con-imagen .momento-contenido {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.momento-nodo.con-imagen .momento-botones {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    width: auto;
+}
+
+/* --- Estilos para las líneas de conexión SVG --- */
+#connections-svg line {
+    stroke: var(--connection-line-color, rgba(0, 123, 255, 0.6));
+    stroke-width: 3;
+    stroke-dasharray: 5, 5;
+    animation: dash 1.5s linear infinite;
+}
+
+#connections-svg marker path {
+    fill: var(--connection-line-color, rgba(0, 123, 255, 0.6));
+}
+
+.dark-theme #connections-svg line,
+.dark-theme #connections-svg marker path {
+    stroke: var(--connection-line-color-dark, rgba(13, 110, 253, 0.7));
+    fill: var(--connection-line-color-dark, rgba(13, 110, 253, 0.7));
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -30;
+    }
+}
+
+#momentos-controles-ia {
+    display: none;
+}
+/* --- ESTILOS PARA LA IMAGEN Y BOTÓN DE CARGA EN NODOS --- */
+
+/* Contenedor principal del contenido visual del nodo */
+.momento-contenido {
+     height: 60%; /* Altura del área de la imagen */
+    background-color: #e9ebee; /* Color de fondo mientras no hay imagen */
+    border-radius: 4px;
+    margin: 5px 10px;
+    overflow: hidden; /* Oculta partes de la imagen que se salgan */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px dashed #ccc;
+}
+/* --- Estilos para el nuevo botón de eliminar imagen --- */
+
+/* Contenedor principal del contenido del momento */
+.momento-contenido {
+    position: relative; /* Necesario para posicionar el botón de eliminar */
+    overflow: hidden;
+}
+
+/* El nuevo botón de eliminar imagen */
+.btn-eliminar-imagen {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 18px; /* Centra la 'X' verticalmente */
+    text-align: center;
+    z-index: 5;
+    padding: 0;
+}
+
+.btn-eliminar-imagen:hover {
+    background-color: rgba(255, 0, 0, 0.8);
+}
+
+/* --- Lógica de visibilidad --- */
+
+/* Cuando un nodo TIENE una imagen (clase .con-imagen), mostramos el botón */
+.momento-nodo.con-imagen .btn-eliminar-imagen {
+    display: block;
+}
+
+/* Ocultamos el botón de "Cargar Imagen" cuando ya hay una */
+.momento-nodo.con-imagen .btn-cargar-imagen {
+    display: none;
+}
+/* Estilo para la imagen de fondo del nodo */
+.momento-imagen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Hace que la imagen cubra el área sin deformarse */
+    z-index: 1;
+}
+
+/* Oculta el input de archivo por defecto */
+.input-imagen-oculto {
+    display: none;
+}
+
+/* Estilo para el botón (la etiqueta 'label') que activa la carga */
+.btn-cargar-imagen { top: 0%;
+    
+    position: absolute;
+    z-index: 999999; /* Se asegura de que esté por encima de la imagen */
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+ 
+ 
+
+/* Muestra el botón de carga al pasar el ratón por encima del área, si hay imagen */
+.momento-contenido:hover .btn-cargar-imagen {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
