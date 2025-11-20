@@ -1,0 +1,268 @@
+/* === ESTILOS PARA EL ESCRITORIO === */
+
+/* El #escritorio ahora actúa como un viewport o "ventana" */
+#escritorio {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Oculta las barras de scroll, el movimiento será por JS */
+    
+    cursor: grab; /* Indica que el fondo se puede arrastrar */
+}
+
+#escritorio.grabbing {
+    cursor: grabbing;
+}
+
+/* El lienzo es el área gigante donde viven los elementos */
+#escritorio-lienzo {
+    position: absolute;
+    width: 8000px;
+    height: 8000px;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.1) 1px, transparent 0);
+    background-size: 25px 25px;
+    transform-style: preserve-3d;
+}
+
+/* Estilo para los elementos clonados en el escritorio */
+.elemento-escritorio {
+    position: absolute;
+    cursor: grab;
+    user-select: none;
+    width: 150px; height: 150px;
+    z-index: 10;
+    transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+    background-color: #ffffff00;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.elemento-escritorio .edit-btn-escritorio {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 10px 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    z-index: 100;
+    font-weight: bold;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.elemento-escritorio:hover .edit-btn-escritorio {
+    opacity: 1;
+    visibility: visible;
+}
+
+.elemento-escritorio .personaje-visual {
+    width: 100%;
+    height: 150px;
+    background-color: #2c2c2c00;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    overflow: hidden;
+}
+
+.elemento-escritorio .personaje-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.elemento-escritorio .nombreh {
+    width: calc(100% - 20px);
+    margin: 10px;
+    padding: 8px;
+    border: 0px solid #555;
+    background-color: #44444400;
+    color: #f0f0f0;
+    border-radius: 4px;
+    font-weight: bold;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.elemento-escritorio .personaje-edit-overlay,
+.elemento-escritorio .change-tag-btn,
+.elemento-escritorio .change-arc-btn {
+    display: none;
+}
+
+.elemento-escritorio.dragging {
+    cursor: grabbing;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    transform: scale(1) ;
+}
+
+/* --- ESTILOS DEL MODAL DE EDICIÓN (SIN !important) --- */
+#escritorio-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0);
+   
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#escritorio-modal-content { backdrop-filter: blur(10px);
+    position: relative;
+    /* Ancho y alto similar al de la sección Datos para consistencia */
+    width: 80vw;
+    height: 80vh;
+    max-width: 1200px; /* Un máximo para pantallas grandes */
+    max-height: 800px;
+}
+
+.escritorio-modal-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 30px;
+    height: 30px;
+    background-color: rgba(0,0,0,0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10001;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+.escritorio-modal-close:hover {
+    background-color: rgba(255,0,0,0.8);
+}
+
+
+/* --- REGLAS ADAPTADAS DE 'editor-personajes.css' --- */
+
+/* Aplicamos los estilos al panel cuando está DENTRO de nuestro modal */
+#escritorio-modal-content .personaje-edit-overlay {
+    /* Hacemos que ocupe todo el espacio del modal */
+    width: 100%;
+    height: 100%;
+    /* Lo hacemos visible y estático DENTRO del modal */
+    display: block;
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none; /* Reseteamos la transformación original */
+    /* Estilos visuales consistentes */
+    background-color: transparent;
+    backdrop-filter: none;
+    border-radius: 15px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* Contenedor principal de los controles (imagen y texto) */
+#escritorio-modal-content .edit-controls {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+    height: 100%;
+    gap: 20px;
+    opacity: 1; /* Lo hacemos totalmente visible */
+    transform: none;
+}
+
+/* Columna de la imagen de previsualización */
+#escritorio-modal-content .edit-preview-container {
+    flex: 1 1 50%; /* Ocupa la mitad del espacio */
+    min-width: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#escritorio-modal-content .edit-preview-image,
+#escritorio-modal-content .edit-svg-preview,
+#escritorio-modal-content .edit-3d-canvas {
+    display: block; /* Aseguramos que sea visible */
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Columna de los campos de texto y botones */
+#escritorio-modal-content .edit-text-controls {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#escritorio-modal-content .descripcionh,
+#escritorio-modal-content .prompt-visualh {
+    display: block;
+    visibility: visible;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 15px;
+    box-sizing: border-box;
+    resize: none;
+    font-size: 1.1em;
+    line-height: 1.6;
+}
+
+#escritorio-modal-content .descripcionh {
+    height: 60%; /* Damos más espacio a la descripción */
+}
+#escritorio-modal-content .prompt-visualh {
+    height: 40%; /* Menos espacio al prompt */
+}
+
+/* Contenedor de los botones de acción */
+#escritorio-modal-content .edit-buttons-wrapper {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-shrink: 0; /* Evita que se encoja */
+    margin-top: auto; /* Empuja los botones hacia abajo */
+}
+
+#escritorio-modal-content .edit-btn {
+    display: flex;
+    visibility: visible;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    font-size: 20px;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#escritorio-modal-content .edit-btn:hover {
+    transform: scale(1.15);
+    background-color: rgba(0, 123, 255, 0.8);
+}
+

@@ -1,0 +1,724 @@
+/* --- ESTILOS PARA LA GALERÍA --- */
+
+#galeria {
+    display: none; /* Oculta por defecto */
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    right: 0%;
+    bottom: 0%;
+    background-color: #f0f2f5;
+    border-radius: 0px;
+    flex-direction: row-reverse; /* Cambia el orden visual de los hijos */
+    overflow: hidden;
+}
+
+.dark-theme #galeria {
+    background-color: #242526;
+}
+
+#galeria-lista {
+    width: 200px;
+    height: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    background-color: #ffffff;
+    border-left: 1px solid #d1d5db;
+}
+
+.dark-theme #galeria-lista {
+    background-color: #18191a;
+    border-left: 1px solid #3a3b3c;
+}
+
+#galeria-lista button {
+    width: 100%;
+    padding: 12px;
+    text-align: left;
+    background-color: #e4e6eb;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.dark-theme #galeria-lista button {
+    background-color: #3a3b3c;
+    color: #e4e6eb;
+}
+
+#galeria-lista button:hover {
+    background-color: #d1d5db;
+}
+
+.dark-theme #galeria-lista button:hover {
+    background-color: #4e4f50;
+}
+
+#galeria-lista button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.dark-theme #galeria-lista button.active {
+    background-color: #0d6efd;
+}
+
+#galeria-contenedor {
+    flex-grow: 1;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    position: relative;
+}
+
+.galeria-seccion {
+    display: none; /* Todas las secciones ocultas por defecto */
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.galeria-seccion.active {
+    display: block; /* Muestra la sección activa */
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* =================================================== */
+/* ESTILOS PARA EL MODAL DE SELECCIÓN DE LIBRO Y GUION */
+/* =================================================== */
+
+/* Estilo para cada libro en la lista */
+.libro-seleccionable {
+    padding: 12px 15px;
+    margin: 5px 0;
+    border: 2px solid transparent; /* Borde transparente por defecto */
+    border-radius: 8px;
+    background-color: #f0f0f0; /* Un color de fondo claro */
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    text-align: left;
+}
+
+/* Estilo cuando pasas el ratón por encima */
+.libro-seleccionable:hover {
+    background-color: #e0e0e0;
+    border-color: #cccccc;
+}
+
+/* ¡LA CLAVE! Estilo para el libro que está seleccionado */
+.libro-seleccionable.seleccionado {
+    background-color: #cce7ff; /* Un azul claro para destacar */
+    border-color: #007bff;      /* Un borde azul sólido */
+    color: #004085;             /* Texto más oscuro para legibilidad */
+    font-weight: bold;          /* Texto en negrita */
+}
+
+/* Estilos para el contenedor de la lista en el modal */
+#lista-libros-para-frames {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    background-color: #fff;
+}
+ #libroscreados {
+    background-color: transparent;
+    /* Estos estilos ya no son necesarios aquí, se gestionarán en .catalogolibros */
+    display: flex; 
+    padding: 1%;  
+    height: 140%;
+    width: 95%;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+ .perfil {display: flex;
+    position: absolute; 
+    gap: 3%;
+    padding: 10%;
+    top: -9%;
+    width: 100%;
+height: 100%;}
+/* Estilo para la "tarjeta" individual de cada libro */
+/* NOTA: He movido los estilos de .libroh aquí para unificarlos con .libro-card si son similares, pero mantendré .libroh por si lo usas en otro lado. */
+.libro-card {
+    display: flex;
+    flex-direction: column; /* Apila los elementos internos (portada, título, botones) verticalmente */
+    align-items: center; /* Centra los elementos horizontalmente */
+    width: auto; /* Ancho fijo para cada tarjeta de libro */
+    height: 30%; position: relative; 
+    aspect-ratio: 9 / 18; margin-top: 4%;margin-bottom: 8%; margin-left: 2%; margin-right: 2%;
+    padding:0px;
+    border: 0px solid #ccc;
+    border-radius: 8px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.libro-card:hover {
+    transform: translateY(-10px); /* Pequeño efecto al pasar el ratón por encima */
+}
+
+/* Placeholder para la portada del libro */
+.libro-portada {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 15 / 23;;
+    background-color: #e0e0e000; /* Color gris para el placeholder */
+    border: 0px dashed #a0a0a0;
+    margin-bottom: 12px; /* Espacio entre la portada y el título */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #a0a0a0;
+    font-size: 12px; background-size: cover;
+
+  /* Centra la imagen dentro del contenedor */
+  background-position: center;
+
+  /* Evita que la imagen se repita si es más pequeña que el contenedor */
+  background-repeat: no-repeat;
+}
+
+ .libro-portada img {
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+
+
+.libro-portada::before {
+    content: ''; /* Texto para el placeholder */
+}
+
+/* Estilo para el título del libro */
+.libro-titulo {
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 0 12px 0; /* Sin margen superior, espacio inferior */
+    word-break: break-word; /* Evita que títulos largos rompan el layout */
+}
+
+/* Contenedor para los botones */
+.libro-botones {
+    display: flex;
+    gap: 4px; /* Espacio entre los botones */
+}
+
+/* Mensaje que se muestra cuando no hay libros */
+.sin-libros-mensaje {
+    width: 100%;
+    text-align: center;
+    color: #666;
+}
+
+ 
+ 
+
+/* Estilos para el menú de exportación */
+.export-menu-container {
+     
+    position: absolute;
+    z-index: 100000;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+ 
+}
+
+.export-menu-container button {
+    background: none;
+    border: none;
+    padding: 10px 15px;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+}
+
+.export-menu-container button:hover {
+    background-color: #f0f0f0;
+}
+
+/* 1. CONTENEDOR PRINCIPAL Y POSICIONAMIENTO */
+/* Fija el elemento en la esquina inferior izquierda con el z-index correcto */
+.language-selector-css {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 8888888;
+}
+.catalogo {
+ 
+  color: rgb(0, 0, 0);
+  padding: 10px 15px;
+  border: none; 
+  border-radius: 8%;
+  cursor: pointer;
+ 
+  font-size: 26px;
+  width: auto; /* Ancho fijo para consistencia */
+  transition:   transform 0.3s;
+  position: absolute; z-index: 9999999;
+  bottom: 5%;
+  right: 2%;
+}
+
+ 
+   .catalogolibros {
+    padding: 4%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 40px; /* Espacio entre los libros */
+        justify-content: center;
+    }
+
+    /* Contenedor principal de cada libro */
+    .libroh {
+        position: relative; /* Clave para posicionar la info encima */
+        width: 250px;
+        height: 380px;
+        cursor: pointer;
+        overflow: hidden; /* Oculta lo que se salga del contenedor */
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Imagen del libro */
+    .libroh img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease; /* Transición suave para la imagen */
+    }
+    
+    /* Título visible debajo de la imagen */
+    .libroh span {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 1rem;
+        transition: opacity 0.4s ease;
+    }
+
+    /* Contenedor de la información (oculto por defecto) */
+    .info-libro {
+        position: fixed;
+        top: 20%;
+        left: 20%;
+     
+        width:60%;
+        height: 60%;
+       
+        background-color: rgba(255, 255, 255, 0.192); /* Fondo oscuro semitransparente */
+        color: rgb(0, 0, 0);
+        
+   
+        backdrop-filter: blur(5px); /* Adjust the blur value as needed */
+    -webkit-backdrop-filter: blur(5px);
+border-radius: 8px; 
+
+        /* Centra el contenido */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        padding: 20px;
+        box-sizing: border-box;
+z-index: 5;
+        /* Efecto de aparición */
+        opacity: 0; /* Totalmente transparente */
+        visibility: hidden; /* Oculto */
+        transform: scale(0.9); /* Ligeramente más pequeño */
+        transition: opacity 0.7s ease, visibility 0.7s ease, transform 0.7s ease;
+    }
+ 
+    /* --- El efecto HOVER --- */
+    /* Cuando pasas el ratón sobre .libroh... */
+    .libroh:hover .info-libro {
+        opacity: 1; /* Se vuelve totalmente visible */
+        visibility: visible; /* Aparece */
+        transform: scale(1); /* Vuelve a su tamaño normal */
+    }
+    
+    .libroh:hover img {
+        transform: scale(1.1); /* Hacemos un ligero zoom a la portada */
+    }
+    
+    .libroh:hover span {
+        opacity: 0; /* Ocultamos el título inicial */
+    }
+
+.libroh iframe {
+height: 50%;
+width: 40%;
+ position: absolute;
+ transform: translateY(-5%);
+
+}
+    /* Estilos para la información dentro de la capa superpuesta */
+    .info-libro h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #ffc107; /* Un color de acento */
+    }
+    .info-libro a {position: absolute;
+bottom: 2%;
+left: 50%; padding: 2%;
+font-size: large;
+border-radius: 8px;
+transform: translateX(-50%);
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: #ffc107; /* Un color de acento */
+    background-color: #00000088; }
+    .info-libro p {
+        top:6%;
+left: 50%;
+ transform: translateX(-50%);
+
+     position: absolute; 
+      
+    }
+    
+    .info-libro iframe {
+     
+        border: none;
+        border-radius: 5px;
+    }
+
+/* 2. EL BOTÓN */
+.lang-button-css {
+background-color: #000000;
+  color: rgb(255, 255, 255);
+  padding: 10px 15px;
+  border: none;
+  border-radius: 100%;
+  cursor: pointer;
+ 
+  font-size: 16px;
+  width: auto; /* Ancho fijo para consistencia */
+  transition:   transform 0.3s;
+}
+
+.lang-button-css:hover {
+  transform: scale(1.1);
+}
+
+
+/* 3. LA LISTA DESPLEGABLE */
+.lang-menu-css {
+  /* Oculta por defecto */
+  visibility: hidden;
+  opacity: 0; align-items: start;
+  justify-content: start;
+   display: flex; flex-direction: column;
+  /* Posicionamiento y estilos */
+  position: absolute;
+  bottom: 100%;      /* Coloca la lista ENCIMA del botón */
+  left: 0;
+  margin: 0 0 5px 0; /* Espacio de 5px entre botón y lista */
+  padding: 0;
+  height: 50dvh;
+overflow-y: scroll;
+overflow-x: hidden; ;
+  list-style: none;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  width:150px; /* La lista ocupa el mismo ancho que el botón */
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+}
+
+/* 4. LA MAGIA PARA MOSTRAR LA LISTA */
+/* Cuando el usuario hace hover sobre el contenedor, la lista se muestra. */
+.language-selector-css:hover .lang-menu-css {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* 5. LOS ELEMENTOS Y ENLACES DE LA LISTA */
+.lang-menu-css li a {width: 100%;
+  display: flex;
+  align-items: left;
+  padding: 10px 15px;
+  color: #333;
+  text-decoration: none;
+ 
+  transition: background-color 0.2s;
+}
+
+/* Efecto hover para los enlaces */
+.lang-menu-css li a:hover {
+  background-color: #f2f2f2;
+}
+
+
+.ia-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); z-index: 10000;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .ia-modal-content {
+            background: white; padding: 25px; border-radius: 8px;
+            width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .ia-modal-content h3 { margin-top: 0; }
+        .ia-modal-content label { display: block; margin-top: 15px; margin-bottom: 5px; }
+        .ia-modal-content input, .ia-modal-content textarea {
+            width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .ia-modal-buttons { margin-top: 20px; text-align: right; }
+        .ia-modal-buttons button { padding: 10px 15px; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;}
+        .ia-modal-buttons .btn-generar { background-color: #007bff; color: white; }
+        .ia-modal-buttons .btn-cancelar { background-color: #6c757d; color: white; }
+
+
+/* --- Estilos para el Modal Visualizador --- */
+.visualizador-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+}
+
+.visualizador-modal {
+    position: relative;
+    /* ==================== INICIO DEL CAMBIO ==================== */
+    width: auto; /* Hacemos el ancho flexible */
+    height: 90%; /* La altura será el 90% de la ventana */
+    max-width: 90vw; /* No más ancho que el 90% de la ventana */
+    max-height: 85vh; /* No más alto que el 85% de la ventana */
+    aspect-ratio: 2 / 3; /* Proporción de libro (ancho / alto) */
+    /* ===================== FIN DEL CAMBIO ====================== */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.visualizador-contenido {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    box-sizing: border-box;
+    /* Estilos para la portada */
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #333;
+ 
+}
+.mnml {
+
+width: auto;
+height: auto;
+box-shadow: none;
+background-color: transparent !important;
+border: none !important;
+color: #000000 !important;
+margin-right: 10px;
+}
+.brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+#user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#user-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #ddd;
+}
+.portada-placeholder {
+    text-align: center;
+    color: #888;
+}
+
+.frame-texto {
+    font-size: 1.2em;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.frame-imagen {
+    margin-top: 20px;
+    max-height: 40%;
+}
+.frame-imagen img {
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+
+.visualizador-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 80px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s;
+}
+.visualizador-nav:hover {
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+/* ==================== INICIO DEL CAMBIO ==================== */
+.nav-izq { left: -60px; border-radius: 5px; } /* Ajustado para el nuevo layout */
+.nav-der { right: -60px; border-radius: 5px; } /* Ajustado para el nuevo layout */
+/* ===================== FIN DEL CAMBIO ====================== */
+
+
+.visualizador-contador {
+    position: absolute;
+    bottom: -30px; /* Posicionado debajo del libro */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+}
+
+.visualizador-cerrar {
+    position: absolute;
+    top: -15px; /* Posicionado encima del libro */
+    right: -15px; /* Posicionado encima del libro */
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    font-size: 25px;
+    color: black;
+    background-color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    text-shadow: none;
+}
+
+
+@font-face {
+  font-family: 'motriles'; /* Este será el nombre que usarás en tu CSS */
+  src: url('Semplicita.otf') format('otf') /* Reemplaza 'mi-fuente.woff2' con el nombre de tu archivo */
+    ;
+  font-weight: normal; /* O el peso de la fuente (bold, light, 400, 700, etc.) */
+  font-style: normal;  /* O el estilo de la fuente (italic, oblique) */
+  /* Puedes añadir también font-display: swap; para mejorar la carga */
+}
+
+
+/* Estilo para el contenedor oscuro que cubre la pantalla */
+.image-overlay {
+  display: none; /* Oculto por defecto */
+  position: fixed; /* Posición fija para cubrir toda la ventana */
+  z-index: 1000; /* Asegurarse de que esté por encima de todo */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0); /* Fondo negro semitransparente */
+  justify-content: center; /* Centrar horizontalmente */
+  align-items: center; /* Centrar verticalmente */
+}
+
+/* Clase para mostrar el overlay */
+.image-overlay.visible {
+  display: none; /* Cambiar a flex para centrar el contenido */
+}
+
+/* Estilo para la imagen ampliada */
+.enlarged-image-content {
+  max-width: 85%;
+  max-height: 85%;
+  object-fit: contain; /* Asegura que la imagen se vea completa sin deformarse */
+  border-radius: 5px;
+  animation: zoomIn 0.3s ease-in-out;
+}
+
+/* Botón para cerrar (opcional, pero recomendado) */
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.close-btn:hover {
+  color: #bbb;
+}
+
+/* Animación de zoom para la imagen */
+@keyframes zoomIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+
+  .aspect-9-16 { aspect-ratio: 9 / 16; }
+        #image-thumbnail-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 0.75rem; }
+        .thumbnail-img { width: 100%; height: 100px; object-fit: cover; border-radius: 0.375rem; border: 2px solid #4a5568; }

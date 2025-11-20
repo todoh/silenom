@@ -1,0 +1,495 @@
+/* Pega esto en tu archivo cartassilen.css */
+
+.modal-ia-carta-overlay {
+    position: fixed; /* Fija su posición en la pantalla */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo oscuro semitransparente */
+    display: flex; /* 'flex' para centrar el contenido */
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Asegura que esté por encima de todo */
+}
+
+/* Tus estilos para el contenido interno ya existen, 
+   pero puedes ajustar su ancho máximo aquí. */
+.modal-ia-carta-content {
+    background-color: #2a2a2a;
+    color: #e0e0e0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 550px; /* Un ancho máximo razonable */
+    position: relative; /* Para que el botón de cerrar funcione */
+    z-index: 10001; /* Por encima del overlay */
+}
+
+/* =================================== */
+/* INICIO DE LA MODIFICACIÓN DE SCROLL */
+/* =================================== */
+#cartasilen {
+    display: flex;
+    gap: 30px; /* Más espacio entre las columnas */
+    padding: 30px;
+    flex-grow: 1; /* Ocupa el espacio disponible */
+    box-sizing: border-box;
+    height: 100%; /* Asegura que ocupe toda la altura de la pantalla */
+    overflow: hidden; /* Evita que el contenedor principal scrollee */
+}
+
+#editor-cartas, #lista-cartas-creadas {
+    flex: 1;
+    background-color: #2a2a2a00; /* Fondo más claro que el body, pero oscuro */
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+}
+
+/* Aplicamos el scroll a la columna entera de la lista */
+#lista-cartas-creadas {
+    overflow-y: auto; /* <-- ESTA ES LA CLAVE: El scroll va a la columna */
+    /* Estilos de scrollbar movidos aquí */
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #555 #333; /* Firefox */
+    position: fixed;
+    right: 1%;
+    top: 14%;
+    bottom: 9%;
+    left: 50%;
+    display: flex;
+}
+
+#lista-cartas-creadas::-webkit-scrollbar {
+    width: 8px;
+}
+#lista-cartas-creadas::-webkit-scrollbar-track {
+    background: #333;
+    border-radius: 10px;
+}
+#lista-cartas-creadas::-webkit-scrollbar-thumb {
+    background-color: #555;
+    border-radius: 10px;
+    border: 2px solid #333;
+}
+/* ================================= */
+/* FIN DE LA MODIFICACIÓN DE SCROLL */
+/* ================================= */
+
+ 
+
+/* Lienzo de la Carta */
+#lienzo-carta { position: fixed;
+
+    top: 14%;
+    left: 1%;
+    right:50%;
+    bottom: 6%;
+
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Alineación superior */
+    min-height: 650px; /* Altura suficiente */
+    background-color: #22222200; /* Un poco más oscuro */
+    border-radius: 8px;
+    margin-bottom: 25px;
+    padding: 15px;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.carta-preview {
+    margin-top: 10%;
+    width: 350px; /* Ancho fijo para la previsualización de la carta */
+    border: 1px solid #444; /* Borde sutil */
+    border-radius: 10px;
+    overflow: hidden; /* Asegura que la imagen se ajuste */
+    background-color: #1a1a1a; /* Fondo oscuro de la carta */
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    color: #e0e0e0;
+    height: 550px;
+}
+
+/* Encabezado de la Carta (Negro con texto blanco) */
+.carta-header {
+    background-color: #000;
+    color: #fff;
+     
+ 
+    font-weight: bold;
+    font-size: 1.1em;
+    border-bottom: 1px solid #333; /* Separador sutil */
+    display: flex;position: relative;
+}
+
+.carta-header .header-top {
+    display: flex;
+    justify-content: space-between;
+  top: 5px;/* Más espacio */    position: absolute;
+left: 5px;
+}
+
+.carta-header .header-middle {
+    display: flex; /* Añadido para centrar */
+    justify-content: center; /* Añadido para centrar */
+    margin-bottom: 16px; /* Más espacio */
+   top: 5px;/* Más espacio */    position: absolute;
+right: 5px;
+}
+
+.carta-header .header-bottom {
+    position: absolute;
+    top:36px; left: 5px;
+    margin-top: 5px; /* Mantenido */
+    height: 16px;
+    width: 350px;
+    display: flex;
+  
+}
+
+.carta-header input[type="number"],
+.carta-header input[type="text"],
+.carta-header select {
+    background-color: rgba(71, 71, 71, 0.1); /* Fondo semitransparente */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    padding: 6px 10px; /* Aumentado el padding */
+    border-radius: 5px;
+    font-size: 0.95em; /* Ligeramente más grande */
+    text-align: center;
+    width: auto;
+    box-sizing: border-box; /* Añadido para padding correcto */
+    max-width: 80px; /* Para coste/poder */
+}
+.carta-header input[type="text"] {
+   right: 0%;
+  width: 338px;
+    left: 0%;
+    max-width: none;
+    text-align: left;
+}
+.carta-header select {
+    width: 176px;
+  max-width: none;
+}
+
+
+/* Sección de la Imagen */
+.imagen-carta {
+    height: 340px; /* Aproximadamente la mitad de la carta si el texto ocupa otra parte */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: top;
+    align-items: center;
+    background-color: #000; /* Fondo negro para la imagen */
+    position: relative;
+    top: 75px;
+    border-bottom: 1px solid #333;
+}
+
+#preview-imagen-carta {
+    position: relative;
+    width: 100%;
+    height: 100%;
+     
+    object-fit: cover; /* La imagen cubre todo el espacio */
+    display: flex;
+}
+
+.image-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Fondo semi-transparente para los controles */
+    padding: 5px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    transition: opacity 0.3s ease;
+    opacity: 0; /* Oculto por defecto */
+}
+
+.imagen-carta:hover .image-controls {
+    opacity: 1; /* Mostrar al pasar el ratón */
+}
+
+.custom-file-upload {
+    background-color: #555;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s;
+}
+.custom-file-upload:hover {
+    background-color: #777;
+}
+
+#input-imagen-carta {
+    display: none; /* Ocultamos el input original */
+}
+
+.btn-ia-small, .btn-export-small {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: background-color 0.2s;
+}
+.btn-ia-small:hover { background-color: #0056b3; }
+.btn-export-small { background-color: #28a745; }
+.btn-export-small:hover { background-color: #218838; }
+
+
+/* Sección de Texto */
+.texto-carta {
+    width: 350px;
+  height: 450px;
+  position: relative;
+  top:  80px;  
+  
+  display: flex; /* Ocupa el espacio restante */
+}
+
+.texto-carta textarea {
+    width: 350px;
+    height: 450px; /* Altura mínima para el texto */
+    background-color: #222;
+    border: 1px solid #444;
+    border-radius: 5px;
+ 
+    color: #ffffff;
+    resize: none;
+    font-size: 0.95em;
+    line-height: 1.4;
+    position: absolute;
+    
+display: flex;
+}
+.texto-carta textarea:focus {
+    outline: none;
+    border-color: #69000071;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+
+
+/* Controles del Editor (Botones) */
+#controles-editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-items: center; /* INICIO MODIFICACIÓN: Alinear verticalmente */
+    margin-top: auto; /* Empuja los botones hacia abajo */
+    padding-top: 20px;
+    border-top: 1px solid #333;
+}
+
+.btn-control {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    color: white;
+    transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    background-color: #555; /* Color por defecto */
+}
+
+.btn-control:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.btn-save { background-color: #28a745; } /* Verde para guardar */
+.btn-save:hover { background-color: #218838; }
+
+.btn-export { background-color: #ffc107; color: #333; } /* Amarillo para exportar */
+.btn-export:hover { background-color: #e0a800; }
+
+.btn-ia { background-color: #6f42c1; } /* Morado para IA */
+.btn-ia:hover { background-color: #5a2e9b; }
+
+.btn-control:disabled {
+    background-color: #444;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    color: #999;
+}
+
+
+/* Lista de Cartas Creadas */
+#contenedor-cartas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Miniaturas un poco más pequeñas */
+    gap: 15px;
+    padding-right: 10px;
+}
+
+
+/* INICIO DE LA MODIFICACIÓN: Añadido 'position: relative' */
+.carta-miniatura {
+    background-color: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 150px;
+    position: relative; /* <-- AÑADIDO PARA POSICIONAR EL BOTÓN DE BORRAR */
+}
+/* FIN DE LA MODIFICACIÓN */
+
+.carta-miniatura:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+    border-color: #007bff;
+}
+
+.carta-miniatura img {
+    max-width: 100%;
+    height: 90px; /* Altura fija para miniaturas */
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    border: 1px solid #333;
+}
+
+.carta-miniatura .nombre {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: #f0f0f0;
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+.carta-miniatura small {
+    font-size: 0.75em;
+    color: #bbb;
+}
+
+/* Modal de IA - Ajustes para el nuevo diseño */
+.modal-ia-carta-content {
+    background-color: #ffffffda; /* Fondo del modal acorde al resto */
+    color: #000000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.modal-ia-carta-content h3 {
+    color: #000000;
+}
+
+.modal-ia-carta-form label {
+    color: #000000;
+}
+
+.modal-ia-carta-form select,
+.modal-ia-carta-form textarea {
+    background-color: #bebebe;
+    border-color: #444;
+    color: #000000;
+}
+.modal-ia-carta-form select:focus,
+.modal-ia-carta-form textarea:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+}
+
+#ia-carta-btn-generar {
+    background: linear-gradient(45deg, #007bff 0%, #0056b3 100%); /* Degradado más sutil */
+    color: white;
+}
+#ia-carta-btn-generar:hover {
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+#ia-carta-btn-generar:disabled {
+    background: #444;
+    color: #000000;
+}
+
+.status-indicator {
+    color: #88d0ff; /* Un azul más claro */
+}
+
+/* Media Queries para Responsividad */
+/* =================================== */
+/* INICIO DE LA MODIFICACIÓN DE CSS */
+/* =================================== */
+ 
+/* ================================= */
+/* FIN DE LA MODIFICACIÓN DE CSS */
+/* ================================= */
+ 
+/* INICIO DE LA MODIFICACIÓN: Estilos para el notificador de generación */
+.generacion-status-notificacion {
+    display: inline-block;
+    margin-left: 15px;
+    padding: 10px 15px;
+    background-color: #6f42c1; /* Color morado de IA */
+    color: white;
+    border-radius: 8px;
+    font-size: 0.9em;
+    font-weight: bold;
+    animation: pulse-ia 2s infinite;
+    transition: all 0.3s ease;
+}
+
+@keyframes pulse-ia {
+    0% {
+        box-shadow: 0 0 0 0 rgba(111, 66, 193, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(111, 66, 193, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(111, 66, 193, 0);
+    }
+}
+/* FIN DE LA MODIFICACIÓN */
+
+/* INICIO DE LA MODIFICACIÓN: Estilos para el botón de eliminar en miniatura */
+.btn-eliminar-miniatura {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 28px;
+    height: 28px;
+    background-color: rgba(255, 255, 255, 0); /* Rojo oscuro translúcido */
+    color: white;
+    border: none;
+    border-radius: 50%; /* Circular */
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0;
+    z-index: 5;
+    transition: background-color 0.2s, transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+}
+
+.btn-eliminar-miniatura:hover {
+    background-color: rgba(220, 53, 69, 1); /* Rojo sólido */
+    transform: scale(1.1);
+}
+/* FIN DE LA MODIFICACIÓN */

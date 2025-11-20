@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chat HTML5 con Gemini / Gemma (clave en textbox)</title>
+  <style>
+    :root {
+      --bg: #0b0f14; --card:#121820; --muted:#9fb1c1; --text:#e6eef6; --accent:#3aa6ff;
+      --border:#1f2a36; --danger:#ff5577; --ok:#2ecc71;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:16px; border-bottom:1px solid var(--border); background:linear-gradient(180deg, rgba(58,166,255,.09), transparent); }
+    h1 { margin:0; font-size:18px; letter-spacing:.2px; }
+    main { display:grid; grid-template-columns: 320px 1fr; gap:16px; padding:16px; }
+    @media (max-width: 860px){ main{ grid-template-columns: 1fr; } }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; }
+    .panel { padding:16px; }
+    label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    input, select, textarea { width:100%; background:#0e141b; color:var(--text); border:1px solid var(--border); border-radius:12px; padding:10px 12px; outline:none; }
+    input:focus, select:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(58,166,255,.15); }
+    textarea { min-height:80px; resize:vertical; }
+    .row { display:flex; gap:8px; align-items:center; }
+    .row > * { flex:1; }
+    .btn { cursor:pointer; border:none; border-radius:12px; padding:10px 14px; background:var(--accent); color:#00121f; font-weight:600; }
+    .btn.secondary{ background:#0e141b; color:var(--text); border:1px solid var(--border); }
+    .btn.danger{ background:var(--danger); color:white; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+    .log { padding:12px 16px; max-height:60vh; overflow:auto; display:flex; flex-direction:column; gap:12px; }
+    .bubble { padding:12px 14px; border:1px solid var(--border); border-radius:14px; white-space:pre-wrap; line-height:1.45; }
+    .bubble.user { background:#0f1520; }
+    .bubble.model { background:#0e1912; border-color:#143b24; }
+    .meta { font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .footer { display:flex; gap:8px; padding:12px; border-top:1px solid var(--border); }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12px; background:#0e141b; border:1px solid var(--border); padding:2px 6px; border-radius:6px; color:var(--muted); }
+    .hint{ font-size:12px; color:var(--muted); }
+    .small{ font-size:12px; }
+    .success{ color: var(--ok); }
+    .err{ color: var(--danger); }
+    .spacer{ height:8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Chat HTML5 → Gemini / Gemma (API de Google)</h1>
+    <div class="hint">Introduce tu API Key y elige el modelo. Todo corre 100% en el navegador.</div>
+  </header>
+
+  <main>
+    <!-- Lateral de configuración -->
+    <section class="card panel" aria-label="Configuración">
+      <div class="spacer"></div>
+      <label for="apiKey">API Key de Google (no se guarda)</label>
+      <input id="apiKey" type="password" placeholder="AIza..." autocomplete="off" />
+      <div class="small hint">⚠️ Usar una API key en el navegador la expone al cliente. Úsalo solo para pruebas.</div>
+
+      <div class="spacer"></div>
+      <label for="model">Modelo</label>
+      <select id="model">
+        <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+        <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+        <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+        <option value="gemma-2-9b-it">gemma-2-9b-it</option>
+        <option value="gemma-2-27b-it">gemma-2-27b-it</option>
+        <option value="text-multilingual-beta">text-multilingual-beta</option>
+      </select>
+
+      <div class="spacer"></div>
+      <label for="system">Instrucciones del sistema (opcional)</label>
+      <textarea id="system" placeholder="Define el comportamiento del asistente..."></textarea>
+
+      <div class="spacer"></div>
+      <div class="row">
+        <div>
+          <label for="temperature">Temperature</label>
+          <input id="temperature" type="number" step="0.1" min="0" max="2" value="0.7" />
+        </div>
+        <div>
+          <label for="maxOutputTokens">Máx. tokens salida</label>
+          <input id="maxOutputTokens" type="number" step="1" min="128" max="8192" value="2048" />
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+      <button class="btn secondary" id="clear">Limpiar chat</button>
+    </section>
+
+    <!-- Área de chat -->
+    <section class="card" aria-label="Chat">
+      <div id="log" class="log" aria-live="polite"></div>
+      <div class="footer">
+        <textarea id="prompt" placeholder="Escribe tu mensaje y pulsa Enviar..."></textarea>
+        <button class="btn" id="send">Enviar</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Estado de la conversación en formato Gemini API
+    const state = {
+      contents: [], // cada elemento: { role: 'user'|'model', parts:[{text:string}] }
+    };
+
+    const el = (id)=>document.getElementById(id);
+    const logEl = el('log');
+
+    function addBubble(role, text){
+      const wrap = document.createElement('div');
+      const meta = document.createElement('div');
+      const bubble = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = role === 'user' ? 'Tú' : 'Modelo';
+      bubble.className = 'bubble ' + (role === 'user' ? 'user' : 'model');
+      bubble.textContent = text;
+      wrap.appendChild(meta); wrap.appendChild(bubble);
+      logEl.appendChild(wrap);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function addSystemNote(msg, kind='hint'){
+      const d = document.createElement('div');
+      d.className = 'small ' + (kind==='error'?'err':(kind==='ok'?'success':'hint'));
+      d.textContent = msg;
+      logEl.appendChild(d);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    async function callGemini({apiKey, model, contents, generationConfig}){
+      if(!apiKey) throw new Error('Falta API Key.');
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const body = { contents, generationConfig };
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if(!res.ok){
+        const text = await res.text();
+        throw new Error(`HTTP ${res.status}: ${text}`);
+      }
+      const data = await res.json();
+      const out = data?.candidates?.[0]?.content?.parts?.map(p=>p.text).join('\n') || data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      return out;
+    }
+
+    // Persistencia efímera en sessionStorage (no guarda la API key)
+    function saveSession(){
+      const toSave = JSON.stringify({
+        model: el('model').value,
+        system: el('system').value,
+        temperature: el('temperature').value,
+        maxOutputTokens: el('maxOutputTokens').value,
+        contents: state.contents,
+      });
+      sessionStorage.setItem('gemini_chat', toSave);
+    }
+
+    function loadSession(){
+      try{
+        const raw = sessionStorage.getItem('gemini_chat');
+        if(!raw) return;
+        const d = JSON.parse(raw);
+        el('model').value = d.model || 'gemini-2.0-flash';
+        el('system').value = d.system || '';
+        el('temperature').value = d.temperature || 0.7;
+        el('maxOutputTokens').value = d.maxOutputTokens || 2048;
+        state.contents = Array.isArray(d.contents) ? d.contents : [];
+        // Repintar
+        logEl.innerHTML = '';
+        if(d.system){ addSystemNote('System: ' + d.system); }
+        for(const turn of state.contents){ addBubble(turn.role, turn.parts?.map(p=>p.text).join('\n') || ''); }
+      }catch(err){ console.warn(err); }
+    }
+
+    // Envío de mensaje
+    async function onSend(){
+      const apiKey = el('apiKey').value.trim();
+      const model = el('model').value.trim();
+      const temperature = Number(el('temperature').value);
+      const maxOutputTokens = Number(el('maxOutputTokens').value);
+      const prompt = el('prompt').value.trim();
+      const system = el('system').value.trim();
+
+      if(!prompt) return;
+
+      // Actualiza UI
+      el('send').disabled = true;
+      addBubble('user', prompt);
+      state.contents.push({ role:'user', parts:[{text: prompt}] });
+
+      // Inyecta system como primer mensaje (si existe) solo una vez
+      let contents = [...state.contents];
+      if(system && !contents.some(x=>x.role==='system')){
+        contents = [{ role:'system', parts:[{text: system}] }, ...contents];
+      }
+
+      try{
+        const text = await callGemini({
+          apiKey,
+          model,
+          contents,
+          generationConfig: { temperature, maxOutputTokens }
+        });
+        state.contents.push({ role:'model', parts:[{text}] });
+        addBubble('model', text);
+        el('prompt').value = '';
+        saveSession();
+      }catch(err){
+        console.error(err);
+        addSystemNote(err.message, 'error');
+      }finally{
+        el('send').disabled = false;
+      }
+    }
+
+    // Limpiar conversación
+    function onClear(){
+      state.contents = [];
+      logEl.innerHTML = '';
+      if(el('system').value){ addSystemNote('System: ' + el('system').value); }
+      saveSession();
+    }
+
+    // Wire-up
+    el('send').addEventListener('click', onSend);
+    el('prompt').addEventListener('keydown', (e)=>{ if(e.key==='Enter' && (e.ctrlKey||e.metaKey)){ onSend(); }});
+    el('clear').addEventListener('click', onClear);
+    ['model','system','temperature','maxOutputTokens'].forEach(id=> el(id).addEventListener('change', saveSession));
+
+    loadSession();
+  </script>
+</body>
+</html>

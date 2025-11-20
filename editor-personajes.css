@@ -1,281 +1,409 @@
-/* editor-personajes.css */
+/* =================================================================== */
+/* === editor-personajes.css - VERSIÓN FINAL Y DEPURADA ================ */
+/* =================================================================== */
+ /* ... (Dentro de tu <style> tag en <head>) ... */
 
-/* --- Contenedor principal para la lista de datos --- */
-#listapersonajes {
-    display: grid;
-    /* Columnas responsivas: se ajustan al ancho, con un mínimo de 180px */
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-    grid-auto-rows: auto;
-    gap: 50px 25px; /* Aumentado el espacio vertical para el nombre */
-    padding: 25px;
-    padding-bottom: 9%;
-    height: 100%;
-    overflow-y: auto;
-    box-sizing: border-box;
-    width: 100%; /* Asegura que la cuadrícula ocupe todo el ancho */
-}
-
-/* --- Contenedor base para cada tarjeta de dato/personaje --- */
-.personaje {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    /* La tarjeta ahora es perfectamente cuadrada */
-    aspect-ratio: 1 / 1; 
-    background-color: transparent;
-    border: none;
-    user-select: none;
-}
-
-/* --- El cuadrado blanco principal que contiene la imagen o la descripción --- */
-.personaje-visual {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background-color: #ffffff;
-    border-radius: 15px;
-    cursor: pointer;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0; /* Eliminamos el padding para que la imagen ocupe todo */
-    box-sizing: border-box;
-}
-
-.personaje-visual:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.dark-theme .personaje-visual {
-    background-color: #2c2c2c;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-/* --- La imagen dentro del cuadrado visual --- */
-/* --- La imagen dentro del cuadrado visual --- */
-.personaje-visual img {
-    /* REGLAS CORREGIDAS PARA LA SOLUCIÓN */
-  
-    width: 100%; /* Asegura que la imagen ocupe todo el ancho del cuadrado */
-    height: 100%; /* Asegura que la imagen ocupe todo el alto del cuadrado */
-    object-fit: cover; 
-    /* 'cover' asegura que la imagen rellene el espacio, conservando la proporción y recortando el exceso. */
- /* Cambiado a max-content para que la imagen no se recorte */
-    
-    /* El resto de tus estilos están correctos */
+/* ESTILOS A AÑADIR PARA EL BOTÓN DE ELIMINAR */
+.carpeta-delete-btn {
     position: absolute;
-    top: 0; right: 0;
-    left: 0; bottom: 0;
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    z-index: 2;
-    padding: 0; 
-   
-}
-
-
-.personaje-visual img[src=""], .personaje-visual img.hidden {
-    opacity: 0;
-    pointer-events: none;
-}
-
-/* --- Vista previa de la descripción (cuando no hay imagen) --- */
-.personaje-descripcion-preview {
-    font-size: 0.9em;
-    color: #555;
-    text-align: center;
-    overflow: hidden;
-    z-index: 1;
-    padding: 10px; /* Le damos padding al texto en su lugar */
-}
-
-.dark-theme .personaje-descripcion-preview {
-    color: #bbb;
-}
-
-/* --- El nombre del personaje debajo de la tarjeta --- */
-.nombreh {
-    position: absolute;
-    bottom: -40px; /* Ajustado para estar debajo del cuadrado */
-    width: 100%;
-    padding: 8px 5px;
-    background-color: rgba(0, 0, 0, 0);
-    color: rgb(0, 0, 0);
-    border: none;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 1em;
-    font-weight: 500;
-    box-sizing: border-box;
-    outline: none;
-}
-
-.dark-theme .nombreh {
-    background-color: #1e1e1e00;
-    color: #e0e0e0;
-}
-
-/* ========================================= */
-/* --- MODO DE EDICIÓN Y SUS CONTROLES --- */
-/* ========================================= */
-
-/* --- ESTADO BASE DEL OVERLAY (OCULTO) --- */
-.personaje-edit-overlay {
-  
-  /* Posicionamiento y centrado */
-  position: fixed;
-  top: 50%; /* 50% de la altura del viewport */
-  left: 50%; /* 50% del ancho del viewport */
-  
-  /* El truco para el centrado perfecto:
-     Mueve el elemento hacia arriba un 50% de SU PROPIA altura
-     y hacia la izquierda un 50% de SU PROPIO ancho. */
-  transform: translate(-50%, -50%) scale(0.9);
-
-  /* Dimensiones y Estilos */
-  width: 80dvw;
- height: 80dvh;
-  background-color: rgba(0, 0, 0, 0);
-  backdrop-filter: blur(4px);
-  border-radius: 15px;
-  z-index: 10;
-  
-  /* Contenido interno centrado (si lo tienes) */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  /* Estado inicial para la transición */
-  opacity: 0;
-  pointer-events: none;
-  
-  /* Transición suave para las propiedades que cambian */
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-/* --- ESTADO ACTIVO (VISIBLE) CUANDO SE AÑADE LA CLASE 'editing' --- */
-.personaje.editing .personaje-edit-overlay {
-  opacity: 1;
-  pointer-events: auto;
-  
-  /* Mantenemos el 'translate' y cambiamos solo el 'scale' */
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.edit-controls {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    gap: 0px;
-    transform: scale(0.8) translateY(20px);
-    opacity: 0;
-    transition: opacity 0.25s ease 0.1s, transform 0.25s ease 0.1s;
-}
-
-.personaje.editing .edit-controls {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-}
-
-.edit-controls textarea {
-    width: 100%;
-    flex-grow: 1;
-    background-color: rgba(255, 255, 255, 0.9);
-    color: #333;
-    border: 0px solid #ccc;
-    border-radius: 8px;
-    padding: 0px;
-    box-sizing: border-box;
-    resize: none;
-    padding: 4%;   font-size: x-large;
-}
-
-.dark-theme .edit-controls textarea {
-    background-color: #3a3a3aea;
- 
-    color: #e0e0e0;
-    border-color: #555;
-}
-
-.edit-buttons-wrapper {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-shrink: 0;
-}
-
-.edit-btn {
-    width: 45px;
-    height: 45px;
+    top: 0;
+    right: 0;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 2px solid white;
-    background-color: rgba(255, 255, 255, 0.2);
+    background: #e74c3c; /* Color rojo para eliminar */
     color: white;
-    font-size: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    line-height: 22px; /* Centra la 'X' */
+    text-align: center;
+    transform: translate(40%, -40%); /* Lo saca a la esquina */
+    z-index: 3; /* Encima del título */
+    display: none; /* Oculto por defecto */
     transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.edit-btn:hover {
-    transform: scale(1.15);
-    background-color: rgba(0, 123, 255, 0.8);
+/* El botón emerge cuando pasas el ratón sobre la carpeta */
+.dato-carpeta:hover .carpeta-delete-btn {
+    display: block;
 }
 
-/* Estilo específico para el botón de eliminar */
-.edit-btn.delete-btn:hover {
-    background-color: #E53935; /* Rojo al pasar el ratón */
+.carpeta-delete-btn:hover {
+    background: #c0392b; /* Rojo más oscuro */
+    transform: translate(40%, -40%) scale(1.1);
+}
+    .dato-carpeta {
+        position: absolute;
+        background: rgba(145, 168, 209, 0.05); /* Un fondo sutil */
+        border: 2px solid rgba(145, 168, 209, 0.4); /* Borde claro */
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
+        z-index: 1; /* Por defecto, detrás de los stickers */
+        min-width: 220px; /* Tamaño mínimo de carpeta vacía */
+        min-height: 180px; /* Tamaño mínimo de carpeta vacía */
+        padding: 35px 20px 20px 20px; /* Espacio para el título y contenido */
+        box-sizing: border-box;
+    }
+    .dato-carpeta.dragging {
+        z-index: 1001; /* Encima de los stickers al arrastrar la carpeta */
+        opacity: 0.8;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .dato-carpeta.drag-over { /* Al arrastrar un sticker sobre ella */
+        background: rgba(0, 150, 255, 0.1);
+        border-color: rgba(0, 150, 255, 0.8);
+    }
+    .carpeta-titulo {
+        position: absolute;
+        top: -2px; /* Se sitúa sobre el borde superior */
+        left: 15px;
+        background: #fdfdfd;
+        border: 2px solid rgba(145, 168, 209, 0.4);
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-weight: bold;
+        color: #333;
+        cursor: move; /* El título es el asa para arrastrar */
+        font-size: 14px;
+        white-space: nowrap;
+        transform: translateY(-50%); /* La centra verticalmente en el borde */
+        z-index: 2;
+    }
+    .carpeta-titulo-edit {
+        padding: 4px 10px;
+        font-size: 14px;
+        border: 1px solid #007bff;
+        outline: none;
+        z-index: 3;
+    }
+    .personaje-sticker {
+        z-index: 10; /* Los stickers se renderizan encima de las carpetas */
+    }
+    .personaje-sticker.dragging {
+        z-index: 1002; /* El sticker arrastrado está encima de todo */
+    }
+ 
+/* --- 1. VIEWPORT Y LIENZO DE FONDO --- */
+#personajes {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: grab;
+ 
+}
+#personajes:active {
+    cursor: grabbing;
 }
 
-/* ========================================= */
-/* --- MENÚ DE SELECCIÓN DE ETIQUETAS --- */
-/* ========================================= */
-
-.menu-etiquetas {
+#lienzo-visual {
     position: absolute;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    z-index: 10000;
+    width: 16000px;
+    height: 16000px;
+    transform-origin: 0 0;
+    background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.1) 1px, transparent 0);
+    background-size: 25px 25px;
+    z-index: 1; overflow: hidden;
+  
+}
+
+/* El contenedor de datos pesados está oculto, no necesita estilos visuales */
+#listapersonajes {
+    display: none;
+    overflow: hidden;
+}
+
+
+/* --- 2. STICKERS (ELEMENTOS VISUALES EN EL LIENZO) --- */
+.personaje-sticker {
+    position: absolute;
+    width: 150px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    padding: 5px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-    padding: 5px;
+    align-items: center;
+    background-color: rgba(240, 240, 240, 0.13);
+    border: 0px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: grab;
+    transition: box-shadow 0.2s ease;
+}
+.personaje-sticker.dragging {
+    cursor: grabbing;
+    z-index: 100;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
-.dark-theme .menu-etiquetas {
-    background-color: #3a3a3a;
-    border-color: #555;
+.sticker-img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    border-radius: 4px;
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
-.item-menu-etiqueta {
-    padding: 8px 12px;
-    cursor: pointer;
-    color: #333;
-    border-radius: 5px;
+/* --- NUEVO ESTILO --- */
+/* Estilo para el input cuando se está editando el nombre */
+.sticker-nombre-edit {
+    font-family: inherit; /* Usa la misma fuente que el resto de la app */
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    background-color: #ffffff;
+    text-align: center;
+    width: 95%; /* Un poco menos del 100% para que se vea el borde */
+    border: 1px solid #007bff; /* Un borde azul para indicar que es editable */
+    border-radius: 4px;
+    padding: 3px;
+    margin: 1px 0;
+    box-sizing: border-box; /* Muy importante para que no cambie el tamaño del sticker */
+    height: 25px;
+}
+.sticker-nombre-edit:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+.sticker-nombre {
+    font-size: 14px;
+    font-weight: bold;
+    background-color: black;
+    color: #ffffff;
+    padding: 5px 0;
+    text-align: center;
+    width: 100%;
+    user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sticker-edit-btn {
+    position: absolute;
+    bottom: 47%;
+    right: 2%;
+    opacity: 0; 
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
     font-size: 16px;
+     
+    line-height: 30px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
+}
+
+
+
+.personaje-sticker .personaje-visual {
+    /* ... otros estilos que ya tengas ... */
+
+    /* --- AÑADE ESTAS LÍNEAS --- */
+    background-size: cover;          /* Hace que el fondo cubra todo el espacio disponible. */
+    background-position: center;     /* Centra el fondo por si acaso. */
+    background-repeat: no-repeat;    /* Evita que el fondo se repita. */
+}
+
+.personaje-sticker:hover .sticker-edit-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+
+
+/* =================================================================== */
+/* --- 3. LÓGICA DEL MODAL DE EDICIÓN (CÓDIGO UNIFICADO Y CORREGIDO) --- */
+/* =================================================================== */
+
+/* El fondo oscuro que cubre toda la pantalla */
+.modal-background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 9999;
+    backdrop-filter: blur(4px);
+}
+ 
+/* El contenedor .personaje, cuando se convierte en el modal */
+.personaje.editing-in-modal {
+    position: absolute ; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    
+    width: 70vw;
+     
+    height: 70vh;
+  
+
+    background-color: #ffffff15;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+/* --- Control de visibilidad del contenido DENTRO del modal --- */
+
+/* Cuando está en modo modal, ocultamos la vista previa y los botones externos */
+.personaje.editing-in-modal .personaje-visual,
+.personaje.editing-in-modal > .change-tag-btn,
+.personaje.editing-in-modal > .change-arc-btn,
+.personaje.editing-in-modal > .nombreh {
+    display: none;
+}
+
+/* Por defecto, el panel de edición está oculto */
+.personaje .personaje-edit-overlay {
+    display: none;
+}
+
+/* Y MOSTRAMOS el panel de edición SÓLO cuando el padre tiene la clase de modal */
+.personaje.editing-in-modal .personaje-edit-overlay {
+    display: flex; /* <-- La clave es mostrarlo aquí */
+    flex-direction: column;
+    flex-grow: 1;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    
+    /* Reseteamos cualquier estilo de posicionamiento antiguo que pudiera interferir */
+    position: static; 
+    opacity: 1;
+    pointer-events: auto;
+    transform: none;
+}
+
+
+/* --- Estilos de los elementos INTERNOS del panel de edición --- */
+.edit-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    height: 100%;
+    min-height: 500px; /* Asegura una altura mínima para ver el contenido */
+}
+
+.edit-preview-container {
+    flex: 1 1 50%;
     display: flex;
     align-items: center;
-    gap: 8px;
-}
-
-.dark-theme .item-menu-etiqueta {
-    color: #e0e0e0;
-}
-
-.item-menu-etiqueta:hover {
+    justify-content: center;
     background-color: #f0f0f0;
+    border-radius: 8px;
+    min-height: 250px;
+}
+.edit-preview-image, .edit-svg-preview, .edit-3d-canvas {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+/* La imagen se muestra por defecto, el resto se gestiona por JS */
+.edit-preview-image { display: block; }
+.edit-svg-preview, .edit-3d-canvas { display: none; }
+
+
+.edit-text-controls {
+    flex: 1 1 50%; overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.descripcionh, .prompt-visualh {
+    width: 100%;
+    background-color: #f7f7f7;
+    color: #333;
+    
+    border-radius: 8px;
+    padding: 10px;
+    box-sizing: border-box;
+    resize: none;
+    font-size: 1em;
+}
+.descripcionh { flex-grow: 1; }
+.prompt-visualh { height: 40%; }
+.edit-buttons-wrapper { overflow: none; display: flex; justify-content: center; gap: 10px; margin-top: auto; }
+.edit-btn {
+  
+    border-radius: 50%;
+    border: none;
+ 
+    color: #333;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.edit-btn:hover { background-color: #007bff; color: white; }
+.edit-btn.delete-btn:hover { background-color: #dc3545; }
+
+/* Menús emergentes (sin cambios) */
+.menu-etiquetas { position: absolute; background-color: #fff; border: 1px solid #ccc; border-radius: 8px; z-index: 10001; box-shadow: 0 4px 15px rgba(0,0,0,0.15); padding: 5px; max-height: 250px; overflow-y: auto; }
+.item-menu-etiqueta { padding: 8px 12px; cursor: pointer; color: #333; border-radius: 5px; font-size: 16px; }
+.item-menu-etiqueta:hover { background-color: #f0f0f0; }
+
+
+
+/* =================================================================== */
+/* --- 4. EDICIÓN RÁPIDA DE ETIQUETA Y ARCO EN STICKERS (HOVER) --- */
+/* =================================================================== */
+
+/* 1. Estilo y posición base para los botones dentro de un sticker */
+.personaje-sticker .change-tag-btn,
+.personaje-sticker .change-arc-btn {
+    position: absolute;
+    bottom: 5px;
+    opacity: 0; /* Ocultos por defecto */
+    pointer-events: none;
+    transform: scale(0.8);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    
+    /* Estilos visuales para que se vean bien */
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    line-height: 30px;
+    padding: 0;
+    text-align: center;
+    cursor: pointer;
+    z-index: 10;
 }
 
-.dark-theme .item-menu-etiqueta:hover {
-    background-color: #555;
+/* 2. Posicionamos cada botón en su esquina */
+.personaje-sticker .change-arc-btn {
+    right: 5px;
+}
+/* Movemos el de etiqueta para que no se solape con el de editar */
+.personaje-sticker .change-tag-btn {
+    left: 5px; 
+}
+
+
+/* 3. Al pasar el ratón sobre el STICKER, hacemos visibles los botones */
+.personaje-sticker:hover .change-tag-btn,
+.personaje-sticker:hover .change-arc-btn {
+    opacity: 1;
+    pointer-events: auto;
+    transform: scale(1);
 }
